@@ -1,0 +1,1334 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_debug_frmwrk.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.UARTPutChar,"ax",%progbits
+  16              	 .align 1
+  17              	 .global UARTPutChar
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	UARTPutChar:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_debug_frmwrk.c"
+   1:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+   3:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * $Id$		debug_frmwrk.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * @file		debug_frmwrk.c
+   7:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * @brief	Contains some utilities that used for debugging through UART
+   8:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * @version	2.0
+   9:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * @date		21. May. 2010
+  10:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** *
+  12:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * Copyright(C) 2010, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** *
+  15:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  28:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #include "debug_frmwrk.h"
+  29:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #include "lpc17xx_pinsel.h"
+  30:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  31:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  32:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  33:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * otherwise the default FW library configuration file must be included instead
+  34:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  */
+  35:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  36:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #include "lpc17xx_libcfg.h"
+  37:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #else
+  38:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #include "lpc17xx_libcfg_default.h"
+  39:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  40:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  41:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #ifdef _DBGFWK
+  42:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /* Debug framework */
+  43:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  44:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_msg)(LPC_UART_TypeDef *UARTx, const void *s);
+  45:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_msg_)(LPC_UART_TypeDef *UARTx, const void *s);
+  46:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_char)(LPC_UART_TypeDef *UARTx, uint8_t ch);
+  47:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_dec)(LPC_UART_TypeDef *UARTx, uint8_t decn);
+  48:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_dec_16)(LPC_UART_TypeDef *UARTx, uint16_t decn);
+  49:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_dec_32)(LPC_UART_TypeDef *UARTx, uint32_t decn);
+  50:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_hex)(LPC_UART_TypeDef *UARTx, uint8_t hexn);
+  51:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_hex_16)(LPC_UART_TypeDef *UARTx, uint16_t hexn);
+  52:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void (*_db_hex_32)(LPC_UART_TypeDef *UARTx, uint32_t hexn);
+  53:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** uint8_t (*_db_get_char)(LPC_UART_TypeDef *UARTx);
+  54:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  55:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  56:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+  57:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a character to UART port
+  58:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+  59:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	ch		Character to put
+  60:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+  61:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+  62:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutChar (LPC_UART_TypeDef *UARTx, uint8_t ch)
+  63:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+  26              	 .loc 1 63 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  64:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Send(UARTx, &ch, 1, BLOCKING);
+  31              	 .loc 1 64 0
+  32 0000 0123     	 movs r3,#1
+  63:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Send(UARTx, &ch, 1, BLOCKING);
+  33              	 .loc 1 63 0
+  34 0002 13B5     	 push {r0,r1,r4,lr}
+  35              	 .cfi_def_cfa_offset 16
+  36              	 .cfi_offset 4,-8
+  37              	 .cfi_offset 14,-4
+  63:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Send(UARTx, &ch, 1, BLOCKING);
+  38              	 .loc 1 63 0
+  39 0004 02AC     	 add r4,sp,#8
+  40 0006 04F8011D 	 strb r1,[r4,#-1]!
+  41              	 .loc 1 64 0
+  42 000a 2146     	 mov r1,r4
+  43              	.LVL1:
+  44 000c 1A46     	 mov r2,r3
+  45 000e 024C     	 ldr r4,.L2
+  46 0010 A047     	 blx r4
+  47              	.LVL2:
+  65:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+  48              	 .loc 1 65 0
+  49 0012 02B0     	 add sp,sp,#8
+  50              	 .cfi_def_cfa_offset 8
+  51              	 
+  52 0014 10BD     	 pop {r4,pc}
+  53              	.L3:
+  54 0016 00BF     	 .align 2
+  55              	.L2:
+  56 0018 00000000 	 .word UART_Send
+  57              	 .cfi_endproc
+  58              	.LFE55:
+  60              	 .section .text.UARTPuts,"ax",%progbits
+  61              	 .align 1
+  62              	 .global UARTPuts
+  63              	 .syntax unified
+  64              	 .thumb
+  65              	 .thumb_func
+  66              	 .fpu softvfp
+  68              	UARTPuts:
+  69              	.LFB57:
+  66:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  67:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  68:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+  69:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Get a character to UART port
+  70:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+  71:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		character value that returned
+  72:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+  73:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** uint8_t UARTGetChar (LPC_UART_TypeDef *UARTx)
+  74:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+  75:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t tmp = 0;
+  76:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Receive(UARTx, &tmp, 1, BLOCKING);
+  77:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	return(tmp);
+  78:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+  79:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  80:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  81:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+  82:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a string to UART port
+  83:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx 	Pointer to UART peripheral
+  84:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	str 	string to put
+  85:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+  86:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+  87:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPuts(LPC_UART_TypeDef *UARTx, const void *str)
+  88:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+  70              	 .loc 1 88 0
+  71              	 .cfi_startproc
+  72              	 
+  73              	 
+  74              	.LVL3:
+  75 0000 70B5     	 push {r4,r5,r6,lr}
+  76              	 .cfi_def_cfa_offset 16
+  77              	 .cfi_offset 4,-16
+  78              	 .cfi_offset 5,-12
+  79              	 .cfi_offset 6,-8
+  80              	 .cfi_offset 14,-4
+  81              	 .loc 1 88 0
+  82 0002 0546     	 mov r5,r0
+  89:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t *s = (uint8_t *) str;
+  90:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  91:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	while (*s)
+  92:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	{
+  93:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, *s++);
+  83              	 .loc 1 93 0
+  84 0004 044E     	 ldr r6,.L7
+  85 0006 4C1E     	 subs r4,r1,#1
+  86              	.LVL4:
+  87              	.L5:
+  91:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	{
+  88              	 .loc 1 91 0
+  89 0008 14F8011F 	 ldrb r1,[r4,#1]!
+  90              	.LVL5:
+  91 000c 01B9     	 cbnz r1,.L6
+  94:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	}
+  95:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+  92              	 .loc 1 95 0
+  93 000e 70BD     	 pop {r4,r5,r6,pc}
+  94              	.LVL6:
+  95              	.L6:
+  93:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	}
+  96              	 .loc 1 93 0
+  97 0010 2846     	 mov r0,r5
+  98 0012 B047     	 blx r6
+  99              	.LVL7:
+ 100 0014 F8E7     	 b .L5
+ 101              	.L8:
+ 102 0016 00BF     	 .align 2
+ 103              	.L7:
+ 104 0018 00000000 	 .word UARTPutChar
+ 105              	 .cfi_endproc
+ 106              	.LFE57:
+ 108              	 .section .text.UARTPuts_,"ax",%progbits
+ 109              	 .align 1
+ 110              	 .global UARTPuts_
+ 111              	 .syntax unified
+ 112              	 .thumb
+ 113              	 .thumb_func
+ 114              	 .fpu softvfp
+ 116              	UARTPuts_:
+ 117              	.LFB58:
+  96:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  97:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+  98:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+  99:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a string to UART port and print new line
+ 100:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 101:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	str		String to put
+ 102:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 103:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 104:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPuts_(LPC_UART_TypeDef *UARTx, const void *str)
+ 105:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 118              	 .loc 1 105 0
+ 119              	 .cfi_startproc
+ 120              	 
+ 121              	 
+ 122              	.LVL8:
+ 123 0000 70B5     	 push {r4,r5,r6,lr}
+ 124              	 .cfi_def_cfa_offset 16
+ 125              	 .cfi_offset 4,-16
+ 126              	 .cfi_offset 5,-12
+ 127              	 .cfi_offset 6,-8
+ 128              	 .cfi_offset 14,-4
+ 129              	 .loc 1 105 0
+ 130 0002 0546     	 mov r5,r0
+ 106:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPuts (UARTx, str);
+ 131              	 .loc 1 106 0
+ 132 0004 034C     	 ldr r4,.L10
+ 133 0006 A047     	 blx r4
+ 134              	.LVL9:
+ 107:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPuts (UARTx, "\n\r");
+ 135              	 .loc 1 107 0
+ 136 0008 2846     	 mov r0,r5
+ 137 000a 2346     	 mov r3,r4
+ 108:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 138              	 .loc 1 108 0
+ 139 000c BDE87040 	 pop {r4,r5,r6,lr}
+ 140              	 .cfi_restore 14
+ 141              	 .cfi_restore 6
+ 142              	 .cfi_restore 5
+ 143              	 .cfi_restore 4
+ 144              	 .cfi_def_cfa_offset 0
+ 145              	.LVL10:
+ 107:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPuts (UARTx, "\n\r");
+ 146              	 .loc 1 107 0
+ 147 0010 0149     	 ldr r1,.L10+4
+ 148 0012 1847     	 bx r3
+ 149              	.LVL11:
+ 150              	.L11:
+ 151              	 .align 2
+ 152              	.L10:
+ 153 0014 00000000 	 .word UARTPuts
+ 154 0018 00000000 	 .word .LC0
+ 155              	 .cfi_endproc
+ 156              	.LFE58:
+ 158              	 .section .text.UARTPutDec,"ax",%progbits
+ 159              	 .align 1
+ 160              	 .global UARTPutDec
+ 161              	 .syntax unified
+ 162              	 .thumb
+ 163              	 .thumb_func
+ 164              	 .fpu softvfp
+ 166              	UARTPutDec:
+ 167              	.LFB59:
+ 109:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 110:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 111:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 112:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a decimal number to UART port
+ 113:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 114:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	decnum	Decimal number (8-bit long)
+ 115:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 116:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 117:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutDec(LPC_UART_TypeDef *UARTx, uint8_t decnum)
+ 118:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 168              	 .loc 1 118 0
+ 169              	 .cfi_startproc
+ 170              	 
+ 171              	 
+ 172              	.LVL12:
+ 173 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 174              	 .cfi_def_cfa_offset 24
+ 175              	 .cfi_offset 4,-24
+ 176              	 .cfi_offset 5,-20
+ 177              	 .cfi_offset 6,-16
+ 178              	 .cfi_offset 7,-12
+ 179              	 .cfi_offset 8,-8
+ 180              	 .cfi_offset 14,-4
+ 181              	 .loc 1 118 0
+ 182 0004 0F46     	 mov r7,r1
+ 183              	.LVL13:
+ 119:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c1=decnum%10;
+ 120:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c2=(decnum/10)%10;
+ 121:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 184              	 .loc 1 121 0
+ 185 0006 6421     	 movs r1,#100
+ 186              	.LVL14:
+ 187 0008 B7FBF1F1 	 udiv r1,r7,r1
+ 120:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 188              	 .loc 1 120 0
+ 189 000c 4FF00A08 	 mov r8,#10
+ 122:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c3);
+ 190              	 .loc 1 122 0
+ 191 0010 3031     	 adds r1,r1,#48
+ 192 0012 0C4E     	 ldr r6,.L13
+ 193 0014 C9B2     	 uxtb r1,r1
+ 118:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c1=decnum%10;
+ 194              	 .loc 1 118 0
+ 195 0016 0546     	 mov r5,r0
+ 196              	 .loc 1 122 0
+ 197 0018 B047     	 blx r6
+ 198              	.LVL15:
+ 120:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 199              	 .loc 1 120 0
+ 200 001a B7FBF8F4 	 udiv r4,r7,r8
+ 201 001e E3B2     	 uxtb r3,r4
+ 202 0020 B3FBF8F1 	 udiv r1,r3,r8
+ 203 0024 08FB1131 	 mls r1,r8,r1,r3
+ 123:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c2);
+ 204              	 .loc 1 123 0
+ 205 0028 3031     	 adds r1,r1,#48
+ 206 002a 2846     	 mov r0,r5
+ 207 002c C9B2     	 uxtb r1,r1
+ 208 002e B047     	 blx r6
+ 209              	.LVL16:
+ 119:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c2=(decnum/10)%10;
+ 210              	 .loc 1 119 0
+ 211 0030 08FB1471 	 mls r1,r8,r4,r7
+ 124:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c1);
+ 212              	 .loc 1 124 0
+ 213 0034 3031     	 adds r1,r1,#48
+ 214 0036 2846     	 mov r0,r5
+ 215 0038 3346     	 mov r3,r6
+ 125:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 216              	 .loc 1 125 0
+ 217 003a BDE8F041 	 pop {r4,r5,r6,r7,r8,lr}
+ 218              	 .cfi_restore 14
+ 219              	 .cfi_restore 8
+ 220              	 .cfi_restore 7
+ 221              	 .cfi_restore 6
+ 222              	 .cfi_restore 5
+ 223              	 .cfi_restore 4
+ 224              	 .cfi_def_cfa_offset 0
+ 225              	.LVL17:
+ 124:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c1);
+ 226              	 .loc 1 124 0
+ 227 003e C9B2     	 uxtb r1,r1
+ 228 0040 1847     	 bx r3
+ 229              	.LVL18:
+ 230              	.L14:
+ 231 0042 00BF     	 .align 2
+ 232              	.L13:
+ 233 0044 00000000 	 .word UARTPutChar
+ 234              	 .cfi_endproc
+ 235              	.LFE59:
+ 237              	 .section .text.UARTPutDec16,"ax",%progbits
+ 238              	 .align 1
+ 239              	 .global UARTPutDec16
+ 240              	 .syntax unified
+ 241              	 .thumb
+ 242              	 .thumb_func
+ 243              	 .fpu softvfp
+ 245              	UARTPutDec16:
+ 246              	.LFB60:
+ 126:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 127:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 128:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a decimal number to UART port
+ 129:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 130:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	decnum	Decimal number (8-bit long)
+ 131:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 132:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 133:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutDec16(LPC_UART_TypeDef *UARTx, uint16_t decnum)
+ 134:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 247              	 .loc 1 134 0
+ 248              	 .cfi_startproc
+ 249              	 
+ 250              	 
+ 251              	.LVL19:
+ 252 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 253              	 .cfi_def_cfa_offset 24
+ 254              	 .cfi_offset 4,-24
+ 255              	 .cfi_offset 5,-20
+ 256              	 .cfi_offset 6,-16
+ 257              	 .cfi_offset 7,-12
+ 258              	 .cfi_offset 8,-8
+ 259              	 .cfi_offset 14,-4
+ 260              	 .loc 1 134 0
+ 261 0004 0F46     	 mov r7,r1
+ 262              	.LVL20:
+ 135:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c1=decnum%10;
+ 136:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c2=(decnum/10)%10;
+ 137:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 138:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c4=(decnum/1000)%10;
+ 139:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c5=(decnum/10000)%10;
+ 263              	 .loc 1 139 0
+ 264 0006 42F21071 	 movw r1,#10000
+ 265              	.LVL21:
+ 266 000a B7FBF1F1 	 udiv r1,r7,r1
+ 140:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c5);
+ 267              	 .loc 1 140 0
+ 268 000e 3031     	 adds r1,r1,#48
+ 269 0010 184E     	 ldr r6,.L16
+ 270 0012 C9B2     	 uxtb r1,r1
+ 134:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c1=decnum%10;
+ 271              	 .loc 1 134 0
+ 272 0014 8046     	 mov r8,r0
+ 273              	 .loc 1 140 0
+ 274 0016 B047     	 blx r6
+ 275              	.LVL22:
+ 138:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c5=(decnum/10000)%10;
+ 276              	 .loc 1 138 0
+ 277 0018 4FF47A71 	 mov r1,#1000
+ 278 001c 0A24     	 movs r4,#10
+ 279 001e B7FBF1F3 	 udiv r3,r7,r1
+ 280 0022 B3FBF4F1 	 udiv r1,r3,r4
+ 281 0026 04FB1131 	 mls r1,r4,r1,r3
+ 141:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c4);
+ 282              	 .loc 1 141 0
+ 283 002a 3031     	 adds r1,r1,#48
+ 284 002c 4046     	 mov r0,r8
+ 285 002e C9B2     	 uxtb r1,r1
+ 286 0030 B047     	 blx r6
+ 287              	.LVL23:
+ 137:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c4=(decnum/1000)%10;
+ 288              	 .loc 1 137 0
+ 289 0032 6421     	 movs r1,#100
+ 290 0034 B7FBF1F3 	 udiv r3,r7,r1
+ 291 0038 B3FBF4F1 	 udiv r1,r3,r4
+ 292 003c 04FB1131 	 mls r1,r4,r1,r3
+ 142:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c3);
+ 293              	 .loc 1 142 0
+ 294 0040 3031     	 adds r1,r1,#48
+ 295 0042 4046     	 mov r0,r8
+ 296 0044 C9B2     	 uxtb r1,r1
+ 297 0046 B047     	 blx r6
+ 298              	.LVL24:
+ 136:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 299              	 .loc 1 136 0
+ 300 0048 B7FBF4F5 	 udiv r5,r7,r4
+ 301 004c ABB2     	 uxth r3,r5
+ 302 004e B3FBF4F1 	 udiv r1,r3,r4
+ 303 0052 04FB1131 	 mls r1,r4,r1,r3
+ 135:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c2=(decnum/10)%10;
+ 304              	 .loc 1 135 0
+ 305 0056 04FB1574 	 mls r4,r4,r5,r7
+ 143:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c2);
+ 306              	 .loc 1 143 0
+ 307 005a 3031     	 adds r1,r1,#48
+ 308 005c 4046     	 mov r0,r8
+ 309 005e C9B2     	 uxtb r1,r1
+ 310 0060 B047     	 blx r6
+ 311              	.LVL25:
+ 144:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c1);
+ 312              	 .loc 1 144 0
+ 313 0062 04F13001 	 add r1,r4,#48
+ 314 0066 4046     	 mov r0,r8
+ 315 0068 3346     	 mov r3,r6
+ 145:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 316              	 .loc 1 145 0
+ 317 006a BDE8F041 	 pop {r4,r5,r6,r7,r8,lr}
+ 318              	 .cfi_restore 14
+ 319              	 .cfi_restore 8
+ 320              	 .cfi_restore 7
+ 321              	 .cfi_restore 6
+ 322              	 .cfi_restore 5
+ 323              	 .cfi_restore 4
+ 324              	 .cfi_def_cfa_offset 0
+ 325              	.LVL26:
+ 144:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c1);
+ 326              	 .loc 1 144 0
+ 327 006e C9B2     	 uxtb r1,r1
+ 328 0070 1847     	 bx r3
+ 329              	.LVL27:
+ 330              	.L17:
+ 331 0072 00BF     	 .align 2
+ 332              	.L16:
+ 333 0074 00000000 	 .word UARTPutChar
+ 334              	 .cfi_endproc
+ 335              	.LFE60:
+ 337              	 .section .text.UARTPutDec32,"ax",%progbits
+ 338              	 .align 1
+ 339              	 .global UARTPutDec32
+ 340              	 .syntax unified
+ 341              	 .thumb
+ 342              	 .thumb_func
+ 343              	 .fpu softvfp
+ 345              	UARTPutDec32:
+ 346              	.LFB61:
+ 146:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 147:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 148:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a decimal number to UART port
+ 149:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 150:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	decnum	Decimal number (8-bit long)
+ 151:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 152:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 153:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutDec32(LPC_UART_TypeDef *UARTx, uint32_t decnum)
+ 154:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 347              	 .loc 1 154 0
+ 348              	 .cfi_startproc
+ 349              	 
+ 350              	 
+ 351              	.LVL28:
+ 352 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 353              	 .cfi_def_cfa_offset 24
+ 354              	 .cfi_offset 4,-24
+ 355              	 .cfi_offset 5,-20
+ 356              	 .cfi_offset 6,-16
+ 357              	 .cfi_offset 7,-12
+ 358              	 .cfi_offset 8,-8
+ 359              	 .cfi_offset 14,-4
+ 360              	 .loc 1 154 0
+ 361 0004 0E46     	 mov r6,r1
+ 362              	.LVL29:
+ 155:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c1=decnum%10;
+ 156:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c2=(decnum/10)%10;
+ 157:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 158:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c4=(decnum/1000)%10;
+ 159:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c5=(decnum/10000)%10;
+ 160:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c6=(decnum/100000)%10;
+ 161:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c7=(decnum/1000000)%10;
+ 162:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c8=(decnum/10000000)%10;
+ 163:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c9=(decnum/100000000)%10;
+ 164:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c10=(decnum/1000000000)%10;
+ 363              	 .loc 1 164 0
+ 364 0006 3649     	 ldr r1,.L19
+ 365              	.LVL30:
+ 165:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c10);
+ 366              	 .loc 1 165 0
+ 367 0008 364D     	 ldr r5,.L19+4
+ 164:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c10);
+ 368              	 .loc 1 164 0
+ 369 000a B6FBF1F1 	 udiv r1,r6,r1
+ 370              	 .loc 1 165 0
+ 371 000e 3031     	 adds r1,r1,#48
+ 372 0010 C9B2     	 uxtb r1,r1
+ 154:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c1=decnum%10;
+ 373              	 .loc 1 154 0
+ 374 0012 0746     	 mov r7,r0
+ 375              	 .loc 1 165 0
+ 376 0014 A847     	 blx r5
+ 377              	.LVL31:
+ 163:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c10=(decnum/1000000000)%10;
+ 378              	 .loc 1 163 0
+ 379 0016 344B     	 ldr r3,.L19+8
+ 380 0018 0A24     	 movs r4,#10
+ 381 001a B6FBF3F3 	 udiv r3,r6,r3
+ 382 001e B3FBF4F1 	 udiv r1,r3,r4
+ 383 0022 04FB1131 	 mls r1,r4,r1,r3
+ 166:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c9);
+ 384              	 .loc 1 166 0
+ 385 0026 3031     	 adds r1,r1,#48
+ 386 0028 3846     	 mov r0,r7
+ 387 002a C9B2     	 uxtb r1,r1
+ 388 002c A847     	 blx r5
+ 389              	.LVL32:
+ 162:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c9=(decnum/100000000)%10;
+ 390              	 .loc 1 162 0
+ 391 002e 2F4B     	 ldr r3,.L19+12
+ 167:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c8);
+ 392              	 .loc 1 167 0
+ 393 0030 3846     	 mov r0,r7
+ 162:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c9=(decnum/100000000)%10;
+ 394              	 .loc 1 162 0
+ 395 0032 B6FBF3F3 	 udiv r3,r6,r3
+ 396 0036 B3FBF4F1 	 udiv r1,r3,r4
+ 397 003a 04FB1131 	 mls r1,r4,r1,r3
+ 398              	 .loc 1 167 0
+ 399 003e 3031     	 adds r1,r1,#48
+ 400 0040 C9B2     	 uxtb r1,r1
+ 401 0042 A847     	 blx r5
+ 402              	.LVL33:
+ 161:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c8=(decnum/10000000)%10;
+ 403              	 .loc 1 161 0
+ 404 0044 2A4B     	 ldr r3,.L19+16
+ 168:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c7);
+ 405              	 .loc 1 168 0
+ 406 0046 3846     	 mov r0,r7
+ 161:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c8=(decnum/10000000)%10;
+ 407              	 .loc 1 161 0
+ 408 0048 B6FBF3F3 	 udiv r3,r6,r3
+ 409 004c B3FBF4F1 	 udiv r1,r3,r4
+ 410 0050 04FB1131 	 mls r1,r4,r1,r3
+ 411              	 .loc 1 168 0
+ 412 0054 3031     	 adds r1,r1,#48
+ 413 0056 C9B2     	 uxtb r1,r1
+ 414 0058 A847     	 blx r5
+ 415              	.LVL34:
+ 160:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c7=(decnum/1000000)%10;
+ 416              	 .loc 1 160 0
+ 417 005a 264B     	 ldr r3,.L19+20
+ 169:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c6);
+ 418              	 .loc 1 169 0
+ 419 005c 3846     	 mov r0,r7
+ 160:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c7=(decnum/1000000)%10;
+ 420              	 .loc 1 160 0
+ 421 005e B6FBF3F3 	 udiv r3,r6,r3
+ 422 0062 B3FBF4F1 	 udiv r1,r3,r4
+ 423 0066 04FB1131 	 mls r1,r4,r1,r3
+ 424              	 .loc 1 169 0
+ 425 006a 3031     	 adds r1,r1,#48
+ 426 006c C9B2     	 uxtb r1,r1
+ 427 006e A847     	 blx r5
+ 428              	.LVL35:
+ 159:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c6=(decnum/100000)%10;
+ 429              	 .loc 1 159 0
+ 430 0070 42F21071 	 movw r1,#10000
+ 431 0074 B6FBF1F3 	 udiv r3,r6,r1
+ 432 0078 B3FBF4F1 	 udiv r1,r3,r4
+ 433 007c 04FB1131 	 mls r1,r4,r1,r3
+ 170:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c5);
+ 434              	 .loc 1 170 0
+ 435 0080 3031     	 adds r1,r1,#48
+ 436 0082 3846     	 mov r0,r7
+ 437 0084 C9B2     	 uxtb r1,r1
+ 438 0086 A847     	 blx r5
+ 439              	.LVL36:
+ 158:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c5=(decnum/10000)%10;
+ 440              	 .loc 1 158 0
+ 441 0088 4FF47A71 	 mov r1,#1000
+ 442 008c B6FBF1F3 	 udiv r3,r6,r1
+ 443 0090 B3FBF4F1 	 udiv r1,r3,r4
+ 444 0094 04FB1131 	 mls r1,r4,r1,r3
+ 171:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c4);
+ 445              	 .loc 1 171 0
+ 446 0098 3031     	 adds r1,r1,#48
+ 447 009a 3846     	 mov r0,r7
+ 448 009c C9B2     	 uxtb r1,r1
+ 449 009e A847     	 blx r5
+ 450              	.LVL37:
+ 157:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c4=(decnum/1000)%10;
+ 451              	 .loc 1 157 0
+ 452 00a0 6421     	 movs r1,#100
+ 453 00a2 B6FBF1F3 	 udiv r3,r6,r1
+ 454 00a6 B3FBF4F1 	 udiv r1,r3,r4
+ 455 00aa 04FB1131 	 mls r1,r4,r1,r3
+ 172:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c3);
+ 456              	 .loc 1 172 0
+ 457 00ae 3031     	 adds r1,r1,#48
+ 458 00b0 3846     	 mov r0,r7
+ 459 00b2 C9B2     	 uxtb r1,r1
+ 460 00b4 A847     	 blx r5
+ 461              	.LVL38:
+ 156:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c3=(decnum/100)%10;
+ 462              	 .loc 1 156 0
+ 463 00b6 B6FBF4F8 	 udiv r8,r6,r4
+ 464 00ba B8FBF4F1 	 udiv r1,r8,r4
+ 465 00be 04FB1181 	 mls r1,r4,r1,r8
+ 155:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t c2=(decnum/10)%10;
+ 466              	 .loc 1 155 0
+ 467 00c2 04FB1864 	 mls r4,r4,r8,r6
+ 173:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c2);
+ 468              	 .loc 1 173 0
+ 469 00c6 3031     	 adds r1,r1,#48
+ 470 00c8 3846     	 mov r0,r7
+ 471 00ca C9B2     	 uxtb r1,r1
+ 472 00cc A847     	 blx r5
+ 473              	.LVL39:
+ 174:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c1);
+ 474              	 .loc 1 174 0
+ 475 00ce 04F13001 	 add r1,r4,#48
+ 476 00d2 3846     	 mov r0,r7
+ 477 00d4 2B46     	 mov r3,r5
+ 175:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 478              	 .loc 1 175 0
+ 479 00d6 BDE8F041 	 pop {r4,r5,r6,r7,r8,lr}
+ 480              	 .cfi_restore 14
+ 481              	 .cfi_restore 8
+ 482              	 .cfi_restore 7
+ 483              	 .cfi_restore 6
+ 484              	 .cfi_restore 5
+ 485              	 .cfi_restore 4
+ 486              	 .cfi_def_cfa_offset 0
+ 487              	.LVL40:
+ 174:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPutChar(UARTx, '0'+c1);
+ 488              	 .loc 1 174 0
+ 489 00da C9B2     	 uxtb r1,r1
+ 490 00dc 1847     	 bx r3
+ 491              	.LVL41:
+ 492              	.L20:
+ 493 00de 00BF     	 .align 2
+ 494              	.L19:
+ 495 00e0 00CA9A3B 	 .word 1000000000
+ 496 00e4 00000000 	 .word UARTPutChar
+ 497 00e8 00E1F505 	 .word 100000000
+ 498 00ec 80969800 	 .word 10000000
+ 499 00f0 40420F00 	 .word 1000000
+ 500 00f4 A0860100 	 .word 100000
+ 501              	 .cfi_endproc
+ 502              	.LFE61:
+ 504              	 .section .text.UARTPutHex,"ax",%progbits
+ 505              	 .align 1
+ 506              	 .global UARTPutHex
+ 507              	 .syntax unified
+ 508              	 .thumb
+ 509              	 .thumb_func
+ 510              	 .fpu softvfp
+ 512              	UARTPutHex:
+ 513              	.LFB62:
+ 176:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 177:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 178:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a hex number to UART port
+ 179:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 180:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	hexnum	Hex number (8-bit long)
+ 181:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 182:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 183:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutHex (LPC_UART_TypeDef *UARTx, uint8_t hexnum)
+ 184:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 514              	 .loc 1 184 0
+ 515              	 .cfi_startproc
+ 516              	 
+ 517              	 
+ 518              	.LVL42:
+ 519 0000 70B5     	 push {r4,r5,r6,lr}
+ 520              	 .cfi_def_cfa_offset 16
+ 521              	 .cfi_offset 4,-16
+ 522              	 .cfi_offset 5,-12
+ 523              	 .cfi_offset 6,-8
+ 524              	 .cfi_offset 14,-4
+ 525              	 .loc 1 184 0
+ 526 0002 0C46     	 mov r4,r1
+ 527 0004 0646     	 mov r6,r0
+ 185:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t nibble, i;
+ 186:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 187:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPuts(UARTx, "0x");
+ 528              	 .loc 1 187 0
+ 529 0006 0B49     	 ldr r1,.L26
+ 530              	.LVL43:
+ 531 0008 0B4B     	 ldr r3,.L26+4
+ 532 000a 9847     	 blx r3
+ 533              	.LVL44:
+ 188:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	i = 1;
+ 189:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	do {
+ 190:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		nibble = (hexnum >> (4*i)) & 0x0F;
+ 534              	 .loc 1 190 0
+ 535 000c 2311     	 asrs r3,r4,#4
+ 536 000e D9B2     	 uxtb r1,r3
+ 537              	.LVL45:
+ 191:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, (nibble > 9) ? ('A' + nibble - 10) : ('0' + nibble));
+ 538              	 .loc 1 191 0
+ 539 0010 092B     	 cmp r3,#9
+ 540 0012 D4BF     	 ite le
+ 541 0014 3031     	 addle r1,r1,#48
+ 542              	.LVL46:
+ 543 0016 3731     	 addgt r1,r1,#55
+ 544 0018 3046     	 mov r0,r6
+ 545 001a 084D     	 ldr r5,.L26+8
+ 546 001c A847     	 blx r5
+ 547              	.LVL47:
+ 190:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, (nibble > 9) ? ('A' + nibble - 10) : ('0' + nibble));
+ 548              	 .loc 1 190 0
+ 549 001e 04F00F01 	 and r1,r4,#15
+ 550              	.LVL48:
+ 551              	 .loc 1 191 0
+ 552 0022 0929     	 cmp r1,#9
+ 553 0024 2B46     	 mov r3,r5
+ 554 0026 3046     	 mov r0,r6
+ 192:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	} while (i--);
+ 193:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 555              	 .loc 1 193 0
+ 556 0028 BDE87040 	 pop {r4,r5,r6,lr}
+ 557              	 .cfi_restore 14
+ 558              	 .cfi_restore 6
+ 559              	 .cfi_restore 5
+ 560              	 .cfi_restore 4
+ 561              	 .cfi_def_cfa_offset 0
+ 562              	.LVL49:
+ 191:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	} while (i--);
+ 563              	 .loc 1 191 0
+ 564 002c 8CBF     	 ite hi
+ 565 002e 3731     	 addhi r1,r1,#55
+ 566              	.LVL50:
+ 567 0030 3031     	 addls r1,r1,#48
+ 568 0032 1847     	 bx r3
+ 569              	.LVL51:
+ 570              	.L27:
+ 571              	 .align 2
+ 572              	.L26:
+ 573 0034 00000000 	 .word .LC1
+ 574 0038 00000000 	 .word UARTPuts
+ 575 003c 00000000 	 .word UARTPutChar
+ 576              	 .cfi_endproc
+ 577              	.LFE62:
+ 579              	 .section .text.UARTPutHex16,"ax",%progbits
+ 580              	 .align 1
+ 581              	 .global UARTPutHex16
+ 582              	 .syntax unified
+ 583              	 .thumb
+ 584              	 .thumb_func
+ 585              	 .fpu softvfp
+ 587              	UARTPutHex16:
+ 588              	.LFB63:
+ 194:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 195:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 196:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 197:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a hex number to UART port
+ 198:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 199:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	hexnum	Hex number (16-bit long)
+ 200:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 201:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 202:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutHex16 (LPC_UART_TypeDef *UARTx, uint16_t hexnum)
+ 203:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 589              	 .loc 1 203 0
+ 590              	 .cfi_startproc
+ 591              	 
+ 592              	 
+ 593              	.LVL52:
+ 594 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 595              	 .cfi_def_cfa_offset 24
+ 596              	 .cfi_offset 3,-24
+ 597              	 .cfi_offset 4,-20
+ 598              	 .cfi_offset 5,-16
+ 599              	 .cfi_offset 6,-12
+ 600              	 .cfi_offset 7,-8
+ 601              	 .cfi_offset 14,-4
+ 602              	 .loc 1 203 0
+ 603 0002 0F46     	 mov r7,r1
+ 204:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t nibble, i;
+ 205:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 206:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPuts(UARTx, "0x");
+ 604              	 .loc 1 206 0
+ 605 0004 094B     	 ldr r3,.L33
+ 606 0006 0A49     	 ldr r1,.L33+4
+ 607              	.LVL53:
+ 203:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t nibble, i;
+ 608              	 .loc 1 203 0
+ 609 0008 0646     	 mov r6,r0
+ 610              	 .loc 1 206 0
+ 611 000a 0C24     	 movs r4,#12
+ 612 000c 9847     	 blx r3
+ 613              	.LVL54:
+ 207:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	i = 3;
+ 208:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	do {
+ 209:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		nibble = (hexnum >> (4*i)) & 0x0F;
+ 210:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, (nibble > 9) ? ('A' + nibble - 10) : ('0' + nibble));
+ 614              	 .loc 1 210 0
+ 615 000e 094D     	 ldr r5,.L33+8
+ 616              	.LVL55:
+ 617              	.L31:
+ 209:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, (nibble > 9) ? ('A' + nibble - 10) : ('0' + nibble));
+ 618              	 .loc 1 209 0
+ 619 0010 47FA04F1 	 asr r1,r7,r4
+ 620 0014 01F00F01 	 and r1,r1,#15
+ 621              	.LVL56:
+ 622              	 .loc 1 210 0
+ 623 0018 0929     	 cmp r1,#9
+ 624 001a 8CBF     	 ite hi
+ 625 001c 3731     	 addhi r1,r1,#55
+ 626              	.LVL57:
+ 627 001e 3031     	 addls r1,r1,#48
+ 628 0020 3046     	 mov r0,r6
+ 629 0022 043C     	 subs r4,r4,#4
+ 630              	.LVL58:
+ 631 0024 A847     	 blx r5
+ 632              	.LVL59:
+ 211:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	} while (i--);
+ 633              	 .loc 1 211 0
+ 634 0026 231D     	 adds r3,r4,#4
+ 635 0028 F2D1     	 bne .L31
+ 212:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 636              	 .loc 1 212 0
+ 637 002a F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 638              	.LVL60:
+ 639              	.L34:
+ 640              	 .align 2
+ 641              	.L33:
+ 642 002c 00000000 	 .word UARTPuts
+ 643 0030 00000000 	 .word .LC1
+ 644 0034 00000000 	 .word UARTPutChar
+ 645              	 .cfi_endproc
+ 646              	.LFE63:
+ 648              	 .section .text.UARTPutHex32,"ax",%progbits
+ 649              	 .align 1
+ 650              	 .global UARTPutHex32
+ 651              	 .syntax unified
+ 652              	 .thumb
+ 653              	 .thumb_func
+ 654              	 .fpu softvfp
+ 656              	UARTPutHex32:
+ 657              	.LFB64:
+ 213:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 214:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 215:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Puts a hex number to UART port
+ 216:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	UARTx	Pointer to UART peripheral
+ 217:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	hexnum	Hex number (32-bit long)
+ 218:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 219:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 220:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void UARTPutHex32 (LPC_UART_TypeDef *UARTx, uint32_t hexnum)
+ 221:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 658              	 .loc 1 221 0
+ 659              	 .cfi_startproc
+ 660              	 
+ 661              	 
+ 662              	.LVL61:
+ 663 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 664              	 .cfi_def_cfa_offset 24
+ 665              	 .cfi_offset 3,-24
+ 666              	 .cfi_offset 4,-20
+ 667              	 .cfi_offset 5,-16
+ 668              	 .cfi_offset 6,-12
+ 669              	 .cfi_offset 7,-8
+ 670              	 .cfi_offset 14,-4
+ 671              	 .loc 1 221 0
+ 672 0002 0F46     	 mov r7,r1
+ 222:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t nibble, i;
+ 223:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 224:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTPuts(UARTx, "0x");
+ 673              	 .loc 1 224 0
+ 674 0004 094B     	 ldr r3,.L40
+ 675 0006 0A49     	 ldr r1,.L40+4
+ 676              	.LVL62:
+ 221:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t nibble, i;
+ 677              	 .loc 1 221 0
+ 678 0008 0646     	 mov r6,r0
+ 679              	 .loc 1 224 0
+ 680 000a 1C24     	 movs r4,#28
+ 681 000c 9847     	 blx r3
+ 682              	.LVL63:
+ 225:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	i = 7;
+ 226:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	do {
+ 227:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		nibble = (hexnum >> (4*i)) & 0x0F;
+ 228:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, (nibble > 9) ? ('A' + nibble - 10) : ('0' + nibble));
+ 683              	 .loc 1 228 0
+ 684 000e 094D     	 ldr r5,.L40+8
+ 685              	.LVL64:
+ 686              	.L38:
+ 227:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 		UARTPutChar(UARTx, (nibble > 9) ? ('A' + nibble - 10) : ('0' + nibble));
+ 687              	 .loc 1 227 0
+ 688 0010 27FA04F1 	 lsr r1,r7,r4
+ 689 0014 01F00F01 	 and r1,r1,#15
+ 690              	.LVL65:
+ 691              	 .loc 1 228 0
+ 692 0018 0929     	 cmp r1,#9
+ 693 001a 8CBF     	 ite hi
+ 694 001c 3731     	 addhi r1,r1,#55
+ 695              	.LVL66:
+ 696 001e 3031     	 addls r1,r1,#48
+ 697 0020 3046     	 mov r0,r6
+ 698 0022 043C     	 subs r4,r4,#4
+ 699              	.LVL67:
+ 700 0024 A847     	 blx r5
+ 701              	.LVL68:
+ 229:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	} while (i--);
+ 702              	 .loc 1 229 0
+ 703 0026 231D     	 adds r3,r4,#4
+ 704 0028 F2D1     	 bne .L38
+ 230:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 705              	 .loc 1 230 0
+ 706 002a F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 707              	.LVL69:
+ 708              	.L41:
+ 709              	 .align 2
+ 710              	.L40:
+ 711 002c 00000000 	 .word UARTPuts
+ 712 0030 00000000 	 .word .LC1
+ 713 0034 00000000 	 .word UARTPutChar
+ 714              	 .cfi_endproc
+ 715              	.LFE64:
+ 717              	 .section .text.UARTGetChar,"ax",%progbits
+ 718              	 .align 1
+ 719              	 .global UARTGetChar
+ 720              	 .syntax unified
+ 721              	 .thumb
+ 722              	 .thumb_func
+ 723              	 .fpu softvfp
+ 725              	UARTGetChar:
+ 726              	.LFB56:
+  74:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t tmp = 0;
+ 727              	 .loc 1 74 0
+ 728              	 .cfi_startproc
+ 729              	 
+ 730              	 
+ 731              	.LVL70:
+  75:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Receive(UARTx, &tmp, 1, BLOCKING);
+ 732              	 .loc 1 75 0
+ 733 0000 0023     	 movs r3,#0
+  74:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	uint8_t tmp = 0;
+ 734              	 .loc 1 74 0
+ 735 0002 13B5     	 push {r0,r1,r4,lr}
+ 736              	 .cfi_def_cfa_offset 16
+ 737              	 .cfi_offset 4,-8
+ 738              	 .cfi_offset 14,-4
+  75:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Receive(UARTx, &tmp, 1, BLOCKING);
+ 739              	 .loc 1 75 0
+ 740 0004 02A9     	 add r1,sp,#8
+ 741 0006 01F8013D 	 strb r3,[r1,#-1]!
+  76:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	return(tmp);
+ 742              	 .loc 1 76 0
+ 743 000a 0123     	 movs r3,#1
+ 744 000c 034C     	 ldr r4,.L43
+ 745 000e 1A46     	 mov r2,r3
+ 746 0010 A047     	 blx r4
+ 747              	.LVL71:
+  78:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 748              	 .loc 1 78 0
+ 749 0012 9DF80700 	 ldrb r0,[sp,#7]
+ 750 0016 02B0     	 add sp,sp,#8
+ 751              	 .cfi_def_cfa_offset 8
+ 752              	 
+ 753 0018 10BD     	 pop {r4,pc}
+ 754              	.L44:
+ 755 001a 00BF     	 .align 2
+ 756              	.L43:
+ 757 001c 00000000 	 .word UART_Receive
+ 758              	 .cfi_endproc
+ 759              	.LFE56:
+ 761              	 .section .text.debug_frmwrk_init,"ax",%progbits
+ 762              	 .align 1
+ 763              	 .global debug_frmwrk_init
+ 764              	 .syntax unified
+ 765              	 .thumb
+ 766              	 .thumb_func
+ 767              	 .fpu softvfp
+ 769              	debug_frmwrk_init:
+ 770              	.LFB65:
+ 231:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 232:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** ///*********************************************************************//**
+ 233:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** // * @brief		print function that supports format as same as printf()
+ 234:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** // * 				function of <stdio.h> library
+ 235:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** // * @param[in]	None
+ 236:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** // * @return		None
+ 237:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** // **********************************************************************/
+ 238:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //void  _printf (const  char *format, ...)
+ 239:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //{
+ 240:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //    static  char  buffer[512 + 1];
+ 241:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //            va_list     vArgs;
+ 242:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //            char	*tmp;
+ 243:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //    va_start(vArgs, format);
+ 244:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //    vsprintf((char *)buffer, (char const *)format, vArgs);
+ 245:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //    va_end(vArgs);
+ 246:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //
+ 247:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //    _DBG(buffer);
+ 248:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** //}
+ 249:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 250:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** /*********************************************************************//**
+ 251:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @brief		Initialize Debug frame work through initializing UART port
+ 252:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @param[in]	None
+ 253:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  * @return		None
+ 254:LPC17xxLib/src/lpc17xx_debug_frmwrk.c ****  **********************************************************************/
+ 255:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** void debug_frmwrk_init(void)
+ 256:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** {
+ 771              	 .loc 1 256 0
+ 772              	 .cfi_startproc
+ 773              	 
+ 774              	 
+ 775 0000 7FB5     	 push {r0,r1,r2,r3,r4,r5,r6,lr}
+ 776              	 .cfi_def_cfa_offset 32
+ 777              	 .cfi_offset 4,-16
+ 778              	 .cfi_offset 5,-12
+ 779              	 .cfi_offset 6,-8
+ 780              	 .cfi_offset 14,-4
+ 257:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_CFG_Type UARTConfigStruct;
+ 258:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PINSEL_CFG_Type PinCfg;
+ 259:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 260:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #if (USED_UART_DEBUG_PORT==0)
+ 261:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	/*
+ 262:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 * Initialize UART0 pin connect
+ 263:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 */
+ 264:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Funcnum = 1;
+ 265:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.OpenDrain = 0;
+ 781              	 .loc 1 265 0
+ 782 0002 0023     	 movs r3,#0
+ 266:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinmode = 0;
+ 267:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinnum = 2;
+ 783              	 .loc 1 267 0
+ 784 0004 0222     	 movs r2,#2
+ 264:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.OpenDrain = 0;
+ 785              	 .loc 1 264 0
+ 786 0006 0125     	 movs r5,#1
+ 268:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Portnum = 0;
+ 787              	 .loc 1 268 0
+ 788 0008 04AC     	 add r4,sp,#16
+ 789 000a 04F8103D 	 strb r3,[r4,#-16]!
+ 269:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PINSEL_ConfigPin(&PinCfg);
+ 790              	 .loc 1 269 0
+ 791 000e 2046     	 mov r0,r4
+ 792 0010 1E4E     	 ldr r6,.L46
+ 267:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Portnum = 0;
+ 793              	 .loc 1 267 0
+ 794 0012 8DF80120 	 strb r2,[sp,#1]
+ 265:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinmode = 0;
+ 795              	 .loc 1 265 0
+ 796 0016 8DF80430 	 strb r3,[sp,#4]
+ 266:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinnum = 2;
+ 797              	 .loc 1 266 0
+ 798 001a 8DF80330 	 strb r3,[sp,#3]
+ 264:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.OpenDrain = 0;
+ 799              	 .loc 1 264 0
+ 800 001e 8DF80250 	 strb r5,[sp,#2]
+ 801              	 .loc 1 269 0
+ 802 0022 B047     	 blx r6
+ 803              	.LVL72:
+ 270:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinnum = 3;
+ 804              	 .loc 1 270 0
+ 805 0024 0323     	 movs r3,#3
+ 271:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PINSEL_ConfigPin(&PinCfg);
+ 806              	 .loc 1 271 0
+ 807 0026 2046     	 mov r0,r4
+ 270:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinnum = 3;
+ 808              	 .loc 1 270 0
+ 809 0028 8DF80130 	 strb r3,[sp,#1]
+ 810              	 .loc 1 271 0
+ 811 002c B047     	 blx r6
+ 812              	.LVL73:
+ 272:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 273:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #elif (USED_UART_DEBUG_PORT==1)
+ 274:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	/*
+ 275:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 * Initialize UART1 pin connect
+ 276:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 */
+ 277:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Funcnum = 1;
+ 278:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.OpenDrain = 0;
+ 279:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinmode = 0;
+ 280:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinnum = 15;
+ 281:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Portnum = 0;
+ 282:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PINSEL_ConfigPin(&PinCfg);
+ 283:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PinCfg.Pinnum = 16;
+ 284:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	PINSEL_ConfigPin(&PinCfg);
+ 285:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** #endif
+ 286:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 287:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	/* Initialize UART Configuration parameter structure to default state:
+ 288:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 * Baudrate = 9600bps
+ 289:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 * 8 data bit
+ 290:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 * 1 Stop bit
+ 291:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 * None parity
+ 292:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	 */
+ 293:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_ConfigStructInit(&UARTConfigStruct);
+ 813              	 .loc 1 293 0
+ 814 002e 02A8     	 add r0,sp,#8
+ 815 0030 174B     	 ldr r3,.L46+4
+ 816 0032 9847     	 blx r3
+ 817              	.LVL74:
+ 294:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 295:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	// Re-configure baudrate to 115200bps
+ 296:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UARTConfigStruct.Baud_rate = 115200;
+ 818              	 .loc 1 296 0
+ 819 0034 4FF4E133 	 mov r3,#115200
+ 297:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 298:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	// Initialize DEBUG_UART_PORT peripheral with given to corresponding parameter
+ 299:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_Init(DEBUG_UART_PORT, &UARTConfigStruct);
+ 820              	 .loc 1 299 0
+ 821 0038 164C     	 ldr r4,.L46+8
+ 296:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 822              	 .loc 1 296 0
+ 823 003a 0293     	 str r3,[sp,#8]
+ 824              	 .loc 1 299 0
+ 825 003c 02A9     	 add r1,sp,#8
+ 826 003e 2046     	 mov r0,r4
+ 827 0040 154B     	 ldr r3,.L46+12
+ 828 0042 9847     	 blx r3
+ 829              	.LVL75:
+ 300:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 301:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	// Enable UART Transmit
+ 302:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	UART_TxCmd(DEBUG_UART_PORT, ENABLE);
+ 830              	 .loc 1 302 0
+ 831 0044 2946     	 mov r1,r5
+ 832 0046 2046     	 mov r0,r4
+ 833 0048 144B     	 ldr r3,.L46+16
+ 834 004a 9847     	 blx r3
+ 835              	.LVL76:
+ 303:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 
+ 304:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_msg	= UARTPuts;
+ 836              	 .loc 1 304 0
+ 837 004c 144A     	 ldr r2,.L46+20
+ 838 004e 154B     	 ldr r3,.L46+24
+ 839 0050 1A60     	 str r2,[r3]
+ 305:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_msg_ = UARTPuts_;
+ 840              	 .loc 1 305 0
+ 841 0052 154A     	 ldr r2,.L46+28
+ 842 0054 154B     	 ldr r3,.L46+32
+ 843 0056 1A60     	 str r2,[r3]
+ 306:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_char = UARTPutChar;
+ 844              	 .loc 1 306 0
+ 845 0058 154A     	 ldr r2,.L46+36
+ 846 005a 164B     	 ldr r3,.L46+40
+ 847 005c 1A60     	 str r2,[r3]
+ 307:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_hex = UARTPutHex;
+ 848              	 .loc 1 307 0
+ 849 005e 164A     	 ldr r2,.L46+44
+ 850 0060 164B     	 ldr r3,.L46+48
+ 851 0062 1A60     	 str r2,[r3]
+ 308:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_hex_16 = UARTPutHex16;
+ 852              	 .loc 1 308 0
+ 853 0064 164A     	 ldr r2,.L46+52
+ 854 0066 174B     	 ldr r3,.L46+56
+ 855 0068 1A60     	 str r2,[r3]
+ 309:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_hex_32 = UARTPutHex32;
+ 856              	 .loc 1 309 0
+ 857 006a 174A     	 ldr r2,.L46+60
+ 858 006c 174B     	 ldr r3,.L46+64
+ 859 006e 1A60     	 str r2,[r3]
+ 310:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_dec = UARTPutDec;
+ 860              	 .loc 1 310 0
+ 861 0070 174A     	 ldr r2,.L46+68
+ 862 0072 184B     	 ldr r3,.L46+72
+ 863 0074 1A60     	 str r2,[r3]
+ 311:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_dec_16 = UARTPutDec16;
+ 864              	 .loc 1 311 0
+ 865 0076 184A     	 ldr r2,.L46+76
+ 866 0078 184B     	 ldr r3,.L46+80
+ 867 007a 1A60     	 str r2,[r3]
+ 312:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_dec_32 = UARTPutDec32;
+ 868              	 .loc 1 312 0
+ 869 007c 184A     	 ldr r2,.L46+84
+ 870 007e 194B     	 ldr r3,.L46+88
+ 871 0080 1A60     	 str r2,[r3]
+ 313:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** 	_db_get_char = UARTGetChar;
+ 872              	 .loc 1 313 0
+ 873 0082 194A     	 ldr r2,.L46+92
+ 874 0084 194B     	 ldr r3,.L46+96
+ 875 0086 1A60     	 str r2,[r3]
+ 314:LPC17xxLib/src/lpc17xx_debug_frmwrk.c **** }
+ 876              	 .loc 1 314 0
+ 877 0088 04B0     	 add sp,sp,#16
+ 878              	 .cfi_def_cfa_offset 16
+ 879              	 
+ 880 008a 70BD     	 pop {r4,r5,r6,pc}
+ 881              	.L47:
+ 882              	 .align 2
+ 883              	.L46:
+ 884 008c 00000000 	 .word PINSEL_ConfigPin
+ 885 0090 00000000 	 .word UART_ConfigStructInit
+ 886 0094 00C00040 	 .word 1073790976
+ 887 0098 00000000 	 .word UART_Init
+ 888 009c 00000000 	 .word UART_TxCmd
+ 889 00a0 00000000 	 .word UARTPuts
+ 890 00a4 00000000 	 .word _db_msg
+ 891 00a8 00000000 	 .word UARTPuts_
+ 892 00ac 00000000 	 .word _db_msg_
+ 893 00b0 00000000 	 .word UARTPutChar
+ 894 00b4 00000000 	 .word _db_char
+ 895 00b8 00000000 	 .word UARTPutHex
+ 896 00bc 00000000 	 .word _db_hex
+ 897 00c0 00000000 	 .word UARTPutHex16
+ 898 00c4 00000000 	 .word _db_hex_16
+ 899 00c8 00000000 	 .word UARTPutHex32
+ 900 00cc 00000000 	 .word _db_hex_32
+ 901 00d0 00000000 	 .word UARTPutDec
+ 902 00d4 00000000 	 .word _db_dec
+ 903 00d8 00000000 	 .word UARTPutDec16
+ 904 00dc 00000000 	 .word _db_dec_16
+ 905 00e0 00000000 	 .word UARTPutDec32
+ 906 00e4 00000000 	 .word _db_dec_32
+ 907 00e8 00000000 	 .word UARTGetChar
+ 908 00ec 00000000 	 .word _db_get_char
+ 909              	 .cfi_endproc
+ 910              	.LFE65:
+ 912              	 .comm _db_get_char,4,4
+ 913              	 .comm _db_hex_32,4,4
+ 914              	 .comm _db_hex_16,4,4
+ 915              	 .comm _db_hex,4,4
+ 916              	 .comm _db_dec_32,4,4
+ 917              	 .comm _db_dec_16,4,4
+ 918              	 .comm _db_dec,4,4
+ 919              	 .comm _db_char,4,4
+ 920              	 .comm _db_msg_,4,4
+ 921              	 .comm _db_msg,4,4
+ 922              	 .section .rodata.UARTPutHex.str1.1,"aMS",%progbits,1
+ 923              	.LC1:
+ 924 0000 307800   	 .ascii "0x\000"
+ 925              	 .section .rodata.UARTPuts_.str1.1,"aMS",%progbits,1
+ 926              	.LC0:
+ 927 0000 0A0D00   	 .ascii "\012\015\000"
+ 928              	 .text
+ 929              	.Letext0:
+ 930              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 931              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 932              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 933              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 934              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 935              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 936              	 .file 8 "LPC17xxLib/inc/lpc17xx_uart.h"
+ 937              	 .file 9 "LPC17xxLib/inc/debug_frmwrk.h"
+ 938              	 .file 10 "LPC17xxLib/inc/lpc17xx_pinsel.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_debug_frmwrk.c
+    {standard input}:16     .text.UARTPutChar:0000000000000000 $t
+    {standard input}:23     .text.UARTPutChar:0000000000000000 UARTPutChar
+    {standard input}:56     .text.UARTPutChar:0000000000000018 $d
+    {standard input}:61     .text.UARTPuts:0000000000000000 $t
+    {standard input}:68     .text.UARTPuts:0000000000000000 UARTPuts
+    {standard input}:104    .text.UARTPuts:0000000000000018 $d
+    {standard input}:109    .text.UARTPuts_:0000000000000000 $t
+    {standard input}:116    .text.UARTPuts_:0000000000000000 UARTPuts_
+    {standard input}:153    .text.UARTPuts_:0000000000000014 $d
+    {standard input}:159    .text.UARTPutDec:0000000000000000 $t
+    {standard input}:166    .text.UARTPutDec:0000000000000000 UARTPutDec
+    {standard input}:233    .text.UARTPutDec:0000000000000044 $d
+    {standard input}:238    .text.UARTPutDec16:0000000000000000 $t
+    {standard input}:245    .text.UARTPutDec16:0000000000000000 UARTPutDec16
+    {standard input}:333    .text.UARTPutDec16:0000000000000074 $d
+    {standard input}:338    .text.UARTPutDec32:0000000000000000 $t
+    {standard input}:345    .text.UARTPutDec32:0000000000000000 UARTPutDec32
+    {standard input}:495    .text.UARTPutDec32:00000000000000e0 $d
+    {standard input}:505    .text.UARTPutHex:0000000000000000 $t
+    {standard input}:512    .text.UARTPutHex:0000000000000000 UARTPutHex
+    {standard input}:573    .text.UARTPutHex:0000000000000034 $d
+    {standard input}:580    .text.UARTPutHex16:0000000000000000 $t
+    {standard input}:587    .text.UARTPutHex16:0000000000000000 UARTPutHex16
+    {standard input}:642    .text.UARTPutHex16:000000000000002c $d
+    {standard input}:649    .text.UARTPutHex32:0000000000000000 $t
+    {standard input}:656    .text.UARTPutHex32:0000000000000000 UARTPutHex32
+    {standard input}:711    .text.UARTPutHex32:000000000000002c $d
+    {standard input}:718    .text.UARTGetChar:0000000000000000 $t
+    {standard input}:725    .text.UARTGetChar:0000000000000000 UARTGetChar
+    {standard input}:757    .text.UARTGetChar:000000000000001c $d
+    {standard input}:762    .text.debug_frmwrk_init:0000000000000000 $t
+    {standard input}:769    .text.debug_frmwrk_init:0000000000000000 debug_frmwrk_init
+    {standard input}:884    .text.debug_frmwrk_init:000000000000008c $d
+                            *COM*:0000000000000004 _db_msg
+                            *COM*:0000000000000004 _db_msg_
+                            *COM*:0000000000000004 _db_char
+                            *COM*:0000000000000004 _db_hex
+                            *COM*:0000000000000004 _db_hex_16
+                            *COM*:0000000000000004 _db_hex_32
+                            *COM*:0000000000000004 _db_dec
+                            *COM*:0000000000000004 _db_dec_16
+                            *COM*:0000000000000004 _db_dec_32
+                            *COM*:0000000000000004 _db_get_char
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+UART_Send
+UART_Receive
+PINSEL_ConfigPin
+UART_ConfigStructInit
+UART_Init
+UART_TxCmd

@@ -1,0 +1,1561 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_timer.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.TIM_GetIntStatus,"ax",%progbits
+  16              	 .align 1
+  17              	 .global TIM_GetIntStatus
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	TIM_GetIntStatus:
+  24              	.LFB58:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_timer.c"
+   1:LPC17xxLib/src/lpc17xx_timer.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_timer.c **** 
+   3:LPC17xxLib/src/lpc17xx_timer.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_timer.c **** * $Id$		lpc17xx_timer.c				2011-03-10
+   5:LPC17xxLib/src/lpc17xx_timer.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_timer.c **** * @file		lpc17xx_timer.c
+   7:LPC17xxLib/src/lpc17xx_timer.c **** * @brief	Contains all functions support for Timer firmware library
+   8:LPC17xxLib/src/lpc17xx_timer.c **** * 			on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_timer.c **** * @version	3.1
+  10:LPC17xxLib/src/lpc17xx_timer.c **** * @date		10. March. 2011
+  11:LPC17xxLib/src/lpc17xx_timer.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_timer.c **** *
+  13:LPC17xxLib/src/lpc17xx_timer.c **** * Copyright(C) 2011, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_timer.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_timer.c **** *
+  16:LPC17xxLib/src/lpc17xx_timer.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_timer.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_timer.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_timer.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_timer.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_timer.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_timer.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_timer.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_timer.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_timer.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_timer.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_timer.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_timer.c **** 
+  29:LPC17xxLib/src/lpc17xx_timer.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_timer.c **** /** @addtogroup TIM
+  31:LPC17xxLib/src/lpc17xx_timer.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_timer.c ****  */
+  33:LPC17xxLib/src/lpc17xx_timer.c **** 
+  34:LPC17xxLib/src/lpc17xx_timer.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_timer.c **** #include "lpc17xx_timer.h"
+  36:LPC17xxLib/src/lpc17xx_timer.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_timer.c **** #include "lpc17xx_pinsel.h"
+  38:LPC17xxLib/src/lpc17xx_timer.c **** 
+  39:LPC17xxLib/src/lpc17xx_timer.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  40:LPC17xxLib/src/lpc17xx_timer.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  41:LPC17xxLib/src/lpc17xx_timer.c ****  * otherwise the default FW library configuration file must be included instead
+  42:LPC17xxLib/src/lpc17xx_timer.c ****  */
+  43:LPC17xxLib/src/lpc17xx_timer.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  44:LPC17xxLib/src/lpc17xx_timer.c **** #include "lpc17xx_libcfg.h"
+  45:LPC17xxLib/src/lpc17xx_timer.c **** #else
+  46:LPC17xxLib/src/lpc17xx_timer.c **** #include "lpc17xx_libcfg_default.h"
+  47:LPC17xxLib/src/lpc17xx_timer.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  48:LPC17xxLib/src/lpc17xx_timer.c **** 
+  49:LPC17xxLib/src/lpc17xx_timer.c **** #ifdef _TIM
+  50:LPC17xxLib/src/lpc17xx_timer.c **** 
+  51:LPC17xxLib/src/lpc17xx_timer.c **** /* Private Functions ---------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_timer.c **** 
+  53:LPC17xxLib/src/lpc17xx_timer.c **** static uint32_t getPClock (uint32_t timernum);
+  54:LPC17xxLib/src/lpc17xx_timer.c **** static uint32_t converUSecToVal (uint32_t timernum, uint32_t usec);
+  55:LPC17xxLib/src/lpc17xx_timer.c **** static uint32_t converPtrToTimeNum (LPC_TIM_TypeDef *TIMx);
+  56:LPC17xxLib/src/lpc17xx_timer.c **** 
+  57:LPC17xxLib/src/lpc17xx_timer.c **** 
+  58:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+  59:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Get peripheral clock of each timer controller
+  60:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	timernum Timer number
+  61:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		Peripheral clock of timer
+  62:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+  63:LPC17xxLib/src/lpc17xx_timer.c **** static uint32_t getPClock (uint32_t timernum)
+  64:LPC17xxLib/src/lpc17xx_timer.c **** {
+  65:LPC17xxLib/src/lpc17xx_timer.c **** 	uint32_t clkdlycnt=0;
+  66:LPC17xxLib/src/lpc17xx_timer.c **** 	switch (timernum)
+  67:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+  68:LPC17xxLib/src/lpc17xx_timer.c **** 	case 0:
+  69:LPC17xxLib/src/lpc17xx_timer.c **** 		clkdlycnt = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_TIMER0);
+  70:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+  71:LPC17xxLib/src/lpc17xx_timer.c **** 
+  72:LPC17xxLib/src/lpc17xx_timer.c **** 	case 1:
+  73:LPC17xxLib/src/lpc17xx_timer.c **** 		clkdlycnt = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_TIMER1);
+  74:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+  75:LPC17xxLib/src/lpc17xx_timer.c **** 
+  76:LPC17xxLib/src/lpc17xx_timer.c **** 	case 2:
+  77:LPC17xxLib/src/lpc17xx_timer.c **** 		clkdlycnt = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_TIMER2);
+  78:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+  79:LPC17xxLib/src/lpc17xx_timer.c **** 
+  80:LPC17xxLib/src/lpc17xx_timer.c **** 	case 3:
+  81:LPC17xxLib/src/lpc17xx_timer.c **** 		clkdlycnt = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_TIMER3);
+  82:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+  83:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+  84:LPC17xxLib/src/lpc17xx_timer.c **** 	return clkdlycnt;
+  85:LPC17xxLib/src/lpc17xx_timer.c **** }
+  86:LPC17xxLib/src/lpc17xx_timer.c **** 
+  87:LPC17xxLib/src/lpc17xx_timer.c **** 
+  88:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+  89:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Convert a time to a timer count value
+  90:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	timernum Timer number
+  91:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	usec Time in microseconds
+  92:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		The number of required clock ticks to give the time delay
+  93:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+  94:LPC17xxLib/src/lpc17xx_timer.c **** uint32_t converUSecToVal (uint32_t timernum, uint32_t usec)
+  95:LPC17xxLib/src/lpc17xx_timer.c **** {
+  96:LPC17xxLib/src/lpc17xx_timer.c **** 	uint64_t clkdlycnt;
+  97:LPC17xxLib/src/lpc17xx_timer.c **** 
+  98:LPC17xxLib/src/lpc17xx_timer.c **** 	// Get Pclock of timer
+  99:LPC17xxLib/src/lpc17xx_timer.c **** 	clkdlycnt = (uint64_t) getPClock(timernum);
+ 100:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 101:LPC17xxLib/src/lpc17xx_timer.c **** 	clkdlycnt = (clkdlycnt * usec) / 1000000;
+ 102:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 103:LPC17xxLib/src/lpc17xx_timer.c **** 	return (uint32_t) clkdlycnt;
+ 104:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 105:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 106:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 107:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 108:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Convert a timer register pointer to a timer number
+ 109:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to LPC_TIM_TypeDef, should be:
+ 110:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM0: TIMER0 peripheral
+ 111:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 112:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 113:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 114:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		The timer number (0 to 3) or -1 if register pointer is bad
+ 115:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 116:LPC17xxLib/src/lpc17xx_timer.c **** uint32_t converPtrToTimeNum (LPC_TIM_TypeDef *TIMx)
+ 117:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 118:LPC17xxLib/src/lpc17xx_timer.c **** 	uint32_t tnum = (uint32_t)-1;
+ 119:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 120:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIMx == LPC_TIM0)
+ 121:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 122:LPC17xxLib/src/lpc17xx_timer.c **** 		tnum = 0;
+ 123:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 124:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx == LPC_TIM1)
+ 125:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 126:LPC17xxLib/src/lpc17xx_timer.c **** 		tnum = 1;
+ 127:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 128:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx == LPC_TIM2)
+ 129:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 130:LPC17xxLib/src/lpc17xx_timer.c **** 		tnum = 2;
+ 131:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 132:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx == LPC_TIM3)
+ 133:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 134:LPC17xxLib/src/lpc17xx_timer.c **** 		tnum = 3;
+ 135:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 136:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 137:LPC17xxLib/src/lpc17xx_timer.c **** 	return tnum;
+ 138:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 139:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 140:LPC17xxLib/src/lpc17xx_timer.c **** /* End of Private Functions ---------------------------------------------------- */
+ 141:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 142:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 143:LPC17xxLib/src/lpc17xx_timer.c **** /* Public Functions ----------------------------------------------------------- */
+ 144:LPC17xxLib/src/lpc17xx_timer.c **** /** @addtogroup TIM_Public_Functions
+ 145:LPC17xxLib/src/lpc17xx_timer.c ****  * @{
+ 146:LPC17xxLib/src/lpc17xx_timer.c ****  */
+ 147:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 148:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 149:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Get Interrupt Status
+ 150:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Timer selection, should be:
+ 151:LPC17xxLib/src/lpc17xx_timer.c ****  *   			- LPC_TIM0: TIMER0 peripheral
+ 152:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 153:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 154:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 155:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	IntFlag: interrupt type, should be:
+ 156:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR0_INT: Interrupt for Match channel 0
+ 157:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR1_INT: Interrupt for Match channel 1
+ 158:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR2_INT: Interrupt for Match channel 2
+ 159:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR3_INT: Interrupt for Match channel 3
+ 160:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR0_INT: Interrupt for Capture channel 0
+ 161:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR1_INT: Interrupt for Capture channel 1
+ 162:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		FlagStatus
+ 163:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- SET : interrupt
+ 164:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- RESET : no interrupt
+ 165:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 166:LPC17xxLib/src/lpc17xx_timer.c **** FlagStatus TIM_GetIntStatus(LPC_TIM_TypeDef *TIMx, TIM_INT_TYPE IntFlag)
+ 167:LPC17xxLib/src/lpc17xx_timer.c **** {
+  26              	 .loc 1 167 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+ 168:LPC17xxLib/src/lpc17xx_timer.c **** 	uint8_t temp;
+ 169:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 170:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
+ 171:LPC17xxLib/src/lpc17xx_timer.c **** 	temp = (TIMx->IR)& TIM_IR_CLR(IntFlag);
+  32              	 .loc 1 171 0
+  33 0000 0123     	 movs r3,#1
+  34 0002 0268     	 ldr r2,[r0]
+  35              	.LVL1:
+  36 0004 03FA01F0 	 lsl r0,r3,r1
+  37              	.LVL2:
+  38 0008 1040     	 ands r0,r0,r2
+ 172:LPC17xxLib/src/lpc17xx_timer.c **** 	if (temp)
+  39              	 .loc 1 172 0
+  40 000a C0B2     	 uxtb r0,r0
+ 173:LPC17xxLib/src/lpc17xx_timer.c **** 		return SET;
+ 174:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 175:LPC17xxLib/src/lpc17xx_timer.c **** 	return RESET;
+ 176:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 177:LPC17xxLib/src/lpc17xx_timer.c **** }
+  41              	 .loc 1 177 0
+  42 000c 0030     	 adds r0,r0,#0
+  43 000e 18BF     	 it ne
+  44 0010 0120     	 movne r0,#1
+  45 0012 7047     	 bx lr
+  46              	 .cfi_endproc
+  47              	.LFE58:
+  49              	 .section .text.TIM_GetIntCaptureStatus,"ax",%progbits
+  50              	 .align 1
+  51              	 .global TIM_GetIntCaptureStatus
+  52              	 .syntax unified
+  53              	 .thumb
+  54              	 .thumb_func
+  55              	 .fpu softvfp
+  57              	TIM_GetIntCaptureStatus:
+  58              	.LFB59:
+ 178:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 179:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Get Capture Interrupt Status
+ 180:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Timer selection, should be:
+ 181:LPC17xxLib/src/lpc17xx_timer.c ****  *  	   		- LPC_TIM0: TIMER0 peripheral
+ 182:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 183:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 184:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 185:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	IntFlag: interrupt type, should be:
+ 186:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR0_INT: Interrupt for Match channel 0
+ 187:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR1_INT: Interrupt for Match channel 1
+ 188:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR2_INT: Interrupt for Match channel 2
+ 189:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR3_INT: Interrupt for Match channel 3
+ 190:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR0_INT: Interrupt for Capture channel 0
+ 191:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR1_INT: Interrupt for Capture channel 1
+ 192:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		FlagStatus
+ 193:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- SET : interrupt
+ 194:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- RESET : no interrupt
+ 195:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 196:LPC17xxLib/src/lpc17xx_timer.c **** FlagStatus TIM_GetIntCaptureStatus(LPC_TIM_TypeDef *TIMx, TIM_INT_TYPE IntFlag)
+ 197:LPC17xxLib/src/lpc17xx_timer.c **** {
+  59              	 .loc 1 197 0
+  60              	 .cfi_startproc
+  61              	 
+  62              	 
+  63              	 
+  64              	.LVL3:
+ 198:LPC17xxLib/src/lpc17xx_timer.c **** 	uint8_t temp;
+ 199:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 200:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
+ 201:LPC17xxLib/src/lpc17xx_timer.c **** 	temp = (TIMx->IR) & (1<<(4+IntFlag));
+  65              	 .loc 1 201 0
+  66 0000 0368     	 ldr r3,[r0]
+  67              	.LVL4:
+  68 0002 0120     	 movs r0,#1
+  69              	.LVL5:
+  70 0004 0431     	 adds r1,r1,#4
+  71              	.LVL6:
+  72 0006 8840     	 lsls r0,r0,r1
+  73 0008 1840     	 ands r0,r0,r3
+ 202:LPC17xxLib/src/lpc17xx_timer.c **** 	if(temp)
+  74              	 .loc 1 202 0
+  75 000a C0B2     	 uxtb r0,r0
+ 203:LPC17xxLib/src/lpc17xx_timer.c **** 		return SET;
+ 204:LPC17xxLib/src/lpc17xx_timer.c **** 	return RESET;
+ 205:LPC17xxLib/src/lpc17xx_timer.c **** }
+  76              	 .loc 1 205 0
+  77 000c 0030     	 adds r0,r0,#0
+  78 000e 18BF     	 it ne
+  79 0010 0120     	 movne r0,#1
+  80 0012 7047     	 bx lr
+  81              	 .cfi_endproc
+  82              	.LFE59:
+  84              	 .section .text.TIM_ClearIntPending,"ax",%progbits
+  85              	 .align 1
+  86              	 .global TIM_ClearIntPending
+  87              	 .syntax unified
+  88              	 .thumb
+  89              	 .thumb_func
+  90              	 .fpu softvfp
+  92              	TIM_ClearIntPending:
+  93              	.LFB60:
+ 206:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 207:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Clear Interrupt pending
+ 208:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Timer selection, should be:
+ 209:LPC17xxLib/src/lpc17xx_timer.c ****  *    			- LPC_TIM0: TIMER0 peripheral
+ 210:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 211:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 212:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 213:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	IntFlag: interrupt type, should be:
+ 214:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR0_INT: Interrupt for Match channel 0
+ 215:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR1_INT: Interrupt for Match channel 1
+ 216:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR2_INT: Interrupt for Match channel 2
+ 217:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR3_INT: Interrupt for Match channel 3
+ 218:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR0_INT: Interrupt for Capture channel 0
+ 219:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR1_INT: Interrupt for Capture channel 1
+ 220:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 221:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 222:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_ClearIntPending(LPC_TIM_TypeDef *TIMx, TIM_INT_TYPE IntFlag)
+ 223:LPC17xxLib/src/lpc17xx_timer.c **** {
+  94              	 .loc 1 223 0
+  95              	 .cfi_startproc
+  96              	 
+  97              	 
+  98              	 
+  99              	.LVL7:
+ 224:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 225:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
+ 226:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->IR = TIM_IR_CLR(IntFlag);
+ 100              	 .loc 1 226 0
+ 101 0000 0123     	 movs r3,#1
+ 102 0002 03FA01F1 	 lsl r1,r3,r1
+ 103              	.LVL8:
+ 104 0006 0160     	 str r1,[r0]
+ 105 0008 7047     	 bx lr
+ 106              	 .cfi_endproc
+ 107              	.LFE60:
+ 109              	 .section .text.TIM_ClearIntCapturePending,"ax",%progbits
+ 110              	 .align 1
+ 111              	 .global TIM_ClearIntCapturePending
+ 112              	 .syntax unified
+ 113              	 .thumb
+ 114              	 .thumb_func
+ 115              	 .fpu softvfp
+ 117              	TIM_ClearIntCapturePending:
+ 118              	.LFB61:
+ 227:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 228:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 229:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 230:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Clear Capture Interrupt pending
+ 231:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Timer selection, should be
+ 232:LPC17xxLib/src/lpc17xx_timer.c ****  *    			- LPC_TIM0: TIMER0 peripheral
+ 233:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 234:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 235:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 236:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	IntFlag interrupt type, should be:
+ 237:LPC17xxLib/src/lpc17xx_timer.c ****  *				- TIM_MR0_INT: Interrupt for Match channel 0
+ 238:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR1_INT: Interrupt for Match channel 1
+ 239:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR2_INT: Interrupt for Match channel 2
+ 240:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_MR3_INT: Interrupt for Match channel 3
+ 241:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR0_INT: Interrupt for Capture channel 0
+ 242:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_CR1_INT: Interrupt for Capture channel 1
+ 243:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 244:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 245:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_ClearIntCapturePending(LPC_TIM_TypeDef *TIMx, TIM_INT_TYPE IntFlag)
+ 246:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 119              	 .loc 1 246 0
+ 120              	 .cfi_startproc
+ 121              	 
+ 122              	 
+ 123              	 
+ 124              	.LVL9:
+ 247:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 248:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_INT_TYPE(IntFlag));
+ 249:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->IR = (1<<(4+IntFlag));
+ 125              	 .loc 1 249 0
+ 126 0000 0123     	 movs r3,#1
+ 127 0002 0431     	 adds r1,r1,#4
+ 128              	.LVL10:
+ 129 0004 03FA01F1 	 lsl r1,r3,r1
+ 130 0008 0160     	 str r1,[r0]
+ 131 000a 7047     	 bx lr
+ 132              	 .cfi_endproc
+ 133              	.LFE61:
+ 135              	 .section .text.TIM_ConfigStructInit,"ax",%progbits
+ 136              	 .align 1
+ 137              	 .global TIM_ConfigStructInit
+ 138              	 .syntax unified
+ 139              	 .thumb
+ 140              	 .thumb_func
+ 141              	 .fpu softvfp
+ 143              	TIM_ConfigStructInit:
+ 144              	.LFB62:
+ 250:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 251:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 252:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 253:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Configuration for Timer at initial time
+ 254:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in] 	TimerCounterMode timer counter mode, should be:
+ 255:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_TIMER_MODE: Timer mode
+ 256:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_RISING_MODE: Counter rising mode
+ 257:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_FALLING_MODE: Counter falling mode
+ 258:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_ANY_MODE:Counter on both edges
+ 259:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in] 	TIM_ConfigStruct pointer to TIM_TIMERCFG_Type or
+ 260:LPC17xxLib/src/lpc17xx_timer.c ****  * 				TIM_COUNTERCFG_Type
+ 261:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 262:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 263:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_ConfigStructInit(TIM_MODE_OPT TimerCounterMode, void *TIM_ConfigStruct)
+ 264:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 145              	 .loc 1 264 0
+ 146              	 .cfi_startproc
+ 147              	 
+ 148              	 
+ 149              	 
+ 150              	.LVL11:
+ 265:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TimerCounterMode == TIM_TIMER_MODE )
+ 151              	 .loc 1 265 0
+ 152 0000 30B9     	 cbnz r0,.L6
+ 153              	.LVL12:
+ 154              	.LBB2:
+ 266:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 267:LPC17xxLib/src/lpc17xx_timer.c **** 		TIM_TIMERCFG_Type * pTimeCfg = (TIM_TIMERCFG_Type *)TIM_ConfigStruct;
+ 268:LPC17xxLib/src/lpc17xx_timer.c **** 		pTimeCfg->PrescaleOption = TIM_PRESCALE_USVAL;
+ 155              	 .loc 1 268 0
+ 156 0002 0123     	 movs r3,#1
+ 269:LPC17xxLib/src/lpc17xx_timer.c **** 		pTimeCfg->PrescaleValue = 1;
+ 157              	 .loc 1 269 0
+ 158 0004 4871     	 strb r0,[r1,#5]
+ 268:LPC17xxLib/src/lpc17xx_timer.c **** 		pTimeCfg->PrescaleValue = 1;
+ 159              	 .loc 1 268 0
+ 160 0006 0B70     	 strb r3,[r1]
+ 161              	 .loc 1 269 0
+ 162 0008 0B71     	 strb r3,[r1,#4]
+ 163 000a 8871     	 strb r0,[r1,#6]
+ 164 000c C871     	 strb r0,[r1,#7]
+ 165              	.LBE2:
+ 166 000e 7047     	 bx lr
+ 167              	.LVL13:
+ 168              	.L6:
+ 169              	.LBB3:
+ 270:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 271:LPC17xxLib/src/lpc17xx_timer.c **** 	else
+ 272:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 273:LPC17xxLib/src/lpc17xx_timer.c **** 		TIM_COUNTERCFG_Type * pCounterCfg = (TIM_COUNTERCFG_Type *)TIM_ConfigStruct;
+ 274:LPC17xxLib/src/lpc17xx_timer.c **** 		pCounterCfg->CountInputSelect = TIM_COUNTER_INCAP0;
+ 170              	 .loc 1 274 0
+ 171 0010 0023     	 movs r3,#0
+ 172 0012 4B70     	 strb r3,[r1,#1]
+ 173 0014 7047     	 bx lr
+ 174              	.LBE3:
+ 175              	 .cfi_endproc
+ 176              	.LFE62:
+ 178              	 .global __aeabi_uldivmod
+ 179              	 .section .text.TIM_Init,"ax",%progbits
+ 180              	 .align 1
+ 181              	 .global TIM_Init
+ 182              	 .syntax unified
+ 183              	 .thumb
+ 184              	 .thumb_func
+ 185              	 .fpu softvfp
+ 187              	TIM_Init:
+ 188              	.LFB63:
+ 275:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 276:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 277:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 278:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 279:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Initial Timer/Counter device
+ 280:LPC17xxLib/src/lpc17xx_timer.c ****  * 				 	Set Clock frequency for Timer
+ 281:LPC17xxLib/src/lpc17xx_timer.c ****  * 					Set initial configuration for Timer
+ 282:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx  Timer selection, should be:
+ 283:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM0: TIMER0 peripheral
+ 284:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 285:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 286:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 287:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TimerCounterMode Timer counter mode, should be:
+ 288:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_TIMER_MODE: Timer mode
+ 289:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_RISING_MODE: Counter rising mode
+ 290:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_FALLING_MODE: Counter falling mode
+ 291:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_ANY_MODE:Counter on both edges
+ 292:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIM_ConfigStruct pointer to TIM_TIMERCFG_Type
+ 293:LPC17xxLib/src/lpc17xx_timer.c ****  * 				that contains the configuration information for the
+ 294:LPC17xxLib/src/lpc17xx_timer.c ****  *                    specified Timer peripheral.
+ 295:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 296:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 297:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_Init(LPC_TIM_TypeDef *TIMx, TIM_MODE_OPT TimerCounterMode, void *TIM_ConfigStruct)
+ 298:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 189              	 .loc 1 298 0
+ 190              	 .cfi_startproc
+ 191              	 
+ 192              	 
+ 193              	.LVL14:
+ 299:LPC17xxLib/src/lpc17xx_timer.c **** 	TIM_TIMERCFG_Type *pTimeCfg;
+ 300:LPC17xxLib/src/lpc17xx_timer.c **** 	TIM_COUNTERCFG_Type *pCounterCfg;
+ 301:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 302:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 303:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_MODE_OPT(TimerCounterMode));
+ 304:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 305:LPC17xxLib/src/lpc17xx_timer.c **** 	//set power
+ 306:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 307:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIMx== LPC_TIM0)
+ 194              	 .loc 1 307 0
+ 195 0000 B0F1402F 	 cmp r0,#1073758208
+ 298:LPC17xxLib/src/lpc17xx_timer.c **** 	TIM_TIMERCFG_Type *pTimeCfg;
+ 196              	 .loc 1 298 0
+ 197 0004 70B5     	 push {r4,r5,r6,lr}
+ 198              	 .cfi_def_cfa_offset 16
+ 199              	 .cfi_offset 4,-16
+ 200              	 .cfi_offset 5,-12
+ 201              	 .cfi_offset 6,-8
+ 202              	 .cfi_offset 14,-4
+ 298:LPC17xxLib/src/lpc17xx_timer.c **** 	TIM_TIMERCFG_Type *pTimeCfg;
+ 203              	 .loc 1 298 0
+ 204 0006 0446     	 mov r4,r0
+ 205 0008 0D46     	 mov r5,r1
+ 206 000a 1646     	 mov r6,r2
+ 207              	 .loc 1 307 0
+ 208 000c 40D1     	 bne .L9
+ 308:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 309:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM0, ENABLE);
+ 209              	 .loc 1 309 0
+ 210 000e 0121     	 movs r1,#1
+ 211              	.LVL15:
+ 212 0010 0220     	 movs r0,#2
+ 213              	.LVL16:
+ 214 0012 4D4B     	 ldr r3,.L30
+ 215 0014 9847     	 blx r3
+ 216              	.LVL17:
+ 310:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer0 = CCLK/4
+ 311:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER0, CLKPWR_PCLKSEL_CCLK_DIV_4);
+ 217              	 .loc 1 311 0
+ 218 0016 0021     	 movs r1,#0
+ 219 0018 0220     	 movs r0,#2
+ 220              	.L28:
+ 312:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 313:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx== LPC_TIM1)
+ 314:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 315:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM1, ENABLE);
+ 316:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer1 = CCLK/4
+ 317:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER1, CLKPWR_PCLKSEL_CCLK_DIV_4);
+ 318:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 319:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 320:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 321:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx== LPC_TIM2)
+ 322:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 323:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, ENABLE);
+ 324:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer2= CCLK/4
+ 325:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER2, CLKPWR_PCLKSEL_CCLK_DIV_4);
+ 326:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 327:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx== LPC_TIM3)
+ 328:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 329:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM3, ENABLE);
+ 330:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer3= CCLK/4
+ 331:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_TIMER3, CLKPWR_PCLKSEL_CCLK_DIV_4);
+ 221              	 .loc 1 331 0
+ 222 001a 4C4B     	 ldr r3,.L30+4
+ 223 001c 9847     	 blx r3
+ 224              	.LVL18:
+ 225              	.L10:
+ 332:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 333:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 334:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 335:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->CCR &= ~TIM_CTCR_MODE_MASK;
+ 226              	 .loc 1 335 0
+ 227 001e A36A     	 ldr r3,[r4,#40]
+ 228 0020 23F00303 	 bic r3,r3,#3
+ 229 0024 A362     	 str r3,[r4,#40]
+ 336:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->CCR |= TIM_TIMER_MODE;
+ 230              	 .loc 1 336 0
+ 231 0026 A36A     	 ldr r3,[r4,#40]
+ 232 0028 A362     	 str r3,[r4,#40]
+ 337:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 338:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->TC =0;
+ 233              	 .loc 1 338 0
+ 234 002a 237A     	 ldrb r3,[r4,#8]
+ 235 002c 0023     	 movs r3,#0
+ 236 002e 2372     	 strb r3,[r4,#8]
+ 237 0030 627A     	 ldrb r2,[r4,#9]
+ 238 0032 6372     	 strb r3,[r4,#9]
+ 239 0034 A27A     	 ldrb r2,[r4,#10]
+ 240 0036 A372     	 strb r3,[r4,#10]
+ 241 0038 E27A     	 ldrb r2,[r4,#11]
+ 242 003a E372     	 strb r3,[r4,#11]
+ 339:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->PC =0;
+ 243              	 .loc 1 339 0
+ 244 003c 227C     	 ldrb r2,[r4,#16]
+ 245 003e 2374     	 strb r3,[r4,#16]
+ 246 0040 627C     	 ldrb r2,[r4,#17]
+ 247 0042 6374     	 strb r3,[r4,#17]
+ 248 0044 A27C     	 ldrb r2,[r4,#18]
+ 249 0046 A374     	 strb r3,[r4,#18]
+ 250 0048 E27C     	 ldrb r2,[r4,#19]
+ 251 004a E374     	 strb r3,[r4,#19]
+ 340:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->PR =0;
+ 252              	 .loc 1 340 0
+ 253 004c 227B     	 ldrb r2,[r4,#12]
+ 254 004e 2373     	 strb r3,[r4,#12]
+ 255 0050 627B     	 ldrb r2,[r4,#13]
+ 256 0052 6373     	 strb r3,[r4,#13]
+ 257 0054 A27B     	 ldrb r2,[r4,#14]
+ 258 0056 A373     	 strb r3,[r4,#14]
+ 259 0058 E27B     	 ldrb r2,[r4,#15]
+ 260 005a E373     	 strb r3,[r4,#15]
+ 341:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->TCR |= (1<<1); //Reset Counter
+ 261              	 .loc 1 341 0
+ 262 005c 6368     	 ldr r3,[r4,#4]
+ 263 005e 43F00203 	 orr r3,r3,#2
+ 264 0062 6360     	 str r3,[r4,#4]
+ 342:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->TCR &= ~(1<<1); //release reset
+ 265              	 .loc 1 342 0
+ 266 0064 6368     	 ldr r3,[r4,#4]
+ 267 0066 23F00203 	 bic r3,r3,#2
+ 268 006a 6360     	 str r3,[r4,#4]
+ 343:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TimerCounterMode == TIM_TIMER_MODE )
+ 269              	 .loc 1 343 0
+ 270 006c 002D     	 cmp r5,#0
+ 271 006e 5FD1     	 bne .L13
+ 272              	.LVL19:
+ 344:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 345:LPC17xxLib/src/lpc17xx_timer.c **** 		pTimeCfg = (TIM_TIMERCFG_Type *)TIM_ConfigStruct;
+ 346:LPC17xxLib/src/lpc17xx_timer.c **** 		if (pTimeCfg->PrescaleOption  == TIM_PRESCALE_TICKVAL)
+ 273              	 .loc 1 346 0
+ 274 0070 3378     	 ldrb r3,[r6]
+ 275 0072 7668     	 ldr r6,[r6,#4]
+ 276              	.LVL20:
+ 277 0074 63BB     	 cbnz r3,.L14
+ 347:LPC17xxLib/src/lpc17xx_timer.c **** 		{
+ 348:LPC17xxLib/src/lpc17xx_timer.c **** 			TIMx->PR   = pTimeCfg->PrescaleValue -1  ;
+ 278              	 .loc 1 348 0
+ 279 0076 013E     	 subs r6,r6,#1
+ 280 0078 E660     	 str r6,[r4,#12]
+ 281              	.LVL21:
+ 282              	.L15:
+ 349:LPC17xxLib/src/lpc17xx_timer.c **** 		}
+ 350:LPC17xxLib/src/lpc17xx_timer.c **** 		else
+ 351:LPC17xxLib/src/lpc17xx_timer.c **** 		{
+ 352:LPC17xxLib/src/lpc17xx_timer.c **** 			TIMx->PR   = converUSecToVal (converPtrToTimeNum(TIMx),pTimeCfg->PrescaleValue)-1;
+ 353:LPC17xxLib/src/lpc17xx_timer.c **** 		}
+ 354:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 355:LPC17xxLib/src/lpc17xx_timer.c **** 	else
+ 356:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 357:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 358:LPC17xxLib/src/lpc17xx_timer.c **** 		pCounterCfg = (TIM_COUNTERCFG_Type *)TIM_ConfigStruct;
+ 359:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->CCR  &= ~TIM_CTCR_INPUT_MASK;
+ 360:LPC17xxLib/src/lpc17xx_timer.c **** 		if (pCounterCfg->CountInputSelect == TIM_COUNTER_INCAP1)
+ 361:LPC17xxLib/src/lpc17xx_timer.c **** 			TIMx->CCR |= _BIT(2);
+ 362:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 363:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 364:LPC17xxLib/src/lpc17xx_timer.c **** 	// Clear interrupt pending
+ 365:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->IR = 0xFFFFFFFF;
+ 283              	 .loc 1 365 0
+ 284 007a 2378     	 ldrb r3,[r4]
+ 285 007c 4FF0FF33 	 mov r3,#-1
+ 286 0080 2370     	 strb r3,[r4]
+ 287 0082 6278     	 ldrb r2,[r4,#1]
+ 288 0084 6370     	 strb r3,[r4,#1]
+ 289 0086 A278     	 ldrb r2,[r4,#2]
+ 290 0088 A370     	 strb r3,[r4,#2]
+ 291 008a E278     	 ldrb r2,[r4,#3]
+ 292 008c E370     	 strb r3,[r4,#3]
+ 293 008e 70BD     	 pop {r4,r5,r6,pc}
+ 294              	.LVL22:
+ 295              	.L9:
+ 313:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 296              	 .loc 1 313 0
+ 297 0090 2F4B     	 ldr r3,.L30+8
+ 298 0092 9842     	 cmp r0,r3
+ 299 0094 06D1     	 bne .L11
+ 315:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer1 = CCLK/4
+ 300              	 .loc 1 315 0
+ 301 0096 0121     	 movs r1,#1
+ 302              	.LVL23:
+ 303 0098 0420     	 movs r0,#4
+ 304              	.LVL24:
+ 305 009a 2B4B     	 ldr r3,.L30
+ 306 009c 9847     	 blx r3
+ 307              	.LVL25:
+ 317:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 308              	 .loc 1 317 0
+ 309 009e 0021     	 movs r1,#0
+ 310 00a0 0420     	 movs r0,#4
+ 311 00a2 BAE7     	 b .L28
+ 312              	.LVL26:
+ 313              	.L11:
+ 321:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 314              	 .loc 1 321 0
+ 315 00a4 2B4B     	 ldr r3,.L30+12
+ 316 00a6 9842     	 cmp r0,r3
+ 317 00a8 07D1     	 bne .L12
+ 323:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer2= CCLK/4
+ 318              	 .loc 1 323 0
+ 319 00aa 0121     	 movs r1,#1
+ 320              	.LVL27:
+ 321 00ac 4FF48000 	 mov r0,#4194304
+ 322              	.LVL28:
+ 323 00b0 254B     	 ldr r3,.L30
+ 324 00b2 9847     	 blx r3
+ 325              	.LVL29:
+ 325:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 326              	 .loc 1 325 0
+ 327 00b4 0021     	 movs r1,#0
+ 328 00b6 2C20     	 movs r0,#44
+ 329 00b8 AFE7     	 b .L28
+ 330              	.LVL30:
+ 331              	.L12:
+ 327:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 332              	 .loc 1 327 0
+ 333 00ba 274B     	 ldr r3,.L30+16
+ 334 00bc 9842     	 cmp r0,r3
+ 335 00be AED1     	 bne .L10
+ 329:LPC17xxLib/src/lpc17xx_timer.c **** 		//PCLK_Timer3= CCLK/4
+ 336              	 .loc 1 329 0
+ 337 00c0 0121     	 movs r1,#1
+ 338              	.LVL31:
+ 339 00c2 4FF40000 	 mov r0,#8388608
+ 340              	.LVL32:
+ 341 00c6 204B     	 ldr r3,.L30
+ 342 00c8 9847     	 blx r3
+ 343              	.LVL33:
+ 331:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 344              	 .loc 1 331 0
+ 345 00ca 0021     	 movs r1,#0
+ 346 00cc 2E20     	 movs r0,#46
+ 347 00ce A4E7     	 b .L28
+ 348              	.LVL34:
+ 349              	.L14:
+ 350              	.LBB10:
+ 351              	.LBB11:
+ 120:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 352              	 .loc 1 120 0
+ 353 00d0 B4F1402F 	 cmp r4,#1073758208
+ 354 00d4 12D0     	 beq .L23
+ 124:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 355              	 .loc 1 124 0
+ 356 00d6 1E4B     	 ldr r3,.L30+8
+ 357 00d8 9C42     	 cmp r4,r3
+ 358 00da 11D0     	 beq .L24
+ 128:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 359              	 .loc 1 128 0
+ 360 00dc 03F50823 	 add r3,r3,#557056
+ 361 00e0 9C42     	 cmp r4,r3
+ 362 00e2 0FD0     	 beq .L25
+ 134:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 363              	 .loc 1 134 0
+ 364 00e4 1C49     	 ldr r1,.L30+16
+ 365 00e6 8C42     	 cmp r4,r1
+ 366 00e8 14BF     	 ite ne
+ 367 00ea 4FF0FF31 	 movne r1,#-1
+ 368 00ee 0321     	 moveq r1,#3
+ 369              	.L16:
+ 370              	.LVL35:
+ 371              	.LBE11:
+ 372              	.LBE10:
+ 373              	.LBB13:
+ 374              	.LBB14:
+ 375              	.LBB15:
+ 376              	.LBB16:
+  66:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 377              	 .loc 1 66 0
+ 378 00f0 0329     	 cmp r1,#3
+ 379 00f2 1BD8     	 bhi .L27
+ 380 00f4 DFE801F0 	 tbb [pc,r1]
+ 381              	.L19:
+ 382 00f8 08       	 .byte (.L18-.L19)/2
+ 383 00f9 14       	 .byte (.L20-.L19)/2
+ 384 00fa 16       	 .byte (.L21-.L19)/2
+ 385 00fb 18       	 .byte (.L22-.L19)/2
+ 386              	.LVL36:
+ 387              	 .p2align 1
+ 388              	.L23:
+ 389              	.LBE16:
+ 390              	.LBE15:
+ 391              	.LBE14:
+ 392              	.LBE13:
+ 393              	.LBB23:
+ 394              	.LBB12:
+ 122:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 395              	 .loc 1 122 0
+ 396 00fc 2946     	 mov r1,r5
+ 397 00fe F7E7     	 b .L16
+ 398              	.L24:
+ 126:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 399              	 .loc 1 126 0
+ 400 0100 0121     	 movs r1,#1
+ 401 0102 F5E7     	 b .L16
+ 402              	.L25:
+ 130:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 403              	 .loc 1 130 0
+ 404 0104 0221     	 movs r1,#2
+ 405 0106 F3E7     	 b .L16
+ 406              	.LVL37:
+ 407              	.L18:
+ 408              	.LBE12:
+ 409              	.LBE23:
+ 410              	.LBB24:
+ 411              	.LBB21:
+ 412              	.LBB19:
+ 413              	.LBB17:
+  69:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 414              	 .loc 1 69 0
+ 415 0108 0220     	 movs r0,#2
+ 416              	.LVL38:
+ 417              	.L29:
+  81:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 418              	 .loc 1 81 0
+ 419 010a 144B     	 ldr r3,.L30+20
+ 420 010c 9847     	 blx r3
+ 421              	.LVL39:
+ 422              	.L17:
+ 423              	.LBE17:
+ 424              	.LBE19:
+ 101:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 425              	 .loc 1 101 0
+ 426 010e 144A     	 ldr r2,.L30+24
+ 427 0110 0023     	 movs r3,#0
+ 428 0112 A0FB0601 	 umull r0,r1,r0,r6
+ 429 0116 134D     	 ldr r5,.L30+28
+ 430 0118 A847     	 blx r5
+ 431              	.LVL40:
+ 432              	.LBE21:
+ 433              	.LBE24:
+ 352:LPC17xxLib/src/lpc17xx_timer.c **** 		}
+ 434              	 .loc 1 352 0
+ 435 011a 0138     	 subs r0,r0,#1
+ 436 011c E060     	 str r0,[r4,#12]
+ 437 011e ACE7     	 b .L15
+ 438              	.LVL41:
+ 439              	.L20:
+ 440              	.LBB25:
+ 441              	.LBB22:
+ 442              	.LBB20:
+ 443              	.LBB18:
+  73:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 444              	 .loc 1 73 0
+ 445 0120 0420     	 movs r0,#4
+ 446 0122 F2E7     	 b .L29
+ 447              	.LVL42:
+ 448              	.L21:
+  77:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 449              	 .loc 1 77 0
+ 450 0124 2C20     	 movs r0,#44
+ 451 0126 F0E7     	 b .L29
+ 452              	.LVL43:
+ 453              	.L22:
+  81:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 454              	 .loc 1 81 0
+ 455 0128 2E20     	 movs r0,#46
+ 456 012a EEE7     	 b .L29
+ 457              	.LVL44:
+ 458              	.L27:
+  65:LPC17xxLib/src/lpc17xx_timer.c **** 	switch (timernum)
+ 459              	 .loc 1 65 0
+ 460 012c 0020     	 movs r0,#0
+ 461 012e EEE7     	 b .L17
+ 462              	.LVL45:
+ 463              	.L13:
+ 464              	.LBE18:
+ 465              	.LBE20:
+ 466              	.LBE22:
+ 467              	.LBE25:
+ 359:LPC17xxLib/src/lpc17xx_timer.c **** 		if (pCounterCfg->CountInputSelect == TIM_COUNTER_INCAP1)
+ 468              	 .loc 1 359 0
+ 469 0130 A36A     	 ldr r3,[r4,#40]
+ 470 0132 23F00C03 	 bic r3,r3,#12
+ 471 0136 A362     	 str r3,[r4,#40]
+ 360:LPC17xxLib/src/lpc17xx_timer.c **** 			TIMx->CCR |= _BIT(2);
+ 472              	 .loc 1 360 0
+ 473 0138 7378     	 ldrb r3,[r6,#1]
+ 474 013a 012B     	 cmp r3,#1
+ 361:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 475              	 .loc 1 361 0
+ 476 013c 02BF     	 ittt eq
+ 477 013e A36A     	 ldreq r3,[r4,#40]
+ 478 0140 43F00403 	 orreq r3,r3,#4
+ 479 0144 A362     	 streq r3,[r4,#40]
+ 480 0146 98E7     	 b .L15
+ 481              	.L31:
+ 482              	 .align 2
+ 483              	.L30:
+ 484 0148 00000000 	 .word CLKPWR_ConfigPPWR
+ 485 014c 00000000 	 .word CLKPWR_SetPCLKDiv
+ 486 0150 00800040 	 .word 1073774592
+ 487 0154 00000940 	 .word 1074331648
+ 488 0158 00400940 	 .word 1074348032
+ 489 015c 00000000 	 .word CLKPWR_GetPCLK
+ 490 0160 40420F00 	 .word 1000000
+ 491 0164 00000000 	 .word __aeabi_uldivmod
+ 492              	 .cfi_endproc
+ 493              	.LFE63:
+ 495              	 .section .text.TIM_DeInit,"ax",%progbits
+ 496              	 .align 1
+ 497              	 .global TIM_DeInit
+ 498              	 .syntax unified
+ 499              	 .thumb
+ 500              	 .thumb_func
+ 501              	 .fpu softvfp
+ 503              	TIM_DeInit:
+ 504              	.LFB64:
+ 366:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 367:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 368:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 369:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 370:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Close Timer/Counter device
+ 371:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx  Pointer to timer device, should be:
+ 372:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM0: TIMER0 peripheral
+ 373:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 374:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 375:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 376:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 377:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 378:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_DeInit (LPC_TIM_TypeDef *TIMx)
+ 379:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 505              	 .loc 1 379 0
+ 506              	 .cfi_startproc
+ 507              	 
+ 508              	 
+ 509              	 
+ 510              	.LVL46:
+ 380:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 381:LPC17xxLib/src/lpc17xx_timer.c **** 	// Disable timer/counter
+ 382:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->TCR = 0x00;
+ 511              	 .loc 1 382 0
+ 512 0000 0021     	 movs r1,#0
+ 513 0002 0379     	 ldrb r3,[r0,#4]
+ 514 0004 0171     	 strb r1,[r0,#4]
+ 515 0006 4379     	 ldrb r3,[r0,#5]
+ 516 0008 4171     	 strb r1,[r0,#5]
+ 517 000a 8379     	 ldrb r3,[r0,#6]
+ 383:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 384:LPC17xxLib/src/lpc17xx_timer.c **** 	// Disable power
+ 385:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIMx== LPC_TIM0)
+ 518              	 .loc 1 385 0
+ 519 000c B0F1402F 	 cmp r0,#1073758208
+ 382:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 520              	 .loc 1 382 0
+ 521 0010 8171     	 strb r1,[r0,#6]
+ 522 0012 C379     	 ldrb r3,[r0,#7]
+ 523 0014 C171     	 strb r1,[r0,#7]
+ 524              	 .loc 1 385 0
+ 525 0016 02D1     	 bne .L33
+ 386:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM0, DISABLE);
+ 526              	 .loc 1 386 0
+ 527 0018 0220     	 movs r0,#2
+ 528              	.LVL47:
+ 529              	.L37:
+ 387:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 388:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx== LPC_TIM1)
+ 389:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM1, DISABLE);
+ 390:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 391:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx== LPC_TIM2)
+ 392:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, DISABLE);
+ 530              	 .loc 1 392 0
+ 531 001a 094B     	 ldr r3,.L38
+ 532 001c 1847     	 bx r3
+ 533              	.LVL48:
+ 534              	.L33:
+ 388:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM1, DISABLE);
+ 535              	 .loc 1 388 0
+ 536 001e 094B     	 ldr r3,.L38+4
+ 537 0020 9842     	 cmp r0,r3
+ 538 0022 01D1     	 bne .L34
+ 389:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 539              	 .loc 1 389 0
+ 540 0024 0420     	 movs r0,#4
+ 541              	.LVL49:
+ 542 0026 F8E7     	 b .L37
+ 543              	.LVL50:
+ 544              	.L34:
+ 391:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, DISABLE);
+ 545              	 .loc 1 391 0
+ 546 0028 074B     	 ldr r3,.L38+8
+ 547 002a 9842     	 cmp r0,r3
+ 548 002c 03D1     	 bne .L35
+ 549              	.L36:
+ 550              	 .loc 1 392 0
+ 551 002e 0021     	 movs r1,#0
+ 552 0030 4FF48000 	 mov r0,#4194304
+ 553              	.LVL51:
+ 554 0034 F1E7     	 b .L37
+ 555              	.LVL52:
+ 556              	.L35:
+ 393:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 394:LPC17xxLib/src/lpc17xx_timer.c **** 	else if (TIMx== LPC_TIM3)
+ 557              	 .loc 1 394 0
+ 558 0036 054B     	 ldr r3,.L38+12
+ 559 0038 9842     	 cmp r0,r3
+ 560 003a F8D0     	 beq .L36
+ 395:LPC17xxLib/src/lpc17xx_timer.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCTIM2, DISABLE);
+ 396:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 397:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 561              	 .loc 1 397 0
+ 562 003c 7047     	 bx lr
+ 563              	.L39:
+ 564 003e 00BF     	 .align 2
+ 565              	.L38:
+ 566 0040 00000000 	 .word CLKPWR_ConfigPPWR
+ 567 0044 00800040 	 .word 1073774592
+ 568 0048 00000940 	 .word 1074331648
+ 569 004c 00400940 	 .word 1074348032
+ 570              	 .cfi_endproc
+ 571              	.LFE64:
+ 573              	 .section .text.TIM_Cmd,"ax",%progbits
+ 574              	 .align 1
+ 575              	 .global TIM_Cmd
+ 576              	 .syntax unified
+ 577              	 .thumb
+ 578              	 .thumb_func
+ 579              	 .fpu softvfp
+ 581              	TIM_Cmd:
+ 582              	.LFB65:
+ 398:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 399:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 400:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief	 	Start/Stop Timer/Counter device
+ 401:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to timer device, should be:
+ 402:LPC17xxLib/src/lpc17xx_timer.c ****  *  			- LPC_TIM0: TIMER0 peripheral
+ 403:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 404:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 405:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 406:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	NewState
+ 407:LPC17xxLib/src/lpc17xx_timer.c ****  * 				-	ENABLE  : set timer enable
+ 408:LPC17xxLib/src/lpc17xx_timer.c ****  * 				-	DISABLE : disable timer
+ 409:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 410:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 411:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_Cmd(LPC_TIM_TypeDef *TIMx, FunctionalState NewState)
+ 412:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 583              	 .loc 1 412 0
+ 584              	 .cfi_startproc
+ 585              	 
+ 586              	 
+ 587              	 
+ 588              	.LVL53:
+ 413:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 414:LPC17xxLib/src/lpc17xx_timer.c **** 	if (NewState == ENABLE)
+ 415:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 416:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->TCR	|=  TIM_ENABLE;
+ 589              	 .loc 1 416 0
+ 590 0000 4368     	 ldr r3,[r0,#4]
+ 414:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 591              	 .loc 1 414 0
+ 592 0002 0129     	 cmp r1,#1
+ 593              	 .loc 1 416 0
+ 594 0004 0CBF     	 ite eq
+ 595 0006 43F00103 	 orreq r3,r3,#1
+ 417:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 418:LPC17xxLib/src/lpc17xx_timer.c **** 	else
+ 419:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 420:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->TCR &= ~TIM_ENABLE;
+ 596              	 .loc 1 420 0
+ 597 000a 23F00103 	 bicne r3,r3,#1
+ 598 000e 4360     	 str r3,[r0,#4]
+ 599 0010 7047     	 bx lr
+ 600              	 .cfi_endproc
+ 601              	.LFE65:
+ 603              	 .section .text.TIM_ResetCounter,"ax",%progbits
+ 604              	 .align 1
+ 605              	 .global TIM_ResetCounter
+ 606              	 .syntax unified
+ 607              	 .thumb
+ 608              	 .thumb_func
+ 609              	 .fpu softvfp
+ 611              	TIM_ResetCounter:
+ 612              	.LFB66:
+ 421:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 422:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 423:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 424:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 425:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Reset Timer/Counter device,
+ 426:LPC17xxLib/src/lpc17xx_timer.c ****  * 					Make TC and PC are synchronously reset on the next
+ 427:LPC17xxLib/src/lpc17xx_timer.c ****  * 					positive edge of PCLK
+ 428:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to timer device, should be:
+ 429:LPC17xxLib/src/lpc17xx_timer.c ****  *   			- LPC_TIM0: TIMER0 peripheral
+ 430:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 431:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 432:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 433:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 434:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 435:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_ResetCounter(LPC_TIM_TypeDef *TIMx)
+ 436:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 613              	 .loc 1 436 0
+ 614              	 .cfi_startproc
+ 615              	 
+ 616              	 
+ 617              	 
+ 618              	.LVL54:
+ 437:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 438:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->TCR |= TIM_RESET;
+ 619              	 .loc 1 438 0
+ 620 0000 4368     	 ldr r3,[r0,#4]
+ 621 0002 43F00203 	 orr r3,r3,#2
+ 622 0006 4360     	 str r3,[r0,#4]
+ 439:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->TCR &= ~TIM_RESET;
+ 623              	 .loc 1 439 0
+ 624 0008 4368     	 ldr r3,[r0,#4]
+ 625 000a 23F00203 	 bic r3,r3,#2
+ 626 000e 4360     	 str r3,[r0,#4]
+ 627 0010 7047     	 bx lr
+ 628              	 .cfi_endproc
+ 629              	.LFE66:
+ 631              	 .section .text.TIM_ConfigMatch,"ax",%progbits
+ 632              	 .align 1
+ 633              	 .global TIM_ConfigMatch
+ 634              	 .syntax unified
+ 635              	 .thumb
+ 636              	 .thumb_func
+ 637              	 .fpu softvfp
+ 639              	TIM_ConfigMatch:
+ 640              	.LFB67:
+ 440:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 441:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 442:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 443:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Configuration for Match register
+ 444:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to timer device, should be:
+ 445:LPC17xxLib/src/lpc17xx_timer.c ****  *   			- LPC_TIM0: TIMER0 peripheral
+ 446:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 447:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 448:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 449:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]   TIM_MatchConfigStruct Pointer to TIM_MATCHCFG_Type
+ 450:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- MatchChannel : choose channel 0 or 1
+ 451:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- IntOnMatch	 : if SET, interrupt will be generated when MRxx match
+ 452:LPC17xxLib/src/lpc17xx_timer.c ****  * 									the value in TC
+ 453:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- StopOnMatch	 : if SET, TC and PC will be stopped whenM Rxx match
+ 454:LPC17xxLib/src/lpc17xx_timer.c ****  * 									the value in TC
+ 455:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- ResetOnMatch : if SET, Reset on MR0 when MRxx match
+ 456:LPC17xxLib/src/lpc17xx_timer.c ****  * 									the value in TC
+ 457:LPC17xxLib/src/lpc17xx_timer.c ****  * 					-ExtMatchOutputType: Select output for external match
+ 458:LPC17xxLib/src/lpc17xx_timer.c ****  * 						 +	 0:	Do nothing for external output pin if match
+ 459:LPC17xxLib/src/lpc17xx_timer.c ****  *						 +   1:	Force external output pin to low if match
+ 460:LPC17xxLib/src/lpc17xx_timer.c ****  *						 + 	 2: Force external output pin to high if match
+ 461:LPC17xxLib/src/lpc17xx_timer.c ****  *						 + 	 3: Toggle external output pin if match
+ 462:LPC17xxLib/src/lpc17xx_timer.c ****  *					MatchValue: Set the value to be compared with TC value
+ 463:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 464:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 465:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_ConfigMatch(LPC_TIM_TypeDef *TIMx, TIM_MATCHCFG_Type *TIM_MatchConfigStruct)
+ 466:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 641              	 .loc 1 466 0
+ 642              	 .cfi_startproc
+ 643              	 
+ 644              	 
+ 645              	.LVL55:
+ 467:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 468:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 469:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_EXTMATCH_OPT(TIM_MatchConfigStruct->ExtMatchOutputType));
+ 470:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 471:LPC17xxLib/src/lpc17xx_timer.c **** 	switch(TIM_MatchConfigStruct->MatchChannel)
+ 646              	 .loc 1 471 0
+ 647 0000 0B78     	 ldrb r3,[r1]
+ 466:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 648              	 .loc 1 466 0
+ 649 0002 70B5     	 push {r4,r5,r6,lr}
+ 650              	 .cfi_def_cfa_offset 16
+ 651              	 .cfi_offset 4,-16
+ 652              	 .cfi_offset 5,-12
+ 653              	 .cfi_offset 6,-8
+ 654              	 .cfi_offset 14,-4
+ 655              	 .loc 1 471 0
+ 656 0004 032B     	 cmp r3,#3
+ 657 0006 3DD8     	 bhi .L46
+ 658 0008 DFE803F0 	 tbb [pc,r3]
+ 659              	.L48:
+ 660 000c 02       	 .byte (.L47-.L48)/2
+ 661 000d 33       	 .byte (.L49-.L48)/2
+ 662 000e 36       	 .byte (.L50-.L48)/2
+ 663 000f 39       	 .byte (.L51-.L48)/2
+ 664              	 .p2align 1
+ 665              	.L47:
+ 472:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 473:LPC17xxLib/src/lpc17xx_timer.c **** 	case 0:
+ 474:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR0 = TIM_MatchConfigStruct->MatchValue;
+ 666              	 .loc 1 474 0
+ 667 0010 8A68     	 ldr r2,[r1,#8]
+ 668 0012 8261     	 str r2,[r0,#24]
+ 669              	.L52:
+ 475:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 476:LPC17xxLib/src/lpc17xx_timer.c **** 	case 1:
+ 477:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR1 = TIM_MatchConfigStruct->MatchValue;
+ 478:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 479:LPC17xxLib/src/lpc17xx_timer.c **** 	case 2:
+ 480:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR2 = TIM_MatchConfigStruct->MatchValue;
+ 481:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 482:LPC17xxLib/src/lpc17xx_timer.c **** 	case 3:
+ 483:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR3 = TIM_MatchConfigStruct->MatchValue;
+ 484:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 485:LPC17xxLib/src/lpc17xx_timer.c **** 	default:
+ 486:LPC17xxLib/src/lpc17xx_timer.c **** 		//Error match value
+ 487:LPC17xxLib/src/lpc17xx_timer.c **** 		//Error loop
+ 488:LPC17xxLib/src/lpc17xx_timer.c **** 		while(1);
+ 489:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 490:LPC17xxLib/src/lpc17xx_timer.c **** 	//interrupt on MRn
+ 491:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->MCR &=~TIM_MCR_CHANNEL_MASKBIT(TIM_MatchConfigStruct->MatchChannel);
+ 670              	 .loc 1 491 0
+ 671 0014 0725     	 movs r5,#7
+ 672 0016 5A00     	 lsls r2,r3,#1
+ 673 0018 4469     	 ldr r4,[r0,#20]
+ 674 001a 1344     	 add r3,r3,r2
+ 675 001c 9D40     	 lsls r5,r5,r3
+ 676 001e 24EA0504 	 bic r4,r4,r5
+ 677 0022 4461     	 str r4,[r0,#20]
+ 492:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 493:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIM_MatchConfigStruct->IntOnMatch)
+ 678              	 .loc 1 493 0
+ 679 0024 4C78     	 ldrb r4,[r1,#1]
+ 680 0026 24B1     	 cbz r4,.L53
+ 494:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MCR |= TIM_INT_ON_MATCH(TIM_MatchConfigStruct->MatchChannel);
+ 681              	 .loc 1 494 0
+ 682 0028 0124     	 movs r4,#1
+ 683 002a 4569     	 ldr r5,[r0,#20]
+ 684 002c 9C40     	 lsls r4,r4,r3
+ 685 002e 2C43     	 orrs r4,r4,r5
+ 686 0030 4461     	 str r4,[r0,#20]
+ 687              	.L53:
+ 495:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 496:LPC17xxLib/src/lpc17xx_timer.c **** 	//reset on MRn
+ 497:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIM_MatchConfigStruct->ResetOnMatch)
+ 688              	 .loc 1 497 0
+ 689 0032 CC78     	 ldrb r4,[r1,#3]
+ 690 0034 2CB1     	 cbz r4,.L54
+ 498:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MCR |= TIM_RESET_ON_MATCH(TIM_MatchConfigStruct->MatchChannel);
+ 691              	 .loc 1 498 0
+ 692 0036 0124     	 movs r4,#1
+ 693 0038 4569     	 ldr r5,[r0,#20]
+ 694 003a 5E1C     	 adds r6,r3,#1
+ 695 003c B440     	 lsls r4,r4,r6
+ 696 003e 2C43     	 orrs r4,r4,r5
+ 697 0040 4461     	 str r4,[r0,#20]
+ 698              	.L54:
+ 499:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 500:LPC17xxLib/src/lpc17xx_timer.c **** 	//stop on MRn
+ 501:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIM_MatchConfigStruct->StopOnMatch)
+ 699              	 .loc 1 501 0
+ 700 0042 8C78     	 ldrb r4,[r1,#2]
+ 701 0044 34B1     	 cbz r4,.L55
+ 502:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MCR |= TIM_STOP_ON_MATCH(TIM_MatchConfigStruct->MatchChannel);
+ 702              	 .loc 1 502 0
+ 703 0046 0124     	 movs r4,#1
+ 704 0048 4569     	 ldr r5,[r0,#20]
+ 705 004a 0233     	 adds r3,r3,#2
+ 706 004c 04FA03F3 	 lsl r3,r4,r3
+ 707 0050 2B43     	 orrs r3,r3,r5
+ 708 0052 4361     	 str r3,[r0,#20]
+ 709              	.L55:
+ 503:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 504:LPC17xxLib/src/lpc17xx_timer.c **** 	// match output type
+ 505:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 506:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->EMR 	&= ~TIM_EM_MASK(TIM_MatchConfigStruct->MatchChannel);
+ 710              	 .loc 1 506 0
+ 711 0054 0324     	 movs r4,#3
+ 712 0056 C36B     	 ldr r3,[r0,#60]
+ 713 0058 0432     	 adds r2,r2,#4
+ 714 005a 9440     	 lsls r4,r4,r2
+ 715 005c 23EA0403 	 bic r3,r3,r4
+ 716 0060 C363     	 str r3,[r0,#60]
+ 507:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->EMR   |= TIM_EM_SET(TIM_MatchConfigStruct->MatchChannel,TIM_MatchConfigStruct->ExtMatchOutpu
+ 717              	 .loc 1 507 0
+ 718 0062 0B79     	 ldrb r3,[r1,#4]
+ 719 0064 C46B     	 ldr r4,[r0,#60]
+ 720 0066 03F00303 	 and r3,r3,#3
+ 721 006a 9340     	 lsls r3,r3,r2
+ 722 006c 2343     	 orrs r3,r3,r4
+ 723 006e C363     	 str r3,[r0,#60]
+ 724 0070 70BD     	 pop {r4,r5,r6,pc}
+ 725              	.L49:
+ 477:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 726              	 .loc 1 477 0
+ 727 0072 8A68     	 ldr r2,[r1,#8]
+ 728 0074 C261     	 str r2,[r0,#28]
+ 478:LPC17xxLib/src/lpc17xx_timer.c **** 	case 2:
+ 729              	 .loc 1 478 0
+ 730 0076 CDE7     	 b .L52
+ 731              	.L50:
+ 480:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 732              	 .loc 1 480 0
+ 733 0078 8A68     	 ldr r2,[r1,#8]
+ 734 007a 0262     	 str r2,[r0,#32]
+ 481:LPC17xxLib/src/lpc17xx_timer.c **** 	case 3:
+ 735              	 .loc 1 481 0
+ 736 007c CAE7     	 b .L52
+ 737              	.L51:
+ 483:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 738              	 .loc 1 483 0
+ 739 007e 8A68     	 ldr r2,[r1,#8]
+ 740 0080 4262     	 str r2,[r0,#36]
+ 484:LPC17xxLib/src/lpc17xx_timer.c **** 	default:
+ 741              	 .loc 1 484 0
+ 742 0082 C7E7     	 b .L52
+ 743              	.L46:
+ 744              	.L65:
+ 745 0084 FEE7     	 b .L65
+ 746              	 .cfi_endproc
+ 747              	.LFE67:
+ 749              	 .section .text.TIM_UpdateMatchValue,"ax",%progbits
+ 750              	 .align 1
+ 751              	 .global TIM_UpdateMatchValue
+ 752              	 .syntax unified
+ 753              	 .thumb
+ 754              	 .thumb_func
+ 755              	 .fpu softvfp
+ 757              	TIM_UpdateMatchValue:
+ 758              	.LFB68:
+ 508:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 509:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 510:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Update Match value
+ 511:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to timer device, should be:
+ 512:LPC17xxLib/src/lpc17xx_timer.c ****  *   			- LPC_TIM0: TIMER0 peripheral
+ 513:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 514:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 515:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 516:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	MatchChannel	Match channel, should be: 0..3
+ 517:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	MatchValue		updated match value
+ 518:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 519:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 520:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_UpdateMatchValue(LPC_TIM_TypeDef *TIMx,uint8_t MatchChannel, uint32_t MatchValue)
+ 521:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 759              	 .loc 1 521 0
+ 760              	 .cfi_startproc
+ 761              	 
+ 762              	 
+ 763              	 
+ 764              	.LVL56:
+ 522:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 523:LPC17xxLib/src/lpc17xx_timer.c **** 	switch(MatchChannel)
+ 765              	 .loc 1 523 0
+ 766 0000 0329     	 cmp r1,#3
+ 767 0002 0BD8     	 bhi .L67
+ 768 0004 DFE801F0 	 tbb [pc,r1]
+ 769              	.L69:
+ 770 0008 02       	 .byte (.L68-.L69)/2
+ 771 0009 04       	 .byte (.L70-.L69)/2
+ 772 000a 06       	 .byte (.L71-.L69)/2
+ 773 000b 08       	 .byte (.L72-.L69)/2
+ 774              	 .p2align 1
+ 775              	.L68:
+ 524:LPC17xxLib/src/lpc17xx_timer.c **** 	{
+ 525:LPC17xxLib/src/lpc17xx_timer.c **** 	case 0:
+ 526:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR0 = MatchValue;
+ 776              	 .loc 1 526 0
+ 777 000c 8261     	 str r2,[r0,#24]
+ 527:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 778              	 .loc 1 527 0
+ 779 000e 7047     	 bx lr
+ 780              	.L70:
+ 528:LPC17xxLib/src/lpc17xx_timer.c **** 	case 1:
+ 529:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR1 = MatchValue;
+ 781              	 .loc 1 529 0
+ 782 0010 C261     	 str r2,[r0,#28]
+ 530:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 783              	 .loc 1 530 0
+ 784 0012 7047     	 bx lr
+ 785              	.L71:
+ 531:LPC17xxLib/src/lpc17xx_timer.c **** 	case 2:
+ 532:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR2 = MatchValue;
+ 786              	 .loc 1 532 0
+ 787 0014 0262     	 str r2,[r0,#32]
+ 533:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 788              	 .loc 1 533 0
+ 789 0016 7047     	 bx lr
+ 790              	.L72:
+ 534:LPC17xxLib/src/lpc17xx_timer.c **** 	case 3:
+ 535:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->MR3 = MatchValue;
+ 791              	 .loc 1 535 0
+ 792 0018 4262     	 str r2,[r0,#36]
+ 536:LPC17xxLib/src/lpc17xx_timer.c **** 		break;
+ 793              	 .loc 1 536 0
+ 794 001a 7047     	 bx lr
+ 795              	.L67:
+ 796              	.L74:
+ 797 001c FEE7     	 b .L74
+ 798              	 .cfi_endproc
+ 799              	.LFE68:
+ 801              	 .section .text.TIM_ConfigCapture,"ax",%progbits
+ 802              	 .align 1
+ 803              	 .global TIM_ConfigCapture
+ 804              	 .syntax unified
+ 805              	 .thumb
+ 806              	 .thumb_func
+ 807              	 .fpu softvfp
+ 809              	TIM_ConfigCapture:
+ 810              	.LFB69:
+ 537:LPC17xxLib/src/lpc17xx_timer.c **** 	default:
+ 538:LPC17xxLib/src/lpc17xx_timer.c **** 		//Error Loop
+ 539:LPC17xxLib/src/lpc17xx_timer.c **** 		while(1);
+ 540:LPC17xxLib/src/lpc17xx_timer.c **** 	}
+ 541:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 542:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 543:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 544:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Configuration for Capture register
+ 545:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to timer device, should be:
+ 546:LPC17xxLib/src/lpc17xx_timer.c ****  *   			- LPC_TIM0: TIMER0 peripheral
+ 547:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 548:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 549:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 550:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- CaptureChannel: set the channel to capture data
+ 551:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- RisingEdge    : if SET, Capture at rising edge
+ 552:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- FallingEdge	: if SET, Capture at falling edge
+ 553:LPC17xxLib/src/lpc17xx_timer.c ****  * 					- IntOnCaption  : if SET, Capture generate interrupt
+ 554:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]   TIM_CaptureConfigStruct	Pointer to TIM_CAPTURECFG_Type
+ 555:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		None
+ 556:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 557:LPC17xxLib/src/lpc17xx_timer.c **** void TIM_ConfigCapture(LPC_TIM_TypeDef *TIMx, TIM_CAPTURECFG_Type *TIM_CaptureConfigStruct)
+ 558:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 811              	 .loc 1 558 0
+ 812              	 .cfi_startproc
+ 813              	 
+ 814              	 
+ 815              	.LVL57:
+ 816 0000 30B5     	 push {r4,r5,lr}
+ 817              	 .cfi_def_cfa_offset 12
+ 818              	 .cfi_offset 4,-12
+ 819              	 .cfi_offset 5,-8
+ 820              	 .cfi_offset 14,-4
+ 559:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 560:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 561:LPC17xxLib/src/lpc17xx_timer.c **** 	TIMx->CCR &= ~TIM_CCR_CHANNEL_MASKBIT(TIM_CaptureConfigStruct->CaptureChannel);
+ 821              	 .loc 1 561 0
+ 822 0002 0724     	 movs r4,#7
+ 823 0004 0B78     	 ldrb r3,[r1]
+ 824 0006 826A     	 ldr r2,[r0,#40]
+ 825 0008 03EB4303 	 add r3,r3,r3,lsl#1
+ 826 000c 9C40     	 lsls r4,r4,r3
+ 827 000e 22EA0402 	 bic r2,r2,r4
+ 828 0012 8262     	 str r2,[r0,#40]
+ 562:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 563:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIM_CaptureConfigStruct->RisingEdge)
+ 829              	 .loc 1 563 0
+ 830 0014 4A78     	 ldrb r2,[r1,#1]
+ 831 0016 22B1     	 cbz r2,.L76
+ 564:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->CCR |= TIM_CAP_RISING(TIM_CaptureConfigStruct->CaptureChannel);
+ 832              	 .loc 1 564 0
+ 833 0018 0122     	 movs r2,#1
+ 834 001a 846A     	 ldr r4,[r0,#40]
+ 835 001c 9A40     	 lsls r2,r2,r3
+ 836 001e 2243     	 orrs r2,r2,r4
+ 837 0020 8262     	 str r2,[r0,#40]
+ 838              	.L76:
+ 565:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 566:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIM_CaptureConfigStruct->FallingEdge)
+ 839              	 .loc 1 566 0
+ 840 0022 8A78     	 ldrb r2,[r1,#2]
+ 841 0024 2AB1     	 cbz r2,.L77
+ 567:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->CCR |= TIM_CAP_FALLING(TIM_CaptureConfigStruct->CaptureChannel);
+ 842              	 .loc 1 567 0
+ 843 0026 0122     	 movs r2,#1
+ 844 0028 846A     	 ldr r4,[r0,#40]
+ 845 002a 5D1C     	 adds r5,r3,#1
+ 846 002c AA40     	 lsls r2,r2,r5
+ 847 002e 2243     	 orrs r2,r2,r4
+ 848 0030 8262     	 str r2,[r0,#40]
+ 849              	.L77:
+ 568:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 569:LPC17xxLib/src/lpc17xx_timer.c **** 	if (TIM_CaptureConfigStruct->IntOnCaption)
+ 850              	 .loc 1 569 0
+ 851 0032 CA78     	 ldrb r2,[r1,#3]
+ 852 0034 32B1     	 cbz r2,.L75
+ 570:LPC17xxLib/src/lpc17xx_timer.c **** 		TIMx->CCR |= TIM_INT_ON_CAP(TIM_CaptureConfigStruct->CaptureChannel);
+ 853              	 .loc 1 570 0
+ 854 0036 0122     	 movs r2,#1
+ 855 0038 816A     	 ldr r1,[r0,#40]
+ 856              	.LVL58:
+ 857 003a 0233     	 adds r3,r3,#2
+ 858 003c 02FA03F3 	 lsl r3,r2,r3
+ 859 0040 0B43     	 orrs r3,r3,r1
+ 860 0042 8362     	 str r3,[r0,#40]
+ 861              	.L75:
+ 862 0044 30BD     	 pop {r4,r5,pc}
+ 863              	 .cfi_endproc
+ 864              	.LFE69:
+ 866              	 .section .text.TIM_GetCaptureValue,"ax",%progbits
+ 867              	 .align 1
+ 868              	 .global TIM_GetCaptureValue
+ 869              	 .syntax unified
+ 870              	 .thumb
+ 871              	 .thumb_func
+ 872              	 .fpu softvfp
+ 874              	TIM_GetCaptureValue:
+ 875              	.LFB70:
+ 571:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 572:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 573:LPC17xxLib/src/lpc17xx_timer.c **** /*********************************************************************//**
+ 574:LPC17xxLib/src/lpc17xx_timer.c ****  * @brief 		Read value of capture register in timer/counter device
+ 575:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	TIMx Pointer to timer/counter device, should be:
+ 576:LPC17xxLib/src/lpc17xx_timer.c ****  *  			- LPC_TIM0: TIMER0 peripheral
+ 577:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM1: TIMER1 peripheral
+ 578:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM2: TIMER2 peripheral
+ 579:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- LPC_TIM3: TIMER3 peripheral
+ 580:LPC17xxLib/src/lpc17xx_timer.c ****  * @param[in]	CaptureChannel: capture channel number, should be:
+ 581:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_INCAP0: CAPn.0 input pin for TIMERn
+ 582:LPC17xxLib/src/lpc17xx_timer.c ****  * 				- TIM_COUNTER_INCAP1: CAPn.1 input pin for TIMERn
+ 583:LPC17xxLib/src/lpc17xx_timer.c ****  * @return 		Value of capture register
+ 584:LPC17xxLib/src/lpc17xx_timer.c ****  **********************************************************************/
+ 585:LPC17xxLib/src/lpc17xx_timer.c **** uint32_t TIM_GetCaptureValue(LPC_TIM_TypeDef *TIMx, TIM_COUNTER_INPUT_OPT CaptureChannel)
+ 586:LPC17xxLib/src/lpc17xx_timer.c **** {
+ 876              	 .loc 1 586 0
+ 877              	 .cfi_startproc
+ 878              	 
+ 879              	 
+ 880              	 
+ 881              	.LVL59:
+ 587:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIMx(TIMx));
+ 588:LPC17xxLib/src/lpc17xx_timer.c **** 	CHECK_PARAM(PARAM_TIM_COUNTER_INPUT_OPT(CaptureChannel));
+ 589:LPC17xxLib/src/lpc17xx_timer.c **** 
+ 590:LPC17xxLib/src/lpc17xx_timer.c **** 	if(CaptureChannel==0)
+ 882              	 .loc 1 590 0
+ 883 0000 09B9     	 cbnz r1,.L89
+ 591:LPC17xxLib/src/lpc17xx_timer.c **** 		return TIMx->CR0;
+ 884              	 .loc 1 591 0
+ 885 0002 C06A     	 ldr r0,[r0,#44]
+ 886              	.LVL60:
+ 887 0004 7047     	 bx lr
+ 888              	.LVL61:
+ 889              	.L89:
+ 592:LPC17xxLib/src/lpc17xx_timer.c **** 	else
+ 593:LPC17xxLib/src/lpc17xx_timer.c **** 		return TIMx->CR1;
+ 890              	 .loc 1 593 0
+ 891 0006 006B     	 ldr r0,[r0,#48]
+ 892              	.LVL62:
+ 594:LPC17xxLib/src/lpc17xx_timer.c **** }
+ 893              	 .loc 1 594 0
+ 894 0008 7047     	 bx lr
+ 895              	 .cfi_endproc
+ 896              	.LFE70:
+ 898              	 .text
+ 899              	.Letext0:
+ 900              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 901              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 902              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 903              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 904              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 905              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 906              	 .file 8 "LPC17xxLib/inc/lpc17xx_timer.h"
+ 907              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_timer.c
+    {standard input}:16     .text.TIM_GetIntStatus:0000000000000000 $t
+    {standard input}:23     .text.TIM_GetIntStatus:0000000000000000 TIM_GetIntStatus
+    {standard input}:50     .text.TIM_GetIntCaptureStatus:0000000000000000 $t
+    {standard input}:57     .text.TIM_GetIntCaptureStatus:0000000000000000 TIM_GetIntCaptureStatus
+    {standard input}:85     .text.TIM_ClearIntPending:0000000000000000 $t
+    {standard input}:92     .text.TIM_ClearIntPending:0000000000000000 TIM_ClearIntPending
+    {standard input}:110    .text.TIM_ClearIntCapturePending:0000000000000000 $t
+    {standard input}:117    .text.TIM_ClearIntCapturePending:0000000000000000 TIM_ClearIntCapturePending
+    {standard input}:136    .text.TIM_ConfigStructInit:0000000000000000 $t
+    {standard input}:143    .text.TIM_ConfigStructInit:0000000000000000 TIM_ConfigStructInit
+    {standard input}:180    .text.TIM_Init:0000000000000000 $t
+    {standard input}:187    .text.TIM_Init:0000000000000000 TIM_Init
+    {standard input}:382    .text.TIM_Init:00000000000000f8 $d
+    {standard input}:387    .text.TIM_Init:00000000000000fc $t
+    {standard input}:484    .text.TIM_Init:0000000000000148 $d
+    {standard input}:496    .text.TIM_DeInit:0000000000000000 $t
+    {standard input}:503    .text.TIM_DeInit:0000000000000000 TIM_DeInit
+    {standard input}:566    .text.TIM_DeInit:0000000000000040 $d
+    {standard input}:574    .text.TIM_Cmd:0000000000000000 $t
+    {standard input}:581    .text.TIM_Cmd:0000000000000000 TIM_Cmd
+    {standard input}:604    .text.TIM_ResetCounter:0000000000000000 $t
+    {standard input}:611    .text.TIM_ResetCounter:0000000000000000 TIM_ResetCounter
+    {standard input}:632    .text.TIM_ConfigMatch:0000000000000000 $t
+    {standard input}:639    .text.TIM_ConfigMatch:0000000000000000 TIM_ConfigMatch
+    {standard input}:660    .text.TIM_ConfigMatch:000000000000000c $d
+    {standard input}:664    .text.TIM_ConfigMatch:0000000000000010 $t
+    {standard input}:750    .text.TIM_UpdateMatchValue:0000000000000000 $t
+    {standard input}:757    .text.TIM_UpdateMatchValue:0000000000000000 TIM_UpdateMatchValue
+    {standard input}:770    .text.TIM_UpdateMatchValue:0000000000000008 $d
+    {standard input}:774    .text.TIM_UpdateMatchValue:000000000000000c $t
+    {standard input}:802    .text.TIM_ConfigCapture:0000000000000000 $t
+    {standard input}:809    .text.TIM_ConfigCapture:0000000000000000 TIM_ConfigCapture
+    {standard input}:867    .text.TIM_GetCaptureValue:0000000000000000 $t
+    {standard input}:874    .text.TIM_GetCaptureValue:0000000000000000 TIM_GetCaptureValue
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uldivmod
+CLKPWR_ConfigPPWR
+CLKPWR_SetPCLKDiv
+CLKPWR_GetPCLK

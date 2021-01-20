@@ -1,0 +1,1163 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_gpdma.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.GPDMA_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global GPDMA_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	GPDMA_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_gpdma.c"
+   1:LPC17xxLib/src/lpc17xx_gpdma.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+   3:LPC17xxLib/src/lpc17xx_gpdma.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_gpdma.c **** * $Id$		lpc17xx_gpdma.c				2010-03-21
+   5:LPC17xxLib/src/lpc17xx_gpdma.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_gpdma.c **** * @file		lpc17xx_gpdma.c
+   7:LPC17xxLib/src/lpc17xx_gpdma.c **** * @brief	Contains all functions support for GPDMA firmware
+   8:LPC17xxLib/src/lpc17xx_gpdma.c **** * 			library on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_gpdma.c **** * @version	2.1
+  10:LPC17xxLib/src/lpc17xx_gpdma.c **** * @date		25. July. 2011
+  11:LPC17xxLib/src/lpc17xx_gpdma.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_gpdma.c **** *
+  13:LPC17xxLib/src/lpc17xx_gpdma.c **** * Copyright(C) 2010, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_gpdma.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_gpdma.c **** *
+  16:LPC17xxLib/src/lpc17xx_gpdma.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_gpdma.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_gpdma.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_gpdma.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_gpdma.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_gpdma.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_gpdma.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_gpdma.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_gpdma.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_gpdma.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_gpdma.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_gpdma.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  29:LPC17xxLib/src/lpc17xx_gpdma.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_gpdma.c **** /** @addtogroup GPDMA
+  31:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+  33:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  34:LPC17xxLib/src/lpc17xx_gpdma.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_gpdma.c **** #include "lpc17xx_gpdma.h"
+  36:LPC17xxLib/src/lpc17xx_gpdma.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  38:LPC17xxLib/src/lpc17xx_gpdma.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  39:LPC17xxLib/src/lpc17xx_gpdma.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  40:LPC17xxLib/src/lpc17xx_gpdma.c ****  * otherwise the default FW library configuration file must be included instead
+  41:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+  42:LPC17xxLib/src/lpc17xx_gpdma.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  43:LPC17xxLib/src/lpc17xx_gpdma.c **** #include "lpc17xx_libcfg.h"
+  44:LPC17xxLib/src/lpc17xx_gpdma.c **** #else
+  45:LPC17xxLib/src/lpc17xx_gpdma.c **** #include "lpc17xx_libcfg_default.h"
+  46:LPC17xxLib/src/lpc17xx_gpdma.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  47:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  48:LPC17xxLib/src/lpc17xx_gpdma.c **** #ifdef _GPDMA
+  49:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  50:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  51:LPC17xxLib/src/lpc17xx_gpdma.c **** /* Private Variables ---------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_gpdma.c **** /** @defgroup GPDMA_Private_Variables GPDMA Private Variables
+  53:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @{
+  54:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+  55:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+  56:LPC17xxLib/src/lpc17xx_gpdma.c **** /**
+  57:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief Lookup Table of Connection Type matched with
+  58:LPC17xxLib/src/lpc17xx_gpdma.c ****  * Peripheral Data (FIFO) register base address
+  59:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+  60:LPC17xxLib/src/lpc17xx_gpdma.c **** #ifdef __IAR_SYSTEMS_ICC__
+  61:LPC17xxLib/src/lpc17xx_gpdma.c **** volatile const void *GPDMA_LUTPerAddr[] = {
+  62:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_SSP0->DR),				// SSP0 Tx
+  63:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_SSP0->DR),				// SSP0 Rx
+  64:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_SSP1->DR),				// SSP1 Tx
+  65:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_SSP1->DR),				// SSP1 Rx
+  66:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_ADC->ADGDR),			// ADC
+  67:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_I2S->I2STXFIFO), 		// I2S Tx
+  68:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_I2S->I2SRXFIFO), 		// I2S Rx
+  69:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_DAC->DACR),				// DAC
+  70:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART0->/*RBTHDLR.*/THR),	// UART0 Tx
+  71:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART0->/*RBTHDLR.*/RBR),	// UART0 Rx
+  72:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART1->/*RBTHDLR.*/THR),	// UART1 Tx
+  73:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART1->/*RBTHDLR.*/RBR),	// UART1 Rx
+  74:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART2->/*RBTHDLR.*/THR),	// UART2 Tx
+  75:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART2->/*RBTHDLR.*/RBR),	// UART2 Rx
+  76:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART3->/*RBTHDLR.*/THR),	// UART3 Tx
+  77:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_UART3->/*RBTHDLR.*/RBR),	// UART3 Rx
+  78:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM0->MR0),				// MAT0.0
+  79:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM0->MR1),				// MAT0.1
+  80:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM1->MR0),				// MAT1.0
+  81:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM1->MR1),				// MAT1.1
+  82:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM2->MR0),				// MAT2.0
+  83:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM2->MR1),				// MAT2.1
+  84:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM3->MR0),				// MAT3.0
+  85:LPC17xxLib/src/lpc17xx_gpdma.c **** 		(&LPC_TIM3->MR1)				// MAT3.1
+  86:LPC17xxLib/src/lpc17xx_gpdma.c **** };
+  87:LPC17xxLib/src/lpc17xx_gpdma.c **** #else
+  88:LPC17xxLib/src/lpc17xx_gpdma.c **** const uint32_t GPDMA_LUTPerAddr[] = {
+  89:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_SSP0->DR),				// SSP0 Tx
+  90:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_SSP0->DR),				// SSP0 Rx
+  91:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_SSP1->DR),				// SSP1 Tx
+  92:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_SSP1->DR),				// SSP1 Rx
+  93:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_ADC->ADGDR),			// ADC
+  94:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_I2S->I2STXFIFO), 		// I2S Tx
+  95:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_I2S->I2SRXFIFO), 		// I2S Rx
+  96:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_DAC->DACR),				// DAC
+  97:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART0->/*RBTHDLR.*/THR),	// UART0 Tx
+  98:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART0->/*RBTHDLR.*/RBR),	// UART0 Rx
+  99:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART1->/*RBTHDLR.*/THR),	// UART1 Tx
+ 100:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART1->/*RBTHDLR.*/RBR),	// UART1 Rx
+ 101:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART2->/*RBTHDLR.*/THR),	// UART2 Tx
+ 102:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART2->/*RBTHDLR.*/RBR),	// UART2 Rx
+ 103:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART3->/*RBTHDLR.*/THR),	// UART3 Tx
+ 104:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_UART3->/*RBTHDLR.*/RBR),	// UART3 Rx
+ 105:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM0->MR0),				// MAT0.0
+ 106:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM0->MR1),				// MAT0.1
+ 107:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM1->MR0),				// MAT1.0
+ 108:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM1->MR1),				// MAT1.1
+ 109:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM2->MR0),				// MAT2.0
+ 110:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM2->MR1),				// MAT2.1
+ 111:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM3->MR0),				// MAT3.0
+ 112:LPC17xxLib/src/lpc17xx_gpdma.c **** 		((uint32_t)&LPC_TIM3->MR1)				// MAT3.1
+ 113:LPC17xxLib/src/lpc17xx_gpdma.c **** };
+ 114:LPC17xxLib/src/lpc17xx_gpdma.c **** #endif
+ 115:LPC17xxLib/src/lpc17xx_gpdma.c **** /**
+ 116:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief Lookup Table of GPDMA Channel Number matched with
+ 117:LPC17xxLib/src/lpc17xx_gpdma.c ****  * GPDMA channel pointer
+ 118:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+ 119:LPC17xxLib/src/lpc17xx_gpdma.c **** const LPC_GPDMACH_TypeDef *pGPDMACh[8] = {
+ 120:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH0,	// GPDMA Channel 0
+ 121:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH1,	// GPDMA Channel 1
+ 122:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH2,	// GPDMA Channel 2
+ 123:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH3,	// GPDMA Channel 3
+ 124:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH4,	// GPDMA Channel 4
+ 125:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH5,	// GPDMA Channel 5
+ 126:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH6,	// GPDMA Channel 6
+ 127:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMACH7	// GPDMA Channel 7
+ 128:LPC17xxLib/src/lpc17xx_gpdma.c **** };
+ 129:LPC17xxLib/src/lpc17xx_gpdma.c **** /**
+ 130:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief Optimized Peripheral Source and Destination burst size
+ 131:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+ 132:LPC17xxLib/src/lpc17xx_gpdma.c **** const uint8_t GPDMA_LUTPerBurst[] = {
+ 133:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_4,				// SSP0 Tx
+ 134:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_4,				// SSP0 Rx
+ 135:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_4,				// SSP1 Tx
+ 136:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_4,				// SSP1 Rx
+ 137:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_4,				// ADC
+ 138:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_32, 			// I2S channel 0
+ 139:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_32, 			// I2S channel 1
+ 140:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// DAC
+ 141:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART0 Tx
+ 142:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART0 Rx
+ 143:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART1 Tx
+ 144:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART1 Rx
+ 145:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART2 Tx
+ 146:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART2 Rx
+ 147:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART3 Tx
+ 148:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// UART3 Rx
+ 149:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT0.0
+ 150:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT0.1
+ 151:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT1.0
+ 152:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT1.1
+ 153:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT2.0
+ 154:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT2.1
+ 155:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1,				// MAT3.0
+ 156:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_BSIZE_1				// MAT3.1
+ 157:LPC17xxLib/src/lpc17xx_gpdma.c **** };
+ 158:LPC17xxLib/src/lpc17xx_gpdma.c **** /**
+ 159:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief Optimized Peripheral Source and Destination transfer width
+ 160:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+ 161:LPC17xxLib/src/lpc17xx_gpdma.c **** const uint8_t GPDMA_LUTPerWid[] = {
+ 162:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// SSP0 Tx
+ 163:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// SSP0 Rx
+ 164:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// SSP1 Tx
+ 165:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// SSP1 Rx
+ 166:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// ADC
+ 167:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD, 				// I2S channel 0
+ 168:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD, 				// I2S channel 1
+ 169:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// DAC
+ 170:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART0 Tx
+ 171:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART0 Rx
+ 172:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART1 Tx
+ 173:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART1 Rx
+ 174:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART2 Tx
+ 175:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART2 Rx
+ 176:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART3 Tx
+ 177:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_BYTE,				// UART3 Rx
+ 178:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT0.0
+ 179:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT0.1
+ 180:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT1.0
+ 181:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT1.1
+ 182:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT2.0
+ 183:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT2.1
+ 184:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD,				// MAT3.0
+ 185:LPC17xxLib/src/lpc17xx_gpdma.c **** 		GPDMA_WIDTH_WORD				// MAT3.1
+ 186:LPC17xxLib/src/lpc17xx_gpdma.c **** };
+ 187:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 188:LPC17xxLib/src/lpc17xx_gpdma.c **** /**
+ 189:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @}
+ 190:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+ 191:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 192:LPC17xxLib/src/lpc17xx_gpdma.c **** /* Public Functions ----------------------------------------------------------- */
+ 193:LPC17xxLib/src/lpc17xx_gpdma.c **** /** @addtogroup GPDMA_Public_Functions
+ 194:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @{
+ 195:LPC17xxLib/src/lpc17xx_gpdma.c ****  */
+ 196:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 197:LPC17xxLib/src/lpc17xx_gpdma.c **** /********************************************************************//**
+ 198:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief 		Initialize GPDMA controller
+ 199:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param 		None
+ 200:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @return 		None
+ 201:LPC17xxLib/src/lpc17xx_gpdma.c ****  *********************************************************************/
+ 202:LPC17xxLib/src/lpc17xx_gpdma.c **** void GPDMA_Init(void)
+ 203:LPC17xxLib/src/lpc17xx_gpdma.c **** {
+  26              	 .loc 1 203 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30 0000 08B5     	 push {r3,lr}
+  31              	 .cfi_def_cfa_offset 8
+  32              	 .cfi_offset 3,-8
+  33              	 .cfi_offset 14,-4
+ 204:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Enable GPDMA clock */
+ 205:LPC17xxLib/src/lpc17xx_gpdma.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCGPDMA, ENABLE);
+  34              	 .loc 1 205 0
+  35 0002 0121     	 movs r1,#1
+  36 0004 0B4B     	 ldr r3,.L2
+  37 0006 4FF00050 	 mov r0,#536870912
+  38 000a 9847     	 blx r3
+  39              	.LVL0:
+ 206:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 207:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Reset all channel configuration register
+ 208:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH0->DMACCConfig = 0;
+  40              	 .loc 1 208 0
+  41 000c 0023     	 movs r3,#0
+  42 000e 0A4A     	 ldr r2,.L2+4
+  43 0010 1361     	 str r3,[r2,#16]
+ 209:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH1->DMACCConfig = 0;
+  44              	 .loc 1 209 0
+  45 0012 1363     	 str r3,[r2,#48]
+ 210:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH2->DMACCConfig = 0;
+  46              	 .loc 1 210 0
+  47 0014 1365     	 str r3,[r2,#80]
+ 211:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH3->DMACCConfig = 0;
+  48              	 .loc 1 211 0
+  49 0016 1367     	 str r3,[r2,#112]
+ 212:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH4->DMACCConfig = 0;
+  50              	 .loc 1 212 0
+  51 0018 C2F89030 	 str r3,[r2,#144]
+ 213:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH5->DMACCConfig = 0;
+  52              	 .loc 1 213 0
+  53 001c C2F8B030 	 str r3,[r2,#176]
+ 214:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH6->DMACCConfig = 0;
+  54              	 .loc 1 214 0
+  55 0020 C2F8D030 	 str r3,[r2,#208]
+ 215:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH7->DMACCConfig = 0;
+  56              	 .loc 1 215 0
+  57 0024 C2F8F030 	 str r3,[r2,#240]
+ 216:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 217:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Clear all DMA interrupt and error flag */
+ 218:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMA->DMACIntTCClear = 0xFF;
+  58              	 .loc 1 218 0
+  59 0028 FF22     	 movs r2,#255
+  60 002a 044B     	 ldr r3,.L2+8
+  61 002c 9A60     	 str r2,[r3,#8]
+ 219:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMA->DMACIntErrClr = 0xFF;
+  62              	 .loc 1 219 0
+  63 002e 1A61     	 str r2,[r3,#16]
+  64 0030 08BD     	 pop {r3,pc}
+  65              	.L3:
+  66 0032 00BF     	 .align 2
+  67              	.L2:
+  68 0034 00000000 	 .word CLKPWR_ConfigPPWR
+  69 0038 00410050 	 .word 1342193920
+  70 003c 00400050 	 .word 1342193664
+  71              	 .cfi_endproc
+  72              	.LFE55:
+  74              	 .section .text.GPDMA_Setup,"ax",%progbits
+  75              	 .align 1
+  76              	 .global GPDMA_Setup
+  77              	 .syntax unified
+  78              	 .thumb
+  79              	 .thumb_func
+  80              	 .fpu softvfp
+  82              	GPDMA_Setup:
+  83              	.LFB56:
+ 220:LPC17xxLib/src/lpc17xx_gpdma.c **** }
+ 221:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 222:LPC17xxLib/src/lpc17xx_gpdma.c **** /********************************************************************//**
+ 223:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief 		Setup GPDMA channel peripheral according to the specified
+ 224:LPC17xxLib/src/lpc17xx_gpdma.c ****  *               parameters in the GPDMAChannelConfig.
+ 225:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	GPDMAChannelConfig Pointer to a GPDMA_CH_CFG_Type
+ 226:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 									structure that contains the configuration
+ 227:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 									information for the specified GPDMA channel peripheral.
+ 228:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @return		ERROR if selected channel is enabled before
+ 229:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 				or SUCCESS if channel is configured successfully
+ 230:LPC17xxLib/src/lpc17xx_gpdma.c ****  *********************************************************************/
+ 231:LPC17xxLib/src/lpc17xx_gpdma.c **** Status GPDMA_Setup(GPDMA_Channel_CFG_Type *GPDMAChannelConfig)
+ 232:LPC17xxLib/src/lpc17xx_gpdma.c **** {
+  84              	 .loc 1 232 0
+  85              	 .cfi_startproc
+  86              	 
+  87              	 
+  88              	.LVL1:
+ 233:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH_TypeDef *pDMAch;
+ 234:LPC17xxLib/src/lpc17xx_gpdma.c **** 	uint32_t tmp1, tmp2;
+ 235:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 236:LPC17xxLib/src/lpc17xx_gpdma.c **** 	if (LPC_GPDMA->DMACEnbldChns & (GPDMA_DMACEnbldChns_Ch(GPDMAChannelConfig->ChannelNum))) {
+  89              	 .loc 1 236 0
+  90 0000 0121     	 movs r1,#1
+ 232:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH_TypeDef *pDMAch;
+  91              	 .loc 1 232 0
+  92 0002 F0B5     	 push {r4,r5,r6,r7,lr}
+  93              	 .cfi_def_cfa_offset 20
+  94              	 .cfi_offset 4,-20
+  95              	 .cfi_offset 5,-16
+  96              	 .cfi_offset 6,-12
+  97              	 .cfi_offset 7,-8
+  98              	 .cfi_offset 14,-4
+  99              	 .loc 1 236 0
+ 100 0004 654C     	 ldr r4,.L28
+ 101 0006 0368     	 ldr r3,[r0]
+ 102 0008 E269     	 ldr r2,[r4,#28]
+ 103 000a 9940     	 lsls r1,r1,r3
+ 104 000c D2B2     	 uxtb r2,r2
+ 105 000e 0A40     	 ands r2,r2,r1
+ 106 0010 40F0C280 	 bne .L20
+ 237:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// This channel is enabled, return ERROR, need to release this channel first
+ 238:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return ERROR;
+ 239:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 240:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 241:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Get Channel pointer
+ 242:LPC17xxLib/src/lpc17xx_gpdma.c **** 	pDMAch = (LPC_GPDMACH_TypeDef *) pGPDMACh[GPDMAChannelConfig->ChannelNum];
+ 107              	 .loc 1 242 0
+ 108 0014 624D     	 ldr r5,.L28+4
+ 243:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 244:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Reset the Interrupt status
+ 245:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMA->DMACIntTCClear = GPDMA_DMACIntTCClear_Ch(GPDMAChannelConfig->ChannelNum);
+ 109              	 .loc 1 245 0
+ 110 0016 C9B2     	 uxtb r1,r1
+ 242:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 111              	 .loc 1 242 0
+ 112 0018 55F82330 	 ldr r3,[r5,r3,lsl#2]
+ 113              	.LVL2:
+ 114              	 .loc 1 245 0
+ 115 001c A160     	 str r1,[r4,#8]
+ 246:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMA->DMACIntErrClr = GPDMA_DMACIntErrClr_Ch(GPDMAChannelConfig->ChannelNum);
+ 116              	 .loc 1 246 0
+ 117 001e 2161     	 str r1,[r4,#16]
+ 247:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 248:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Clear DMA configure
+ 249:LPC17xxLib/src/lpc17xx_gpdma.c **** 	pDMAch->DMACCControl = 0x00;
+ 118              	 .loc 1 249 0
+ 119 0020 197B     	 ldrb r1,[r3,#12]
+ 120 0022 1A73     	 strb r2,[r3,#12]
+ 121 0024 597B     	 ldrb r1,[r3,#13]
+ 122 0026 5A73     	 strb r2,[r3,#13]
+ 123 0028 997B     	 ldrb r1,[r3,#14]
+ 124 002a 9A73     	 strb r2,[r3,#14]
+ 125 002c D97B     	 ldrb r1,[r3,#15]
+ 126 002e DA73     	 strb r2,[r3,#15]
+ 250:LPC17xxLib/src/lpc17xx_gpdma.c **** 	pDMAch->DMACCConfig = 0x00;
+ 127              	 .loc 1 250 0
+ 128 0030 197C     	 ldrb r1,[r3,#16]
+ 129 0032 1A74     	 strb r2,[r3,#16]
+ 130 0034 597C     	 ldrb r1,[r3,#17]
+ 131 0036 5A74     	 strb r2,[r3,#17]
+ 132 0038 997C     	 ldrb r1,[r3,#18]
+ 133 003a 9A74     	 strb r2,[r3,#18]
+ 134 003c D97C     	 ldrb r1,[r3,#19]
+ 135 003e DA74     	 strb r2,[r3,#19]
+ 251:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 252:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Assign Linker List Item value */
+ 253:LPC17xxLib/src/lpc17xx_gpdma.c **** 	pDMAch->DMACCLLI = GPDMAChannelConfig->DMALLI;
+ 136              	 .loc 1 253 0
+ 137 0040 026A     	 ldr r2,[r0,#32]
+ 138 0042 9A60     	 str r2,[r3,#8]
+ 254:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 255:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Set value to Channel Control Registers */
+ 256:LPC17xxLib/src/lpc17xx_gpdma.c **** 	switch (GPDMAChannelConfig->TransferType)
+ 139              	 .loc 1 256 0
+ 140 0044 4269     	 ldr r2,[r0,#20]
+ 141 0046 032A     	 cmp r2,#3
+ 142 0048 00F2A680 	 bhi .L20
+ 143 004c DFE802F0 	 tbb [pc,r2]
+ 144              	.L7:
+ 145 0050 02       	 .byte (.L6-.L7)/2
+ 146 0051 59       	 .byte (.L8-.L7)/2
+ 147 0052 72       	 .byte (.L9-.L7)/2
+ 148 0053 83       	 .byte (.L10-.L7)/2
+ 149              	 .p2align 1
+ 150              	.L6:
+ 257:LPC17xxLib/src/lpc17xx_gpdma.c **** 	{
+ 258:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Memory to memory
+ 259:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_TRANSFERTYPE_M2M:
+ 260:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign physical source and destination address
+ 261:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCSrcAddr = GPDMAChannelConfig->SrcMemAddr;
+ 151              	 .loc 1 261 0
+ 152 0054 C168     	 ldr r1,[r0,#12]
+ 153 0056 1960     	 str r1,[r3]
+ 262:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCDestAddr = GPDMAChannelConfig->DstMemAddr;
+ 154              	 .loc 1 262 0
+ 155 0058 0169     	 ldr r1,[r0,#16]
+ 156 005a 5960     	 str r1,[r3,#4]
+ 263:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 264:LPC17xxLib/src/lpc17xx_gpdma.c **** 				= GPDMA_DMACCxControl_TransferSize(GPDMAChannelConfig->TransferSize) \
+ 157              	 .loc 1 264 0
+ 158 005c 4168     	 ldr r1,[r0,#4]
+ 265:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize(GPDMA_BSIZE_32) \
+ 266:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize(GPDMA_BSIZE_32) \
+ 267:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth(GPDMAChannelConfig->TransferWidth) \
+ 159              	 .loc 1 267 0
+ 160 005e 8468     	 ldr r4,[r0,#8]
+ 264:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize(GPDMA_BSIZE_32) \
+ 161              	 .loc 1 264 0
+ 162 0060 C1F30B01 	 ubfx r1,r1,#0,#12
+ 268:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth(GPDMAChannelConfig->TransferWidth) \
+ 269:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SI \
+ 270:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DI \
+ 271:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_I;
+ 163              	 .loc 1 271 0
+ 164 0064 41F00C41 	 orr r1,r1,#-1946157056
+ 165 0068 41F41031 	 orr r1,r1,#147456
+ 166              	.L26:
+ 272:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 273:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Memory to peripheral
+ 274:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_TRANSFERTYPE_M2P:
+ 275:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign physical source
+ 276:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCSrcAddr = GPDMAChannelConfig->SrcMemAddr;
+ 277:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral destination address
+ 278:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCDestAddr = (uint32_t)GPDMA_LUTPerAddr[GPDMAChannelConfig->DstConn];
+ 279:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 280:LPC17xxLib/src/lpc17xx_gpdma.c **** 				= GPDMA_DMACCxControl_TransferSize((uint32_t)GPDMAChannelConfig->TransferSize) \
+ 281:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 282:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 283:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->DstConn]) \
+ 284:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->DstConn]) \
+ 285:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SI \
+ 286:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_I;
+ 287:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 288:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Peripheral to memory
+ 289:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_TRANSFERTYPE_P2M:
+ 290:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral source address
+ 291:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCSrcAddr = (uint32_t)GPDMA_LUTPerAddr[GPDMAChannelConfig->SrcConn];
+ 292:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign memory destination address
+ 293:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCDestAddr = GPDMAChannelConfig->DstMemAddr;
+ 294:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 295:LPC17xxLib/src/lpc17xx_gpdma.c **** 				= GPDMA_DMACCxControl_TransferSize((uint32_t)GPDMAChannelConfig->TransferSize) \
+ 296:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 297:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 298:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 167              	 .loc 1 298 0
+ 168 006c A504     	 lsls r5,r4,#18
+ 169 006e 05F4E015 	 and r5,r5,#1835008
+ 299:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 300:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DI \
+ 301:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_I;
+ 170              	 .loc 1 301 0
+ 171 0072 2943     	 orrs r1,r1,r5
+ 172              	.L23:
+ 302:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 303:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Peripheral to peripheral
+ 304:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_TRANSFERTYPE_P2P:
+ 305:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral source address
+ 306:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCSrcAddr = (uint32_t)GPDMA_LUTPerAddr[GPDMAChannelConfig->SrcConn];
+ 307:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral destination address
+ 308:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCDestAddr = (uint32_t)GPDMA_LUTPerAddr[GPDMAChannelConfig->DstConn];
+ 309:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 310:LPC17xxLib/src/lpc17xx_gpdma.c **** 				= GPDMA_DMACCxControl_TransferSize((uint32_t)GPDMAChannelConfig->TransferSize) \
+ 311:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 312:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 313:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 314:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->DstConn]) \
+ 173              	 .loc 1 314 0
+ 174 0074 6405     	 lsls r4,r4,#21
+ 175 0076 04F46004 	 and r4,r4,#14680064
+ 315:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_I;
+ 176              	 .loc 1 315 0
+ 177 007a 2143     	 orrs r1,r1,r4
+ 310:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 178              	 .loc 1 310 0
+ 179 007c D960     	 str r1,[r3,#12]
+ 180 007e 0121     	 movs r1,#1
+ 316:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 317:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Do not support any more transfer type, return ERROR
+ 318:LPC17xxLib/src/lpc17xx_gpdma.c **** 	default:
+ 319:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return ERROR;
+ 320:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 321:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 322:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Re-Configure DMA Request Select for source peripheral */
+ 323:LPC17xxLib/src/lpc17xx_gpdma.c **** 	if (GPDMAChannelConfig->SrcConn > 15)
+ 181              	 .loc 1 323 0
+ 182 0080 8469     	 ldr r4,[r0,#24]
+ 183 0082 484D     	 ldr r5,.L28+8
+ 184 0084 0F2C     	 cmp r4,#15
+ 324:LPC17xxLib/src/lpc17xx_gpdma.c **** 	{
+ 325:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_SC->DMAREQSEL |= (1<<(GPDMAChannelConfig->SrcConn - 16));
+ 185              	 .loc 1 325 0
+ 186 0086 D5F8C461 	 ldr r6,[r5,#452]
+ 187 008a 8BBF     	 itete hi
+ 188 008c A4F11007 	 subhi r7,r4,#16
+ 326:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 327:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_SC->DMAREQSEL &= ~(1<<(GPDMAChannelConfig->SrcConn - 8));
+ 189              	 .loc 1 327 0
+ 190 0090 A4F10807 	 subls r7,r4,#8
+ 325:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 191              	 .loc 1 325 0
+ 192 0094 B940     	 lslhi r1,r1,r7
+ 193              	 .loc 1 327 0
+ 194 0096 B940     	 lslls r1,r1,r7
+ 325:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 195              	 .loc 1 325 0
+ 196 0098 8CBF     	 ite hi
+ 197 009a 3143     	 orrhi r1,r1,r6
+ 198              	 .loc 1 327 0
+ 199 009c 26EA0101 	 bicls r1,r6,r1
+ 200 00a0 C5F8C411 	 str r1,[r5,#452]
+ 328:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 329:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 330:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Re-Configure DMA Request Select for Destination peripheral */
+ 331:LPC17xxLib/src/lpc17xx_gpdma.c **** 	if (GPDMAChannelConfig->DstConn > 15)
+ 201              	 .loc 1 331 0
+ 202 00a4 C169     	 ldr r1,[r0,#28]
+ 203 00a6 0120     	 movs r0,#1
+ 204              	.LVL3:
+ 205 00a8 3E4D     	 ldr r5,.L28+8
+ 206 00aa 0F29     	 cmp r1,#15
+ 332:LPC17xxLib/src/lpc17xx_gpdma.c **** 	{
+ 333:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_SC->DMAREQSEL |= (1<<(GPDMAChannelConfig->DstConn - 16));
+ 207              	 .loc 1 333 0
+ 208 00ac D5F8C461 	 ldr r6,[r5,#452]
+ 209 00b0 8BBF     	 itete hi
+ 210 00b2 A1F11007 	 subhi r7,r1,#16
+ 334:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 335:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_SC->DMAREQSEL &= ~(1<<(GPDMAChannelConfig->DstConn - 8));
+ 211              	 .loc 1 335 0
+ 212 00b6 A1F10807 	 subls r7,r1,#8
+ 333:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 213              	 .loc 1 333 0
+ 214 00ba B840     	 lslhi r0,r0,r7
+ 215              	 .loc 1 335 0
+ 216 00bc B840     	 lslls r0,r0,r7
+ 333:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 217              	 .loc 1 333 0
+ 218 00be 8CBF     	 ite hi
+ 219 00c0 3043     	 orrhi r0,r0,r6
+ 220              	 .loc 1 335 0
+ 221 00c2 26EA0000 	 bicls r0,r6,r0
+ 222 00c6 C5F8C401 	 str r0,[r5,#452]
+ 336:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 337:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 338:LPC17xxLib/src/lpc17xx_gpdma.c **** 	/* Enable DMA channels, little endian */
+ 339:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMA->DMACConfig = GPDMA_DMACConfig_E;
+ 223              	 .loc 1 339 0
+ 224 00ca 0125     	 movs r5,#1
+ 225 00cc 3348     	 ldr r0,.L28
+ 226 00ce 0563     	 str r5,[r0,#48]
+ 227              	.L16:
+ 340:LPC17xxLib/src/lpc17xx_gpdma.c **** 	while (!(LPC_GPDMA->DMACConfig & GPDMA_DMACConfig_E));
+ 228              	 .loc 1 340 0 discriminator 1
+ 229 00d0 056B     	 ldr r5,[r0,#48]
+ 230 00d2 ED07     	 lsls r5,r5,#31
+ 231 00d4 FCD5     	 bpl .L16
+ 232              	.LVL4:
+ 341:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 342:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Calculate absolute value for Connection number
+ 343:LPC17xxLib/src/lpc17xx_gpdma.c **** 	tmp1 = GPDMAChannelConfig->SrcConn;
+ 344:LPC17xxLib/src/lpc17xx_gpdma.c **** 	tmp1 = ((tmp1 > 15) ? (tmp1 - 8) : tmp1);
+ 233              	 .loc 1 344 0
+ 234 00d6 0F2C     	 cmp r4,#15
+ 235 00d8 88BF     	 it hi
+ 236 00da 083C     	 subhi r4,r4,#8
+ 237              	.LVL5:
+ 345:LPC17xxLib/src/lpc17xx_gpdma.c **** 	tmp2 = GPDMAChannelConfig->DstConn;
+ 346:LPC17xxLib/src/lpc17xx_gpdma.c **** 	tmp2 = ((tmp2 > 15) ? (tmp2 - 8) : tmp2);
+ 347:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 348:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Configure DMA Channel, enable Error Counter and Terminate counter
+ 349:LPC17xxLib/src/lpc17xx_gpdma.c **** 	pDMAch->DMACCConfig = GPDMA_DMACCxConfig_IE | GPDMA_DMACCxConfig_ITC /*| GPDMA_DMACCxConfig_E*/ \
+ 350:LPC17xxLib/src/lpc17xx_gpdma.c **** 		| GPDMA_DMACCxConfig_TransferType((uint32_t)GPDMAChannelConfig->TransferType) \
+ 238              	 .loc 1 350 0
+ 239 00dc D202     	 lsls r2,r2,#11
+ 346:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 240              	 .loc 1 346 0
+ 241 00de 0F29     	 cmp r1,#15
+ 242 00e0 88BF     	 it hi
+ 243 00e2 0839     	 subhi r1,r1,#8
+ 244              	.LVL6:
+ 245              	 .loc 1 350 0
+ 246 00e4 02F46052 	 and r2,r2,#14336
+ 351:LPC17xxLib/src/lpc17xx_gpdma.c **** 		| GPDMA_DMACCxConfig_SrcPeripheral(tmp1) \
+ 247              	 .loc 1 351 0
+ 248 00e8 6400     	 lsls r4,r4,#1
+ 249              	.LVL7:
+ 250 00ea 04F03E04 	 and r4,r4,#62
+ 352:LPC17xxLib/src/lpc17xx_gpdma.c **** 		| GPDMA_DMACCxConfig_DestPeripheral(tmp2);
+ 251              	 .loc 1 352 0
+ 252 00ee 42F44042 	 orr r2,r2,#49152
+ 253 00f2 8901     	 lsls r1,r1,#6
+ 254              	.LVL8:
+ 255 00f4 2243     	 orrs r2,r2,r4
+ 256 00f6 01F4F861 	 and r1,r1,#1984
+ 257 00fa 0A43     	 orrs r2,r2,r1
+ 349:LPC17xxLib/src/lpc17xx_gpdma.c **** 		| GPDMA_DMACCxConfig_TransferType((uint32_t)GPDMAChannelConfig->TransferType) \
+ 258              	 .loc 1 349 0
+ 259 00fc 1A61     	 str r2,[r3,#16]
+ 353:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 354:LPC17xxLib/src/lpc17xx_gpdma.c **** 	return SUCCESS;
+ 260              	 .loc 1 354 0
+ 261 00fe 0120     	 movs r0,#1
+ 262 0100 F0BD     	 pop {r4,r5,r6,r7,pc}
+ 263              	.LVL9:
+ 264              	.L8:
+ 276:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral destination address
+ 265              	 .loc 1 276 0
+ 266 0102 C168     	 ldr r1,[r0,#12]
+ 278:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 267              	 .loc 1 278 0
+ 268 0104 284C     	 ldr r4,.L28+12
+ 276:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral destination address
+ 269              	 .loc 1 276 0
+ 270 0106 1960     	 str r1,[r3]
+ 278:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 271              	 .loc 1 278 0
+ 272 0108 C169     	 ldr r1,[r0,#28]
+ 273 010a 54F82140 	 ldr r4,[r4,r1,lsl#2]
+ 274 010e 5C60     	 str r4,[r3,#4]
+ 281:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 275              	 .loc 1 281 0
+ 276 0110 264C     	 ldr r4,.L28+16
+ 277 0112 655C     	 ldrb r5,[r4,r1]
+ 283:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->DstConn]) \
+ 278              	 .loc 1 283 0
+ 279 0114 264C     	 ldr r4,.L28+20
+ 280 0116 645C     	 ldrb r4,[r4,r1]
+ 280:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 281              	 .loc 1 280 0
+ 282 0118 4168     	 ldr r1,[r0,#4]
+ 283 011a C1F30B01 	 ubfx r1,r1,#0,#12
+ 286:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 284              	 .loc 1 286 0
+ 285 011e 41F00441 	 orr r1,r1,#-2080374784
+ 286              	.L27:
+ 296:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 287              	 .loc 1 296 0
+ 288 0122 2E03     	 lsls r6,r5,#12
+ 289 0124 06F4E046 	 and r6,r6,#28672
+ 297:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 290              	 .loc 1 297 0
+ 291 0128 ED03     	 lsls r5,r5,#15
+ 301:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 292              	 .loc 1 301 0
+ 293 012a 3143     	 orrs r1,r1,r6
+ 297:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 294              	 .loc 1 297 0
+ 295 012c 05F46035 	 and r5,r5,#229376
+ 301:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 296              	 .loc 1 301 0
+ 297 0130 2943     	 orrs r1,r1,r5
+ 298 0132 9BE7     	 b .L26
+ 299              	.L9:
+ 291:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign memory destination address
+ 300              	 .loc 1 291 0
+ 301 0134 8169     	 ldr r1,[r0,#24]
+ 302 0136 1C4C     	 ldr r4,.L28+12
+ 303 0138 54F82140 	 ldr r4,[r4,r1,lsl#2]
+ 304 013c 1C60     	 str r4,[r3]
+ 293:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 305              	 .loc 1 293 0
+ 306 013e 0469     	 ldr r4,[r0,#16]
+ 307 0140 5C60     	 str r4,[r3,#4]
+ 296:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 308              	 .loc 1 296 0
+ 309 0142 1A4C     	 ldr r4,.L28+16
+ 310 0144 655C     	 ldrb r5,[r4,r1]
+ 298:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 311              	 .loc 1 298 0
+ 312 0146 1A4C     	 ldr r4,.L28+20
+ 313 0148 645C     	 ldrb r4,[r4,r1]
+ 295:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 314              	 .loc 1 295 0
+ 315 014a 4168     	 ldr r1,[r0,#4]
+ 316 014c C1F30B01 	 ubfx r1,r1,#0,#12
+ 301:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 317              	 .loc 1 301 0
+ 318 0150 41F00841 	 orr r1,r1,#-2013265920
+ 319 0154 E5E7     	 b .L27
+ 320              	.L10:
+ 306:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral destination address
+ 321              	 .loc 1 306 0
+ 322 0156 8669     	 ldr r6,[r0,#24]
+ 323 0158 1349     	 ldr r1,.L28+12
+ 311:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 324              	 .loc 1 311 0
+ 325 015a 144F     	 ldr r7,.L28+16
+ 306:LPC17xxLib/src/lpc17xx_gpdma.c **** 		// Assign peripheral destination address
+ 326              	 .loc 1 306 0
+ 327 015c 51F82640 	 ldr r4,[r1,r6,lsl#2]
+ 328 0160 1C60     	 str r4,[r3]
+ 308:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCControl
+ 329              	 .loc 1 308 0
+ 330 0162 C569     	 ldr r5,[r0,#28]
+ 331 0164 51F82510 	 ldr r1,[r1,r5,lsl#2]
+ 332 0168 5960     	 str r1,[r3,#4]
+ 310:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 333              	 .loc 1 310 0
+ 334 016a 4468     	 ldr r4,[r0,#4]
+ 311:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 335              	 .loc 1 311 0
+ 336 016c B95D     	 ldrb r1,[r7,r6]
+ 310:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->SrcConn]) \
+ 337              	 .loc 1 310 0
+ 338 016e C4F30B04 	 ubfx r4,r4,#0,#12
+ 311:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 339              	 .loc 1 311 0
+ 340 0172 0903     	 lsls r1,r1,#12
+ 315:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 341              	 .loc 1 315 0
+ 342 0174 44F00044 	 orr r4,r4,#-2147483648
+ 311:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DBSize((uint32_t)GPDMA_LUTPerBurst[GPDMAChannelConfig->DstConn]) \
+ 343              	 .loc 1 311 0
+ 344 0178 01F4E041 	 and r1,r1,#28672
+ 315:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 345              	 .loc 1 315 0
+ 346 017c 2143     	 orrs r1,r1,r4
+ 312:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 347              	 .loc 1 312 0
+ 348 017e 7C5D     	 ldrb r4,[r7,r5]
+ 313:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->DstConn]) \
+ 349              	 .loc 1 313 0
+ 350 0180 0B4F     	 ldr r7,.L28+20
+ 312:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_SWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->SrcConn]) \
+ 351              	 .loc 1 312 0
+ 352 0182 E403     	 lsls r4,r4,#15
+ 353 0184 04F46034 	 and r4,r4,#229376
+ 315:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 354              	 .loc 1 315 0
+ 355 0188 2143     	 orrs r1,r1,r4
+ 313:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_DWidth((uint32_t)GPDMA_LUTPerWid[GPDMAChannelConfig->DstConn]) \
+ 356              	 .loc 1 313 0
+ 357 018a BC5D     	 ldrb r4,[r7,r6]
+ 358 018c A404     	 lsls r4,r4,#18
+ 359 018e 04F4E014 	 and r4,r4,#1835008
+ 315:LPC17xxLib/src/lpc17xx_gpdma.c **** 		break;
+ 360              	 .loc 1 315 0
+ 361 0192 2143     	 orrs r1,r1,r4
+ 314:LPC17xxLib/src/lpc17xx_gpdma.c **** 						| GPDMA_DMACCxControl_I;
+ 362              	 .loc 1 314 0
+ 363 0194 7C5D     	 ldrb r4,[r7,r5]
+ 364 0196 6DE7     	 b .L23
+ 365              	.LVL10:
+ 366              	.L20:
+ 319:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 367              	 .loc 1 319 0
+ 368 0198 0020     	 movs r0,#0
+ 369              	.LVL11:
+ 355:LPC17xxLib/src/lpc17xx_gpdma.c **** }
+ 370              	 .loc 1 355 0
+ 371 019a F0BD     	 pop {r4,r5,r6,r7,pc}
+ 372              	.L29:
+ 373              	 .align 2
+ 374              	.L28:
+ 375 019c 00400050 	 .word 1342193664
+ 376 01a0 00000000 	 .word .LANCHOR0
+ 377 01a4 00C00F40 	 .word 1074774016
+ 378 01a8 00000000 	 .word .LANCHOR1
+ 379 01ac 00000000 	 .word .LANCHOR2
+ 380 01b0 00000000 	 .word .LANCHOR3
+ 381              	 .cfi_endproc
+ 382              	.LFE56:
+ 384              	 .section .text.GPDMA_ChannelCmd,"ax",%progbits
+ 385              	 .align 1
+ 386              	 .global GPDMA_ChannelCmd
+ 387              	 .syntax unified
+ 388              	 .thumb
+ 389              	 .thumb_func
+ 390              	 .fpu softvfp
+ 392              	GPDMA_ChannelCmd:
+ 393              	.LFB57:
+ 356:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 357:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 358:LPC17xxLib/src/lpc17xx_gpdma.c **** /*********************************************************************//**
+ 359:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief		Enable/Disable DMA channel
+ 360:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	channelNum	GPDMA channel, should be in range from 0 to 7
+ 361:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	NewState	New State of this command, should be:
+ 362:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- ENABLE.
+ 363:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- DISABLE.
+ 364:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @return		None
+ 365:LPC17xxLib/src/lpc17xx_gpdma.c ****  **********************************************************************/
+ 366:LPC17xxLib/src/lpc17xx_gpdma.c **** void GPDMA_ChannelCmd(uint8_t channelNum, FunctionalState NewState)
+ 367:LPC17xxLib/src/lpc17xx_gpdma.c **** {
+ 394              	 .loc 1 367 0
+ 395              	 .cfi_startproc
+ 396              	 
+ 397              	 
+ 398              	 
+ 399              	.LVL12:
+ 368:LPC17xxLib/src/lpc17xx_gpdma.c **** 	LPC_GPDMACH_TypeDef *pDMAch;
+ 369:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 370:LPC17xxLib/src/lpc17xx_gpdma.c **** 	// Get Channel pointer
+ 371:LPC17xxLib/src/lpc17xx_gpdma.c **** 	pDMAch = (LPC_GPDMACH_TypeDef *) pGPDMACh[channelNum];
+ 400              	 .loc 1 371 0
+ 401 0000 054B     	 ldr r3,.L34
+ 372:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 373:LPC17xxLib/src/lpc17xx_gpdma.c **** 	if (NewState == ENABLE) {
+ 402              	 .loc 1 373 0
+ 403 0002 0129     	 cmp r1,#1
+ 371:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 404              	 .loc 1 371 0
+ 405 0004 53F82030 	 ldr r3,[r3,r0,lsl#2]
+ 406              	.LVL13:
+ 374:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCConfig |= GPDMA_DMACCxConfig_E;
+ 407              	 .loc 1 374 0
+ 408 0008 1A69     	 ldr r2,[r3,#16]
+ 409 000a 0CBF     	 ite eq
+ 410 000c 42F00102 	 orreq r2,r2,#1
+ 375:LPC17xxLib/src/lpc17xx_gpdma.c **** 	} else {
+ 376:LPC17xxLib/src/lpc17xx_gpdma.c **** 		pDMAch->DMACCConfig &= ~GPDMA_DMACCxConfig_E;
+ 411              	 .loc 1 376 0
+ 412 0010 22F00102 	 bicne r2,r2,#1
+ 413 0014 1A61     	 str r2,[r3,#16]
+ 414 0016 7047     	 bx lr
+ 415              	.L35:
+ 416              	 .align 2
+ 417              	.L34:
+ 418 0018 00000000 	 .word .LANCHOR0
+ 419              	 .cfi_endproc
+ 420              	.LFE57:
+ 422              	 .section .text.GPDMA_IntGetStatus,"ax",%progbits
+ 423              	 .align 1
+ 424              	 .global GPDMA_IntGetStatus
+ 425              	 .syntax unified
+ 426              	 .thumb
+ 427              	 .thumb_func
+ 428              	 .fpu softvfp
+ 430              	GPDMA_IntGetStatus:
+ 431              	.LFB58:
+ 377:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 378:LPC17xxLib/src/lpc17xx_gpdma.c **** }
+ 379:LPC17xxLib/src/lpc17xx_gpdma.c **** /*********************************************************************//**
+ 380:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief		Check if corresponding channel does have an active interrupt
+ 381:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 				request or not
+ 382:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	type		type of status, should be:
+ 383:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STAT_INT: 		GPDMA Interrupt Status
+ 384:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STAT_INTTC: 	GPDMA Interrupt Terminal Count Request Status
+ 385:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STAT_INTERR:	GPDMA Interrupt Error Status
+ 386:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STAT_RAWINTTC:	GPDMA Raw Interrupt Terminal Count Status
+ 387:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STAT_RAWINTERR:	GPDMA Raw Error Interrupt Status
+ 388:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STAT_ENABLED_CH:GPDMA Enabled Channel Status
+ 389:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	channel		GPDMA channel, should be in range from 0 to 7
+ 390:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @return		IntStatus	status of DMA channel interrupt after masking
+ 391:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 				Should be:
+ 392:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- SET: the corresponding channel has no active interrupt request
+ 393:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- RESET: the corresponding channel does have an active interrupt request
+ 394:LPC17xxLib/src/lpc17xx_gpdma.c ****  **********************************************************************/
+ 395:LPC17xxLib/src/lpc17xx_gpdma.c **** IntStatus GPDMA_IntGetStatus(GPDMA_Status_Type type, uint8_t channel)
+ 396:LPC17xxLib/src/lpc17xx_gpdma.c **** {
+ 432              	 .loc 1 396 0
+ 433              	 .cfi_startproc
+ 434              	 
+ 435              	 
+ 436              	.LVL14:
+ 437 0000 00B5     	 push {lr}
+ 438              	 .cfi_def_cfa_offset 4
+ 439              	 .cfi_offset 14,-4
+ 440 0002 0E4A     	 ldr r2,.L46
+ 441 0004 0123     	 movs r3,#1
+ 397:LPC17xxLib/src/lpc17xx_gpdma.c **** 	CHECK_PARAM(PARAM_GPDMA_STAT(type));
+ 398:LPC17xxLib/src/lpc17xx_gpdma.c **** 	CHECK_PARAM(PARAM_GPDMA_CHANNEL(channel));
+ 399:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 400:LPC17xxLib/src/lpc17xx_gpdma.c **** 	switch (type)
+ 442              	 .loc 1 400 0
+ 443 0006 0428     	 cmp r0,#4
+ 444 0008 15D8     	 bhi .L37
+ 445 000a DFE800F0 	 tbb [pc,r0]
+ 446              	.L39:
+ 447 000e 03       	 .byte (.L38-.L39)/2
+ 448 000f 0C       	 .byte (.L40-.L39)/2
+ 449 0010 0E       	 .byte (.L41-.L39)/2
+ 450 0011 10       	 .byte (.L42-.L39)/2
+ 451 0012 12       	 .byte (.L43-.L39)/2
+ 452 0013 00       	 .p2align 1
+ 453              	.L38:
+ 401:LPC17xxLib/src/lpc17xx_gpdma.c **** 	{
+ 402:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_STAT_INT: //check status of DMA channel interrupts
+ 403:LPC17xxLib/src/lpc17xx_gpdma.c **** 		if (LPC_GPDMA->DMACIntStat & (GPDMA_DMACIntStat_Ch(channel)))
+ 454              	 .loc 1 403 0
+ 455 0014 1268     	 ldr r2,[r2]
+ 456              	.L45:
+ 404:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 405:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return RESET;
+ 406:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_STAT_INTTC: // check terminal count interrupt request status for DMA
+ 407:LPC17xxLib/src/lpc17xx_gpdma.c **** 		if (LPC_GPDMA->DMACIntTCStat & GPDMA_DMACIntTCStat_Ch(channel))
+ 408:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 409:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return RESET;
+ 410:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_STAT_INTERR: //check interrupt status for DMA channels
+ 411:LPC17xxLib/src/lpc17xx_gpdma.c **** 		if (LPC_GPDMA->DMACIntErrStat & GPDMA_DMACIntTCClear_Ch(channel))
+ 412:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 413:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return RESET;
+ 414:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_STAT_RAWINTTC: //check status of the terminal count interrupt for DMA channels
+ 415:LPC17xxLib/src/lpc17xx_gpdma.c **** 		if (LPC_GPDMA->DMACRawIntErrStat & GPDMA_DMACRawIntTCStat_Ch(channel))
+ 416:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 417:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return RESET;
+ 418:LPC17xxLib/src/lpc17xx_gpdma.c **** 	case GPDMA_STAT_RAWINTERR: //check status of the error interrupt for DMA channels
+ 419:LPC17xxLib/src/lpc17xx_gpdma.c **** 		if (LPC_GPDMA->DMACRawIntTCStat & GPDMA_DMACRawIntErrStat_Ch(channel))
+ 420:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 421:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return RESET;
+ 422:LPC17xxLib/src/lpc17xx_gpdma.c **** 	default: //check enable status for DMA channels
+ 423:LPC17xxLib/src/lpc17xx_gpdma.c **** 		if (LPC_GPDMA->DMACEnbldChns & GPDMA_DMACEnbldChns_Ch(channel))
+ 457              	 .loc 1 423 0
+ 458 0016 8B40     	 lsls r3,r3,r1
+ 459 0018 D2B2     	 uxtb r2,r2
+ 460 001a 1342     	 tst r3,r2
+ 404:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 461              	 .loc 1 404 0
+ 462 001c 14BF     	 ite ne
+ 463 001e 0120     	 movne r0,#1
+ 464              	.LVL15:
+ 465 0020 0020     	 moveq r0,#0
+ 424:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 425:LPC17xxLib/src/lpc17xx_gpdma.c **** 		return RESET;
+ 426:LPC17xxLib/src/lpc17xx_gpdma.c **** 	}
+ 427:LPC17xxLib/src/lpc17xx_gpdma.c **** }
+ 466              	 .loc 1 427 0
+ 467 0022 5DF804FB 	 ldr pc,[sp],#4
+ 468              	.LVL16:
+ 469              	.L40:
+ 407:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 470              	 .loc 1 407 0
+ 471 0026 5268     	 ldr r2,[r2,#4]
+ 472 0028 F5E7     	 b .L45
+ 473              	.L41:
+ 411:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 474              	 .loc 1 411 0
+ 475 002a D268     	 ldr r2,[r2,#12]
+ 476 002c F3E7     	 b .L45
+ 477              	.L42:
+ 415:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 478              	 .loc 1 415 0
+ 479 002e 9269     	 ldr r2,[r2,#24]
+ 480 0030 F1E7     	 b .L45
+ 481              	.L43:
+ 419:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 482              	 .loc 1 419 0
+ 483 0032 5269     	 ldr r2,[r2,#20]
+ 484 0034 EFE7     	 b .L45
+ 485              	.L37:
+ 423:LPC17xxLib/src/lpc17xx_gpdma.c **** 			return SET;
+ 486              	 .loc 1 423 0
+ 487 0036 D269     	 ldr r2,[r2,#28]
+ 488 0038 EDE7     	 b .L45
+ 489              	.L47:
+ 490 003a 00BF     	 .align 2
+ 491              	.L46:
+ 492 003c 00400050 	 .word 1342193664
+ 493              	 .cfi_endproc
+ 494              	.LFE58:
+ 496              	 .section .text.GPDMA_ClearIntPending,"ax",%progbits
+ 497              	 .align 1
+ 498              	 .global GPDMA_ClearIntPending
+ 499              	 .syntax unified
+ 500              	 .thumb
+ 501              	 .thumb_func
+ 502              	 .fpu softvfp
+ 504              	GPDMA_ClearIntPending:
+ 505              	.LFB59:
+ 428:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 429:LPC17xxLib/src/lpc17xx_gpdma.c **** /*********************************************************************//**
+ 430:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @brief		Clear one or more interrupt requests on DMA channels
+ 431:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	type		type of interrupt request, should be:
+ 432:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STATCLR_INTTC: 	GPDMA Interrupt Terminal Count Request Clear
+ 433:LPC17xxLib/src/lpc17xx_gpdma.c ****  * 					- GPDMA_STATCLR_INTERR: GPDMA Interrupt Error Clear
+ 434:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @param[in]	channel		GPDMA channel, should be in range from 0 to 7
+ 435:LPC17xxLib/src/lpc17xx_gpdma.c ****  * @return		None
+ 436:LPC17xxLib/src/lpc17xx_gpdma.c ****  **********************************************************************/
+ 437:LPC17xxLib/src/lpc17xx_gpdma.c **** void GPDMA_ClearIntPending(GPDMA_StateClear_Type type, uint8_t channel)
+ 438:LPC17xxLib/src/lpc17xx_gpdma.c **** {
+ 506              	 .loc 1 438 0
+ 507              	 .cfi_startproc
+ 508              	 
+ 509              	 
+ 510              	 
+ 511              	.LVL17:
+ 512 0000 0123     	 movs r3,#1
+ 439:LPC17xxLib/src/lpc17xx_gpdma.c **** 	CHECK_PARAM(PARAM_GPDMA_STATCLR(type));
+ 440:LPC17xxLib/src/lpc17xx_gpdma.c **** 	CHECK_PARAM(PARAM_GPDMA_CHANNEL(channel));
+ 441:LPC17xxLib/src/lpc17xx_gpdma.c **** 
+ 442:LPC17xxLib/src/lpc17xx_gpdma.c **** 	if (type == GPDMA_STATCLR_INTTC) // clears the terminal count interrupt request on DMA channel
+ 443:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMA->DMACIntTCClear = GPDMA_DMACIntTCClear_Ch(channel);
+ 513              	 .loc 1 443 0
+ 514 0002 8B40     	 lsls r3,r3,r1
+ 515 0004 034A     	 ldr r2,.L51
+ 516 0006 DBB2     	 uxtb r3,r3
+ 442:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMA->DMACIntTCClear = GPDMA_DMACIntTCClear_Ch(channel);
+ 517              	 .loc 1 442 0
+ 518 0008 08B9     	 cbnz r0,.L49
+ 519              	 .loc 1 443 0
+ 520 000a 9360     	 str r3,[r2,#8]
+ 521 000c 7047     	 bx lr
+ 522              	.L49:
+ 444:LPC17xxLib/src/lpc17xx_gpdma.c **** 	else // clear the error interrupt request
+ 445:LPC17xxLib/src/lpc17xx_gpdma.c **** 		LPC_GPDMA->DMACIntErrClr = GPDMA_DMACIntErrClr_Ch(channel);
+ 523              	 .loc 1 445 0
+ 524 000e 1361     	 str r3,[r2,#16]
+ 525 0010 7047     	 bx lr
+ 526              	.L52:
+ 527 0012 00BF     	 .align 2
+ 528              	.L51:
+ 529 0014 00400050 	 .word 1342193664
+ 530              	 .cfi_endproc
+ 531              	.LFE59:
+ 533              	 .global GPDMA_LUTPerWid
+ 534              	 .global GPDMA_LUTPerBurst
+ 535              	 .global pGPDMACh
+ 536              	 .global GPDMA_LUTPerAddr
+ 537              	 .section .data.pGPDMACh,"aw",%progbits
+ 538              	 .align 2
+ 539              	 .set .LANCHOR0,.+0
+ 542              	pGPDMACh:
+ 543 0000 00410050 	 .word 1342193920
+ 544 0004 20410050 	 .word 1342193952
+ 545 0008 40410050 	 .word 1342193984
+ 546 000c 60410050 	 .word 1342194016
+ 547 0010 80410050 	 .word 1342194048
+ 548 0014 A0410050 	 .word 1342194080
+ 549 0018 C0410050 	 .word 1342194112
+ 550 001c E0410050 	 .word 1342194144
+ 551              	 .section .rodata.GPDMA_LUTPerAddr,"a",%progbits
+ 552              	 .align 2
+ 553              	 .set .LANCHOR1,.+0
+ 556              	GPDMA_LUTPerAddr:
+ 557 0000 08800840 	 .word 1074298888
+ 558 0004 08800840 	 .word 1074298888
+ 559 0008 08000340 	 .word 1073938440
+ 560 000c 08000340 	 .word 1073938440
+ 561 0010 04400340 	 .word 1073954820
+ 562 0014 08800A40 	 .word 1074429960
+ 563 0018 0C800A40 	 .word 1074429964
+ 564 001c 00C00840 	 .word 1074315264
+ 565 0020 00C00040 	 .word 1073790976
+ 566 0024 00C00040 	 .word 1073790976
+ 567 0028 00000140 	 .word 1073807360
+ 568 002c 00000140 	 .word 1073807360
+ 569 0030 00800940 	 .word 1074364416
+ 570 0034 00800940 	 .word 1074364416
+ 571 0038 00C00940 	 .word 1074380800
+ 572 003c 00C00940 	 .word 1074380800
+ 573 0040 18400040 	 .word 1073758232
+ 574 0044 1C400040 	 .word 1073758236
+ 575 0048 18800040 	 .word 1073774616
+ 576 004c 1C800040 	 .word 1073774620
+ 577 0050 18000940 	 .word 1074331672
+ 578 0054 1C000940 	 .word 1074331676
+ 579 0058 18400940 	 .word 1074348056
+ 580 005c 1C400940 	 .word 1074348060
+ 581              	 .section .rodata.GPDMA_LUTPerBurst,"a",%progbits
+ 582              	 .set .LANCHOR2,.+0
+ 585              	GPDMA_LUTPerBurst:
+ 586 0000 01       	 .byte 1
+ 587 0001 01       	 .byte 1
+ 588 0002 01       	 .byte 1
+ 589 0003 01       	 .byte 1
+ 590 0004 01       	 .byte 1
+ 591 0005 04       	 .byte 4
+ 592 0006 04       	 .byte 4
+ 593 0007 00       	 .byte 0
+ 594 0008 00       	 .byte 0
+ 595 0009 00       	 .byte 0
+ 596 000a 00       	 .byte 0
+ 597 000b 00       	 .byte 0
+ 598 000c 00       	 .byte 0
+ 599 000d 00       	 .byte 0
+ 600 000e 00       	 .byte 0
+ 601 000f 00       	 .byte 0
+ 602 0010 00       	 .byte 0
+ 603 0011 00       	 .byte 0
+ 604 0012 00       	 .byte 0
+ 605 0013 00       	 .byte 0
+ 606 0014 00       	 .byte 0
+ 607 0015 00       	 .byte 0
+ 608 0016 00       	 .byte 0
+ 609 0017 00       	 .byte 0
+ 610              	 .section .rodata.GPDMA_LUTPerWid,"a",%progbits
+ 611              	 .set .LANCHOR3,.+0
+ 614              	GPDMA_LUTPerWid:
+ 615 0000 00       	 .byte 0
+ 616 0001 00       	 .byte 0
+ 617 0002 00       	 .byte 0
+ 618 0003 00       	 .byte 0
+ 619 0004 02       	 .byte 2
+ 620 0005 02       	 .byte 2
+ 621 0006 02       	 .byte 2
+ 622 0007 00       	 .byte 0
+ 623 0008 00       	 .byte 0
+ 624 0009 00       	 .byte 0
+ 625 000a 00       	 .byte 0
+ 626 000b 00       	 .byte 0
+ 627 000c 00       	 .byte 0
+ 628 000d 00       	 .byte 0
+ 629 000e 00       	 .byte 0
+ 630 000f 00       	 .byte 0
+ 631 0010 02       	 .byte 2
+ 632 0011 02       	 .byte 2
+ 633 0012 02       	 .byte 2
+ 634 0013 02       	 .byte 2
+ 635 0014 02       	 .byte 2
+ 636 0015 02       	 .byte 2
+ 637 0016 02       	 .byte 2
+ 638 0017 02       	 .byte 2
+ 639              	 .text
+ 640              	.Letext0:
+ 641              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 642              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 643              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 644              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 645              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 646              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 647              	 .file 8 "LPC17xxLib/inc/lpc17xx_gpdma.h"
+ 648              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_gpdma.c
+    {standard input}:16     .text.GPDMA_Init:0000000000000000 $t
+    {standard input}:23     .text.GPDMA_Init:0000000000000000 GPDMA_Init
+    {standard input}:68     .text.GPDMA_Init:0000000000000034 $d
+    {standard input}:75     .text.GPDMA_Setup:0000000000000000 $t
+    {standard input}:82     .text.GPDMA_Setup:0000000000000000 GPDMA_Setup
+    {standard input}:145    .text.GPDMA_Setup:0000000000000050 $d
+    {standard input}:149    .text.GPDMA_Setup:0000000000000054 $t
+    {standard input}:375    .text.GPDMA_Setup:000000000000019c $d
+    {standard input}:385    .text.GPDMA_ChannelCmd:0000000000000000 $t
+    {standard input}:392    .text.GPDMA_ChannelCmd:0000000000000000 GPDMA_ChannelCmd
+    {standard input}:418    .text.GPDMA_ChannelCmd:0000000000000018 $d
+    {standard input}:423    .text.GPDMA_IntGetStatus:0000000000000000 $t
+    {standard input}:430    .text.GPDMA_IntGetStatus:0000000000000000 GPDMA_IntGetStatus
+    {standard input}:447    .text.GPDMA_IntGetStatus:000000000000000e $d
+    {standard input}:492    .text.GPDMA_IntGetStatus:000000000000003c $d
+    {standard input}:497    .text.GPDMA_ClearIntPending:0000000000000000 $t
+    {standard input}:504    .text.GPDMA_ClearIntPending:0000000000000000 GPDMA_ClearIntPending
+    {standard input}:529    .text.GPDMA_ClearIntPending:0000000000000014 $d
+    {standard input}:614    .rodata.GPDMA_LUTPerWid:0000000000000000 GPDMA_LUTPerWid
+    {standard input}:585    .rodata.GPDMA_LUTPerBurst:0000000000000000 GPDMA_LUTPerBurst
+    {standard input}:542    .data.pGPDMACh:0000000000000000 pGPDMACh
+    {standard input}:556    .rodata.GPDMA_LUTPerAddr:0000000000000000 GPDMA_LUTPerAddr
+    {standard input}:538    .data.pGPDMACh:0000000000000000 $d
+    {standard input}:552    .rodata.GPDMA_LUTPerAddr:0000000000000000 $d
+                     .debug_frame:0000000000000010 $d
+    {standard input}:452    .text.GPDMA_IntGetStatus:0000000000000013 $d
+    {standard input}:452    .text.GPDMA_IntGetStatus:0000000000000014 $t
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR

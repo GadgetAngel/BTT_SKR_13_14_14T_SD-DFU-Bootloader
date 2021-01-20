@@ -1,0 +1,514 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_rit.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.RIT_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global RIT_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	RIT_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_rit.c"
+   1:LPC17xxLib/src/lpc17xx_rit.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_rit.c **** 
+   3:LPC17xxLib/src/lpc17xx_rit.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_rit.c **** * $Id$		lpc17xx_rit.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_rit.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_rit.c **** * @file		lpc17xx_rit.c
+   7:LPC17xxLib/src/lpc17xx_rit.c **** * @brief	Contains all functions support for RIT firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_rit.c **** * @version	2.0
+   9:LPC17xxLib/src/lpc17xx_rit.c **** * @date		21. May. 2010
+  10:LPC17xxLib/src/lpc17xx_rit.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_rit.c **** *
+  12:LPC17xxLib/src/lpc17xx_rit.c **** * Copyright(C) 2010, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_rit.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_rit.c **** *
+  15:LPC17xxLib/src/lpc17xx_rit.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_rit.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_rit.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_rit.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_rit.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_rit.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_rit.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_rit.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_rit.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_rit.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_rit.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_rit.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_rit.c **** 
+  28:LPC17xxLib/src/lpc17xx_rit.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_rit.c **** /** @addtogroup RIT
+  30:LPC17xxLib/src/lpc17xx_rit.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_rit.c ****  */
+  32:LPC17xxLib/src/lpc17xx_rit.c **** 
+  33:LPC17xxLib/src/lpc17xx_rit.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_rit.c **** #include "lpc17xx_rit.h"
+  35:LPC17xxLib/src/lpc17xx_rit.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_rit.c **** 
+  37:LPC17xxLib/src/lpc17xx_rit.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  38:LPC17xxLib/src/lpc17xx_rit.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  39:LPC17xxLib/src/lpc17xx_rit.c ****  * otherwise the default FW library configuration file must be included instead
+  40:LPC17xxLib/src/lpc17xx_rit.c ****  */
+  41:LPC17xxLib/src/lpc17xx_rit.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  42:LPC17xxLib/src/lpc17xx_rit.c **** #include "lpc17xx_libcfg.h"
+  43:LPC17xxLib/src/lpc17xx_rit.c **** #else
+  44:LPC17xxLib/src/lpc17xx_rit.c **** #include "lpc17xx_libcfg_default.h"
+  45:LPC17xxLib/src/lpc17xx_rit.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  46:LPC17xxLib/src/lpc17xx_rit.c **** 
+  47:LPC17xxLib/src/lpc17xx_rit.c **** #ifdef _RIT
+  48:LPC17xxLib/src/lpc17xx_rit.c **** 
+  49:LPC17xxLib/src/lpc17xx_rit.c **** /* Public Functions ----------------------------------------------------------- */
+  50:LPC17xxLib/src/lpc17xx_rit.c **** /** @addtogroup RIT_Public_Functions
+  51:LPC17xxLib/src/lpc17xx_rit.c ****  * @{
+  52:LPC17xxLib/src/lpc17xx_rit.c ****  */
+  53:LPC17xxLib/src/lpc17xx_rit.c **** 
+  54:LPC17xxLib/src/lpc17xx_rit.c **** /******************************************************************************//*
+  55:LPC17xxLib/src/lpc17xx_rit.c ****  * @brief 		Initial for RIT
+  56:LPC17xxLib/src/lpc17xx_rit.c ****  * 					- Turn on power and clock
+  57:LPC17xxLib/src/lpc17xx_rit.c ****  * 					- Setup default register values
+  58:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	RITx is RIT peripheral selected, should be: LPC_RIT
+  59:LPC17xxLib/src/lpc17xx_rit.c ****  * @return 		None
+  60:LPC17xxLib/src/lpc17xx_rit.c ****  *******************************************************************************/
+  61:LPC17xxLib/src/lpc17xx_rit.c **** void RIT_Init(LPC_RIT_TypeDef *RITx)
+  62:LPC17xxLib/src/lpc17xx_rit.c **** {
+  26              	 .loc 1 62 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  31 0000 10B5     	 push {r4,lr}
+  32              	 .cfi_def_cfa_offset 8
+  33              	 .cfi_offset 4,-8
+  34              	 .cfi_offset 14,-4
+  35              	 .loc 1 62 0
+  36 0002 0446     	 mov r4,r0
+  63:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_RITx(RITx));
+  64:LPC17xxLib/src/lpc17xx_rit.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCRIT, ENABLE);
+  37              	 .loc 1 64 0
+  38 0004 114B     	 ldr r3,.L2
+  39 0006 0121     	 movs r1,#1
+  40 0008 4FF48030 	 mov r0,#65536
+  41              	.LVL1:
+  42 000c 9847     	 blx r3
+  43              	.LVL2:
+  65:LPC17xxLib/src/lpc17xx_rit.c **** 	//Set up default register values
+  66:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICOMPVAL = 0xFFFFFFFF;
+  44              	 .loc 1 66 0
+  45 000e 2378     	 ldrb r3,[r4]
+  46 0010 4FF0FF33 	 mov r3,#-1
+  47 0014 2370     	 strb r3,[r4]
+  48 0016 6278     	 ldrb r2,[r4,#1]
+  49 0018 6370     	 strb r3,[r4,#1]
+  50 001a A278     	 ldrb r2,[r4,#2]
+  51 001c A370     	 strb r3,[r4,#2]
+  52 001e E278     	 ldrb r2,[r4,#3]
+  53 0020 E370     	 strb r3,[r4,#3]
+  67:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RIMASK	= 0x00000000;
+  54              	 .loc 1 67 0
+  55 0022 2379     	 ldrb r3,[r4,#4]
+  56 0024 0023     	 movs r3,#0
+  57 0026 2371     	 strb r3,[r4,#4]
+  58 0028 6279     	 ldrb r2,[r4,#5]
+  59 002a 6371     	 strb r3,[r4,#5]
+  60 002c A279     	 ldrb r2,[r4,#6]
+  61 002e A371     	 strb r3,[r4,#6]
+  62 0030 E279     	 ldrb r2,[r4,#7]
+  68:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICTRL	= 0x0C;
+  63              	 .loc 1 68 0
+  64 0032 0C22     	 movs r2,#12
+  67:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RIMASK	= 0x00000000;
+  65              	 .loc 1 67 0
+  66 0034 E371     	 strb r3,[r4,#7]
+  67              	 .loc 1 68 0
+  68 0036 2272     	 strb r2,[r4,#8]
+  69:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICOUNTER	= 0x00000000;
+  69              	 .loc 1 69 0
+  70 0038 227B     	 ldrb r2,[r4,#12]
+  71 003a 2373     	 strb r3,[r4,#12]
+  72 003c 627B     	 ldrb r2,[r4,#13]
+  73 003e 6373     	 strb r3,[r4,#13]
+  74 0040 A27B     	 ldrb r2,[r4,#14]
+  75 0042 A373     	 strb r3,[r4,#14]
+  76 0044 E27B     	 ldrb r2,[r4,#15]
+  77 0046 E373     	 strb r3,[r4,#15]
+  78 0048 10BD     	 pop {r4,pc}
+  79              	.LVL3:
+  80              	.L3:
+  81 004a 00BF     	 .align 2
+  82              	.L2:
+  83 004c 00000000 	 .word CLKPWR_ConfigPPWR
+  84              	 .cfi_endproc
+  85              	.LFE55:
+  87              	 .section .text.RIT_DeInit,"ax",%progbits
+  88              	 .align 1
+  89              	 .global RIT_DeInit
+  90              	 .syntax unified
+  91              	 .thumb
+  92              	 .thumb_func
+  93              	 .fpu softvfp
+  95              	RIT_DeInit:
+  96              	.LFB56:
+  70:LPC17xxLib/src/lpc17xx_rit.c **** 	// Turn on power and clock
+  71:LPC17xxLib/src/lpc17xx_rit.c **** 
+  72:LPC17xxLib/src/lpc17xx_rit.c **** }
+  73:LPC17xxLib/src/lpc17xx_rit.c **** /******************************************************************************//*
+  74:LPC17xxLib/src/lpc17xx_rit.c ****  * @brief 		DeInitial for RIT
+  75:LPC17xxLib/src/lpc17xx_rit.c ****  * 					- Turn off power and clock
+  76:LPC17xxLib/src/lpc17xx_rit.c ****  * 					- ReSetup default register values
+  77:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	RITx is RIT peripheral selected, should be: LPC_RIT
+  78:LPC17xxLib/src/lpc17xx_rit.c ****  * @return 		None
+  79:LPC17xxLib/src/lpc17xx_rit.c ****  *******************************************************************************/
+  80:LPC17xxLib/src/lpc17xx_rit.c **** void RIT_DeInit(LPC_RIT_TypeDef *RITx)
+  81:LPC17xxLib/src/lpc17xx_rit.c **** {
+  97              	 .loc 1 81 0
+  98              	 .cfi_startproc
+  99              	 
+ 100              	 
+ 101              	.LVL4:
+ 102 0000 10B5     	 push {r4,lr}
+ 103              	 .cfi_def_cfa_offset 8
+ 104              	 .cfi_offset 4,-8
+ 105              	 .cfi_offset 14,-4
+ 106              	 .loc 1 81 0
+ 107 0002 0446     	 mov r4,r0
+  82:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_RITx(RITx));
+  83:LPC17xxLib/src/lpc17xx_rit.c **** 
+  84:LPC17xxLib/src/lpc17xx_rit.c **** 	// Turn off power and clock
+  85:LPC17xxLib/src/lpc17xx_rit.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCRIT, DISABLE);
+ 108              	 .loc 1 85 0
+ 109 0004 114B     	 ldr r3,.L5
+ 110 0006 0021     	 movs r1,#0
+ 111 0008 4FF48030 	 mov r0,#65536
+ 112              	.LVL5:
+ 113 000c 9847     	 blx r3
+ 114              	.LVL6:
+  86:LPC17xxLib/src/lpc17xx_rit.c **** 	//ReSetup default register values
+  87:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICOMPVAL = 0xFFFFFFFF;
+ 115              	 .loc 1 87 0
+ 116 000e 2378     	 ldrb r3,[r4]
+ 117 0010 4FF0FF33 	 mov r3,#-1
+ 118 0014 2370     	 strb r3,[r4]
+ 119 0016 6278     	 ldrb r2,[r4,#1]
+ 120 0018 6370     	 strb r3,[r4,#1]
+ 121 001a A278     	 ldrb r2,[r4,#2]
+ 122 001c A370     	 strb r3,[r4,#2]
+ 123 001e E278     	 ldrb r2,[r4,#3]
+ 124 0020 E370     	 strb r3,[r4,#3]
+  88:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RIMASK	= 0x00000000;
+ 125              	 .loc 1 88 0
+ 126 0022 2379     	 ldrb r3,[r4,#4]
+ 127 0024 0023     	 movs r3,#0
+ 128 0026 2371     	 strb r3,[r4,#4]
+ 129 0028 6279     	 ldrb r2,[r4,#5]
+ 130 002a 6371     	 strb r3,[r4,#5]
+ 131 002c A279     	 ldrb r2,[r4,#6]
+ 132 002e A371     	 strb r3,[r4,#6]
+ 133 0030 E279     	 ldrb r2,[r4,#7]
+  89:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICTRL	= 0x0C;
+ 134              	 .loc 1 89 0
+ 135 0032 0C22     	 movs r2,#12
+  88:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RIMASK	= 0x00000000;
+ 136              	 .loc 1 88 0
+ 137 0034 E371     	 strb r3,[r4,#7]
+ 138              	 .loc 1 89 0
+ 139 0036 2272     	 strb r2,[r4,#8]
+  90:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICOUNTER	= 0x00000000;
+ 140              	 .loc 1 90 0
+ 141 0038 227B     	 ldrb r2,[r4,#12]
+ 142 003a 2373     	 strb r3,[r4,#12]
+ 143 003c 627B     	 ldrb r2,[r4,#13]
+ 144 003e 6373     	 strb r3,[r4,#13]
+ 145 0040 A27B     	 ldrb r2,[r4,#14]
+ 146 0042 A373     	 strb r3,[r4,#14]
+ 147 0044 E27B     	 ldrb r2,[r4,#15]
+ 148 0046 E373     	 strb r3,[r4,#15]
+ 149 0048 10BD     	 pop {r4,pc}
+ 150              	.LVL7:
+ 151              	.L6:
+ 152 004a 00BF     	 .align 2
+ 153              	.L5:
+ 154 004c 00000000 	 .word CLKPWR_ConfigPPWR
+ 155              	 .cfi_endproc
+ 156              	.LFE56:
+ 158              	 .section .text.RIT_TimerConfig,"ax",%progbits
+ 159              	 .align 1
+ 160              	 .global RIT_TimerConfig
+ 161              	 .syntax unified
+ 162              	 .thumb
+ 163              	 .thumb_func
+ 164              	 .fpu softvfp
+ 166              	RIT_TimerConfig:
+ 167              	.LFB57:
+  91:LPC17xxLib/src/lpc17xx_rit.c **** }
+  92:LPC17xxLib/src/lpc17xx_rit.c **** 
+  93:LPC17xxLib/src/lpc17xx_rit.c **** /******************************************************************************//*
+  94:LPC17xxLib/src/lpc17xx_rit.c ****  * @brief 		Set compare value, mask value and time counter value
+  95:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	RITx is RIT peripheral selected, should be: LPC_RIT
+  96:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	time_interval: timer interval value (ms)
+  97:LPC17xxLib/src/lpc17xx_rit.c ****  * @return 		None
+  98:LPC17xxLib/src/lpc17xx_rit.c ****  *******************************************************************************/
+  99:LPC17xxLib/src/lpc17xx_rit.c **** void RIT_TimerConfig(LPC_RIT_TypeDef *RITx, uint32_t time_interval)
+ 100:LPC17xxLib/src/lpc17xx_rit.c **** {
+ 168              	 .loc 1 100 0
+ 169              	 .cfi_startproc
+ 170              	 
+ 171              	 
+ 172              	.LVL8:
+ 173 0000 38B5     	 push {r3,r4,r5,lr}
+ 174              	 .cfi_def_cfa_offset 16
+ 175              	 .cfi_offset 3,-16
+ 176              	 .cfi_offset 4,-12
+ 177              	 .cfi_offset 5,-8
+ 178              	 .cfi_offset 14,-4
+ 179              	 .loc 1 100 0
+ 180 0002 0446     	 mov r4,r0
+ 101:LPC17xxLib/src/lpc17xx_rit.c **** 	uint32_t clock_rate, cmp_value;
+ 102:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_RITx(RITx));
+ 103:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 104:LPC17xxLib/src/lpc17xx_rit.c **** 	// Get PCLK value of RIT
+ 105:LPC17xxLib/src/lpc17xx_rit.c **** 	clock_rate = CLKPWR_GetPCLK(CLKPWR_PCLKSEL_RIT);
+ 181              	 .loc 1 105 0
+ 182 0004 074B     	 ldr r3,.L8
+ 183 0006 3A20     	 movs r0,#58
+ 184              	.LVL9:
+ 100:LPC17xxLib/src/lpc17xx_rit.c **** 	uint32_t clock_rate, cmp_value;
+ 185              	 .loc 1 100 0
+ 186 0008 0D46     	 mov r5,r1
+ 187              	 .loc 1 105 0
+ 188 000a 9847     	 blx r3
+ 189              	.LVL10:
+ 106:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 107:LPC17xxLib/src/lpc17xx_rit.c **** 	/* calculate compare value for RIT to generate interrupt at
+ 108:LPC17xxLib/src/lpc17xx_rit.c **** 	 * specified time interval
+ 109:LPC17xxLib/src/lpc17xx_rit.c **** 	 * COMPVAL = (RIT_PCLK * time_interval)/1000
+ 110:LPC17xxLib/src/lpc17xx_rit.c **** 	 * (with time_interval unit is millisecond)
+ 111:LPC17xxLib/src/lpc17xx_rit.c **** 	 */
+ 112:LPC17xxLib/src/lpc17xx_rit.c **** 	cmp_value = (clock_rate /1000) * time_interval;
+ 190              	 .loc 1 112 0
+ 191 000c 4FF47A71 	 mov r1,#1000
+ 192 0010 B0FBF1F0 	 udiv r0,r0,r1
+ 193              	.LVL11:
+ 194 0014 4543     	 muls r5,r0,r5
+ 195              	.LVL12:
+ 113:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICOMPVAL = cmp_value;
+ 196              	 .loc 1 113 0
+ 197 0016 2560     	 str r5,[r4]
+ 114:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 115:LPC17xxLib/src/lpc17xx_rit.c **** 	/* Set timer enable clear bit to clear timer to 0 whenever
+ 116:LPC17xxLib/src/lpc17xx_rit.c **** 	 * counter value equals the contents of RICOMPVAL
+ 117:LPC17xxLib/src/lpc17xx_rit.c **** 	 */
+ 118:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICTRL |= (1<<1);
+ 198              	 .loc 1 118 0
+ 199 0018 237A     	 ldrb r3,[r4,#8]
+ 200 001a 43F00203 	 orr r3,r3,#2
+ 201 001e 2372     	 strb r3,[r4,#8]
+ 202 0020 38BD     	 pop {r3,r4,r5,pc}
+ 203              	.LVL13:
+ 204              	.L9:
+ 205 0022 00BF     	 .align 2
+ 206              	.L8:
+ 207 0024 00000000 	 .word CLKPWR_GetPCLK
+ 208              	 .cfi_endproc
+ 209              	.LFE57:
+ 211              	 .section .text.RIT_Cmd,"ax",%progbits
+ 212              	 .align 1
+ 213              	 .global RIT_Cmd
+ 214              	 .syntax unified
+ 215              	 .thumb
+ 216              	 .thumb_func
+ 217              	 .fpu softvfp
+ 219              	RIT_Cmd:
+ 220              	.LFB58:
+ 119:LPC17xxLib/src/lpc17xx_rit.c **** }
+ 120:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 121:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 122:LPC17xxLib/src/lpc17xx_rit.c **** /******************************************************************************//*
+ 123:LPC17xxLib/src/lpc17xx_rit.c ****  * @brief 		Enable/Disable Timer
+ 124:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	RITx is RIT peripheral selected, should be: LPC_RIT
+ 125:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	NewState 	New State of this function
+ 126:LPC17xxLib/src/lpc17xx_rit.c ****  * 					-ENABLE: Enable Timer
+ 127:LPC17xxLib/src/lpc17xx_rit.c ****  * 					-DISABLE: Disable Timer
+ 128:LPC17xxLib/src/lpc17xx_rit.c ****  * @return 		None
+ 129:LPC17xxLib/src/lpc17xx_rit.c ****  *******************************************************************************/
+ 130:LPC17xxLib/src/lpc17xx_rit.c **** void RIT_Cmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState)
+ 131:LPC17xxLib/src/lpc17xx_rit.c **** {
+ 221              	 .loc 1 131 0
+ 222              	 .cfi_startproc
+ 223              	 
+ 224              	 
+ 225              	 
+ 226              	.LVL14:
+ 132:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_RITx(RITx));
+ 133:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 134:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 135:LPC17xxLib/src/lpc17xx_rit.c **** 	//Enable or Disable Timer
+ 136:LPC17xxLib/src/lpc17xx_rit.c **** 	if(NewState==ENABLE)
+ 137:LPC17xxLib/src/lpc17xx_rit.c **** 	{
+ 138:LPC17xxLib/src/lpc17xx_rit.c **** 		RITx->RICTRL |= RIT_CTRL_TEN;
+ 227              	 .loc 1 138 0
+ 228 0000 037A     	 ldrb r3,[r0,#8]
+ 136:LPC17xxLib/src/lpc17xx_rit.c **** 	{
+ 229              	 .loc 1 136 0
+ 230 0002 0129     	 cmp r1,#1
+ 231              	 .loc 1 138 0
+ 232 0004 0CBF     	 ite eq
+ 233 0006 43F00803 	 orreq r3,r3,#8
+ 139:LPC17xxLib/src/lpc17xx_rit.c **** 	}
+ 140:LPC17xxLib/src/lpc17xx_rit.c **** 	else
+ 141:LPC17xxLib/src/lpc17xx_rit.c **** 	{
+ 142:LPC17xxLib/src/lpc17xx_rit.c **** 		RITx->RICTRL &= ~RIT_CTRL_TEN;
+ 234              	 .loc 1 142 0
+ 235 000a 03F0F703 	 andne r3,r3,#247
+ 236 000e 0372     	 strb r3,[r0,#8]
+ 237 0010 7047     	 bx lr
+ 238              	 .cfi_endproc
+ 239              	.LFE58:
+ 241              	 .section .text.RIT_TimerDebugCmd,"ax",%progbits
+ 242              	 .align 1
+ 243              	 .global RIT_TimerDebugCmd
+ 244              	 .syntax unified
+ 245              	 .thumb
+ 246              	 .thumb_func
+ 247              	 .fpu softvfp
+ 249              	RIT_TimerDebugCmd:
+ 250              	.LFB59:
+ 143:LPC17xxLib/src/lpc17xx_rit.c **** 	}
+ 144:LPC17xxLib/src/lpc17xx_rit.c **** }
+ 145:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 146:LPC17xxLib/src/lpc17xx_rit.c **** /******************************************************************************//*
+ 147:LPC17xxLib/src/lpc17xx_rit.c ****  * @brief 		Timer Enable/Disable on debug
+ 148:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	RITx is RIT peripheral selected, should be: LPC_RIT
+ 149:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	NewState 	New State of this function
+ 150:LPC17xxLib/src/lpc17xx_rit.c ****  * 					-ENABLE: The timer is halted whenever a hardware break condition occurs
+ 151:LPC17xxLib/src/lpc17xx_rit.c ****  * 					-DISABLE: Hardware break has no effect on the timer operation
+ 152:LPC17xxLib/src/lpc17xx_rit.c ****  * @return 		None
+ 153:LPC17xxLib/src/lpc17xx_rit.c ****  *******************************************************************************/
+ 154:LPC17xxLib/src/lpc17xx_rit.c **** void RIT_TimerDebugCmd(LPC_RIT_TypeDef *RITx, FunctionalState NewState)
+ 155:LPC17xxLib/src/lpc17xx_rit.c **** {
+ 251              	 .loc 1 155 0
+ 252              	 .cfi_startproc
+ 253              	 
+ 254              	 
+ 255              	 
+ 256              	.LVL15:
+ 156:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_RITx(RITx));
+ 157:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 158:LPC17xxLib/src/lpc17xx_rit.c **** 
+ 159:LPC17xxLib/src/lpc17xx_rit.c **** 	//Timer Enable/Disable on break
+ 160:LPC17xxLib/src/lpc17xx_rit.c **** 	if(NewState==ENABLE)
+ 161:LPC17xxLib/src/lpc17xx_rit.c **** 	{
+ 162:LPC17xxLib/src/lpc17xx_rit.c **** 		RITx->RICTRL |= RIT_CTRL_ENBR;
+ 257              	 .loc 1 162 0
+ 258 0000 037A     	 ldrb r3,[r0,#8]
+ 160:LPC17xxLib/src/lpc17xx_rit.c **** 	{
+ 259              	 .loc 1 160 0
+ 260 0002 0129     	 cmp r1,#1
+ 261              	 .loc 1 162 0
+ 262 0004 0CBF     	 ite eq
+ 263 0006 43F00403 	 orreq r3,r3,#4
+ 163:LPC17xxLib/src/lpc17xx_rit.c **** 	}
+ 164:LPC17xxLib/src/lpc17xx_rit.c **** 	else
+ 165:LPC17xxLib/src/lpc17xx_rit.c **** 	{
+ 166:LPC17xxLib/src/lpc17xx_rit.c **** 		RITx->RICTRL &= ~RIT_CTRL_ENBR;
+ 264              	 .loc 1 166 0
+ 265 000a 03F0FB03 	 andne r3,r3,#251
+ 266 000e 0372     	 strb r3,[r0,#8]
+ 267 0010 7047     	 bx lr
+ 268              	 .cfi_endproc
+ 269              	.LFE59:
+ 271              	 .section .text.RIT_GetIntStatus,"ax",%progbits
+ 272              	 .align 1
+ 273              	 .global RIT_GetIntStatus
+ 274              	 .syntax unified
+ 275              	 .thumb
+ 276              	 .thumb_func
+ 277              	 .fpu softvfp
+ 279              	RIT_GetIntStatus:
+ 280              	.LFB60:
+ 167:LPC17xxLib/src/lpc17xx_rit.c **** 	}
+ 168:LPC17xxLib/src/lpc17xx_rit.c **** }
+ 169:LPC17xxLib/src/lpc17xx_rit.c **** /******************************************************************************//*
+ 170:LPC17xxLib/src/lpc17xx_rit.c ****  * @brief 		Check whether interrupt flag is set or not
+ 171:LPC17xxLib/src/lpc17xx_rit.c ****  * @param[in]	RITx is RIT peripheral selected, should be: LPC_RIT
+ 172:LPC17xxLib/src/lpc17xx_rit.c ****  * @return 		Current interrupt status, could be: SET/RESET
+ 173:LPC17xxLib/src/lpc17xx_rit.c ****  *******************************************************************************/
+ 174:LPC17xxLib/src/lpc17xx_rit.c **** IntStatus RIT_GetIntStatus(LPC_RIT_TypeDef *RITx)
+ 175:LPC17xxLib/src/lpc17xx_rit.c **** {
+ 281              	 .loc 1 175 0
+ 282              	 .cfi_startproc
+ 283              	 
+ 284              	 
+ 285              	 
+ 286              	.LVL16:
+ 176:LPC17xxLib/src/lpc17xx_rit.c **** 	uint8_t result;
+ 177:LPC17xxLib/src/lpc17xx_rit.c **** 	CHECK_PARAM(PARAM_RITx(RITx));
+ 178:LPC17xxLib/src/lpc17xx_rit.c **** 	if((RITx->RICTRL&RIT_CTRL_INTEN)==1)	result= SET;
+ 287              	 .loc 1 178 0
+ 288 0000 037A     	 ldrb r3,[r0,#8]
+ 289 0002 13F00103 	 ands r3,r3,#1
+ 290              	.LVL17:
+ 179:LPC17xxLib/src/lpc17xx_rit.c **** 	else return RESET;
+ 180:LPC17xxLib/src/lpc17xx_rit.c **** 	//clear interrupt flag
+ 181:LPC17xxLib/src/lpc17xx_rit.c **** 	RITx->RICTRL |= RIT_CTRL_INTEN;
+ 291              	 .loc 1 181 0
+ 292 0006 1FBF     	 itttt ne
+ 293 0008 037A     	 ldrbne r3,[r0,#8]
+ 294 000a 43F00103 	 orrne r3,r3,#1
+ 295 000e 0372     	 strbne r3,[r0,#8]
+ 182:LPC17xxLib/src/lpc17xx_rit.c **** 	return (IntStatus)result;
+ 296              	 .loc 1 182 0
+ 297 0010 0120     	 movne r0,#1
+ 298              	.LVL18:
+ 179:LPC17xxLib/src/lpc17xx_rit.c **** 	else return RESET;
+ 299              	 .loc 1 179 0
+ 300 0012 08BF     	 it eq
+ 301 0014 1846     	 moveq r0,r3
+ 183:LPC17xxLib/src/lpc17xx_rit.c **** }
+ 302              	 .loc 1 183 0
+ 303 0016 7047     	 bx lr
+ 304              	 .cfi_endproc
+ 305              	.LFE60:
+ 307              	 .text
+ 308              	.Letext0:
+ 309              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 310              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 311              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 312              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 313              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 314              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 315              	 .file 8 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_rit.c
+    {standard input}:16     .text.RIT_Init:0000000000000000 $t
+    {standard input}:23     .text.RIT_Init:0000000000000000 RIT_Init
+    {standard input}:83     .text.RIT_Init:000000000000004c $d
+    {standard input}:88     .text.RIT_DeInit:0000000000000000 $t
+    {standard input}:95     .text.RIT_DeInit:0000000000000000 RIT_DeInit
+    {standard input}:154    .text.RIT_DeInit:000000000000004c $d
+    {standard input}:159    .text.RIT_TimerConfig:0000000000000000 $t
+    {standard input}:166    .text.RIT_TimerConfig:0000000000000000 RIT_TimerConfig
+    {standard input}:207    .text.RIT_TimerConfig:0000000000000024 $d
+    {standard input}:212    .text.RIT_Cmd:0000000000000000 $t
+    {standard input}:219    .text.RIT_Cmd:0000000000000000 RIT_Cmd
+    {standard input}:242    .text.RIT_TimerDebugCmd:0000000000000000 $t
+    {standard input}:249    .text.RIT_TimerDebugCmd:0000000000000000 RIT_TimerDebugCmd
+    {standard input}:272    .text.RIT_GetIntStatus:0000000000000000 $t
+    {standard input}:279    .text.RIT_GetIntStatus:0000000000000000 RIT_GetIntStatus
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR
+CLKPWR_GetPCLK

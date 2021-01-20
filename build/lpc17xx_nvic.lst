@@ -1,0 +1,315 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_nvic.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.NVIC_DeInit,"ax",%progbits
+  16              	 .align 1
+  17              	 .global NVIC_DeInit
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	NVIC_DeInit:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_nvic.c"
+   1:LPC17xxLib/src/lpc17xx_nvic.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_nvic.c **** 
+   3:LPC17xxLib/src/lpc17xx_nvic.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_nvic.c **** * $Id$		lpc17xx_nvic.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_nvic.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_nvic.c **** * @file		lpc17xx_nvic.c
+   7:LPC17xxLib/src/lpc17xx_nvic.c **** * @brief	Contains all expansion functions support for
+   8:LPC17xxLib/src/lpc17xx_nvic.c **** * 			NVIC firmware library on LPC17xx. The main
+   9:LPC17xxLib/src/lpc17xx_nvic.c **** * 			NVIC functions are defined in core_cm3.h
+  10:LPC17xxLib/src/lpc17xx_nvic.c **** * @version	2.0
+  11:LPC17xxLib/src/lpc17xx_nvic.c **** * @date		21. May. 2010
+  12:LPC17xxLib/src/lpc17xx_nvic.c **** * @author	NXP MCU SW Application Team
+  13:LPC17xxLib/src/lpc17xx_nvic.c **** *
+  14:LPC17xxLib/src/lpc17xx_nvic.c **** * Copyright(C) 2010, NXP Semiconductor
+  15:LPC17xxLib/src/lpc17xx_nvic.c **** * All rights reserved.
+  16:LPC17xxLib/src/lpc17xx_nvic.c **** *
+  17:LPC17xxLib/src/lpc17xx_nvic.c **** ***********************************************************************
+  18:LPC17xxLib/src/lpc17xx_nvic.c **** * Software that is described herein is for illustrative purposes only
+  19:LPC17xxLib/src/lpc17xx_nvic.c **** * which provides customers with programming information regarding the
+  20:LPC17xxLib/src/lpc17xx_nvic.c **** * products. This software is supplied "AS IS" without any warranties.
+  21:LPC17xxLib/src/lpc17xx_nvic.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  22:LPC17xxLib/src/lpc17xx_nvic.c **** * use of the software, conveys no license or title under any patent,
+  23:LPC17xxLib/src/lpc17xx_nvic.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  24:LPC17xxLib/src/lpc17xx_nvic.c **** * reserves the right to make changes in the software without
+  25:LPC17xxLib/src/lpc17xx_nvic.c **** * notification. NXP Semiconductors also make no representation or
+  26:LPC17xxLib/src/lpc17xx_nvic.c **** * warranty that such application will be suitable for the specified
+  27:LPC17xxLib/src/lpc17xx_nvic.c **** * use without further testing or modification.
+  28:LPC17xxLib/src/lpc17xx_nvic.c **** **********************************************************************/
+  29:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  30:LPC17xxLib/src/lpc17xx_nvic.c **** /* Peripheral group ----------------------------------------------------------- */
+  31:LPC17xxLib/src/lpc17xx_nvic.c **** /** @addtogroup NVIC
+  32:LPC17xxLib/src/lpc17xx_nvic.c ****  * @{
+  33:LPC17xxLib/src/lpc17xx_nvic.c ****  */
+  34:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  35:LPC17xxLib/src/lpc17xx_nvic.c **** /* Includes ------------------------------------------------------------------- */
+  36:LPC17xxLib/src/lpc17xx_nvic.c **** #include "lpc17xx_nvic.h"
+  37:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  38:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  39:LPC17xxLib/src/lpc17xx_nvic.c **** /* Private Macros ------------------------------------------------------------- */
+  40:LPC17xxLib/src/lpc17xx_nvic.c **** /** @addtogroup NVIC_Private_Macros
+  41:LPC17xxLib/src/lpc17xx_nvic.c ****  * @{
+  42:LPC17xxLib/src/lpc17xx_nvic.c ****  */
+  43:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  44:LPC17xxLib/src/lpc17xx_nvic.c **** /* Vector table offset bit mask */
+  45:LPC17xxLib/src/lpc17xx_nvic.c **** #define NVIC_VTOR_MASK              0x3FFFFF80
+  46:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  47:LPC17xxLib/src/lpc17xx_nvic.c **** /**
+  48:LPC17xxLib/src/lpc17xx_nvic.c ****  * @}
+  49:LPC17xxLib/src/lpc17xx_nvic.c ****  */
+  50:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  51:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  52:LPC17xxLib/src/lpc17xx_nvic.c **** /* Public Functions ----------------------------------------------------------- */
+  53:LPC17xxLib/src/lpc17xx_nvic.c **** /** @addtogroup NVIC_Public_Functions
+  54:LPC17xxLib/src/lpc17xx_nvic.c ****  * @{
+  55:LPC17xxLib/src/lpc17xx_nvic.c ****  */
+  56:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  57:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  58:LPC17xxLib/src/lpc17xx_nvic.c **** /*****************************************************************************//**
+  59:LPC17xxLib/src/lpc17xx_nvic.c ****  * @brief		De-initializes the NVIC peripheral registers to their default
+  60:LPC17xxLib/src/lpc17xx_nvic.c ****  * 				reset values.
+  61:LPC17xxLib/src/lpc17xx_nvic.c ****  * @param		None
+  62:LPC17xxLib/src/lpc17xx_nvic.c ****  * @return      None
+  63:LPC17xxLib/src/lpc17xx_nvic.c ****  *
+  64:LPC17xxLib/src/lpc17xx_nvic.c ****  * These following NVIC peripheral registers will be de-initialized:
+  65:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Disable Interrupt (32 IRQ interrupt sources that matched with LPC17xx)
+  66:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Clear all Pending Interrupts (32 IRQ interrupt source that matched with LPC17xx)
+  67:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Clear all Interrupt Priorities (32 IRQ interrupt source that matched with LPC17xx)
+  68:LPC17xxLib/src/lpc17xx_nvic.c ****  *******************************************************************************/
+  69:LPC17xxLib/src/lpc17xx_nvic.c **** void NVIC_DeInit(void)
+  70:LPC17xxLib/src/lpc17xx_nvic.c **** {
+  26              	 .loc 1 70 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  71:LPC17xxLib/src/lpc17xx_nvic.c **** 	uint8_t tmp;
+  72:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  73:LPC17xxLib/src/lpc17xx_nvic.c **** 	/* Disable all interrupts */
+  74:LPC17xxLib/src/lpc17xx_nvic.c **** 	NVIC->ICER[0] = 0xFFFFFFFF;
+  75:LPC17xxLib/src/lpc17xx_nvic.c **** 	NVIC->ICER[1] = 0x00000001;
+  31              	 .loc 1 75 0
+  32 0000 0122     	 movs r2,#1
+  74:LPC17xxLib/src/lpc17xx_nvic.c **** 	NVIC->ICER[1] = 0x00000001;
+  33              	 .loc 1 74 0
+  34 0002 4FF0FF31 	 mov r1,#-1
+  35 0006 094B     	 ldr r3,.L4
+  36 0008 C3F88010 	 str r1,[r3,#128]
+  37              	 .loc 1 75 0
+  38 000c C3F88420 	 str r2,[r3,#132]
+  76:LPC17xxLib/src/lpc17xx_nvic.c **** 	/* Clear all pending interrupts */
+  77:LPC17xxLib/src/lpc17xx_nvic.c **** 	NVIC->ICPR[0] = 0xFFFFFFFF;
+  39              	 .loc 1 77 0
+  40 0010 C3F88011 	 str r1,[r3,#384]
+  78:LPC17xxLib/src/lpc17xx_nvic.c **** 	NVIC->ICPR[1] = 0x00000001;
+  41              	 .loc 1 78 0
+  42 0014 C3F88421 	 str r2,[r3,#388]
+  43              	.LVL0:
+  44 0018 0022     	 movs r2,#0
+  79:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  80:LPC17xxLib/src/lpc17xx_nvic.c **** 	/* Clear all interrupt priority */
+  81:LPC17xxLib/src/lpc17xx_nvic.c **** 	for (tmp = 0; tmp < 32; tmp++) {
+  82:LPC17xxLib/src/lpc17xx_nvic.c **** 		NVIC->IP[tmp] = 0x00;
+  45              	 .loc 1 82 0
+  46 001a 1046     	 mov r0,r2
+  47              	.LVL1:
+  48              	.L2:
+  49              	 .loc 1 82 0 is_stmt 0 discriminator 3
+  50 001c 9918     	 adds r1,r3,r2
+  51 001e 0132     	 adds r2,r2,#1
+  52              	.LVL2:
+  81:LPC17xxLib/src/lpc17xx_nvic.c **** 		NVIC->IP[tmp] = 0x00;
+  53              	 .loc 1 81 0 is_stmt 1 discriminator 3
+  54 0020 202A     	 cmp r2,#32
+  55              	 .loc 1 82 0 discriminator 3
+  56 0022 81F80003 	 strb r0,[r1,#768]
+  81:LPC17xxLib/src/lpc17xx_nvic.c **** 		NVIC->IP[tmp] = 0x00;
+  57              	 .loc 1 81 0 discriminator 3
+  58 0026 F9D1     	 bne .L2
+  83:LPC17xxLib/src/lpc17xx_nvic.c **** 	}
+  84:LPC17xxLib/src/lpc17xx_nvic.c **** }
+  59              	 .loc 1 84 0
+  60 0028 7047     	 bx lr
+  61              	.L5:
+  62 002a 00BF     	 .align 2
+  63              	.L4:
+  64 002c 00E100E0 	 .word -536813312
+  65              	 .cfi_endproc
+  66              	.LFE55:
+  68              	 .section .text.NVIC_SCBDeInit,"ax",%progbits
+  69              	 .align 1
+  70              	 .global NVIC_SCBDeInit
+  71              	 .syntax unified
+  72              	 .thumb
+  73              	 .thumb_func
+  74              	 .fpu softvfp
+  76              	NVIC_SCBDeInit:
+  77              	.LFB56:
+  85:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  86:LPC17xxLib/src/lpc17xx_nvic.c **** /*****************************************************************************//**
+  87:LPC17xxLib/src/lpc17xx_nvic.c ****  * @brief			De-initializes the SCB peripheral registers to their default
+  88:LPC17xxLib/src/lpc17xx_nvic.c ****  *                  reset values.
+  89:LPC17xxLib/src/lpc17xx_nvic.c ****  * @param			none
+  90:LPC17xxLib/src/lpc17xx_nvic.c ****  * @return 			none
+  91:LPC17xxLib/src/lpc17xx_nvic.c ****  *
+  92:LPC17xxLib/src/lpc17xx_nvic.c ****  * These following SCB NVIC peripheral registers will be de-initialized:
+  93:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Interrupt Control State register
+  94:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Interrupt Vector Table Offset register
+  95:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Application Interrupt/Reset Control register
+  96:LPC17xxLib/src/lpc17xx_nvic.c ****  * - System Control register
+  97:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Configuration Control register
+  98:LPC17xxLib/src/lpc17xx_nvic.c ****  * - System Handlers Priority Registers
+  99:LPC17xxLib/src/lpc17xx_nvic.c ****  * - System Handler Control and State Register
+ 100:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Configurable Fault Status Register
+ 101:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Hard Fault Status Register
+ 102:LPC17xxLib/src/lpc17xx_nvic.c ****  * - Debug Fault Status Register
+ 103:LPC17xxLib/src/lpc17xx_nvic.c ****  *******************************************************************************/
+ 104:LPC17xxLib/src/lpc17xx_nvic.c **** void NVIC_SCBDeInit(void)
+ 105:LPC17xxLib/src/lpc17xx_nvic.c **** {
+  78              	 .loc 1 105 0
+  79              	 .cfi_startproc
+  80              	 
+  81              	 
+  82              	 
+ 106:LPC17xxLib/src/lpc17xx_nvic.c **** 	uint8_t tmp;
+ 107:LPC17xxLib/src/lpc17xx_nvic.c **** 
+ 108:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->ICSR = 0x0A000000;
+  83              	 .loc 1 108 0
+  84 0000 4FF02062 	 mov r2,#167772160
+  85 0004 0A4B     	 ldr r3,.L9
+ 109:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->VTOR = 0x00000000;
+ 110:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->AIRCR = 0x05FA0000;
+  86              	 .loc 1 110 0
+  87 0006 0B49     	 ldr r1,.L9+4
+ 108:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->VTOR = 0x00000000;
+  88              	 .loc 1 108 0
+  89 0008 5A60     	 str r2,[r3,#4]
+ 109:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->VTOR = 0x00000000;
+  90              	 .loc 1 109 0
+  91 000a 0022     	 movs r2,#0
+  92 000c 9A60     	 str r2,[r3,#8]
+  93              	 .loc 1 110 0
+  94 000e D960     	 str r1,[r3,#12]
+ 111:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->SCR = 0x00000000;
+ 112:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->CCR = 0x00000000;
+ 113:LPC17xxLib/src/lpc17xx_nvic.c **** 
+ 114:LPC17xxLib/src/lpc17xx_nvic.c **** 	for (tmp = 0; tmp < 32; tmp++) {
+ 115:LPC17xxLib/src/lpc17xx_nvic.c **** 		SCB->SHP[tmp] = 0x00;
+  95              	 .loc 1 115 0
+  96 0010 1146     	 mov r1,r2
+ 111:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->SCR = 0x00000000;
+  97              	 .loc 1 111 0
+  98 0012 1A61     	 str r2,[r3,#16]
+ 112:LPC17xxLib/src/lpc17xx_nvic.c **** 
+  99              	 .loc 1 112 0
+ 100 0014 5A61     	 str r2,[r3,#20]
+ 101              	.LVL3:
+ 102              	.L7:
+ 103              	 .loc 1 115 0 discriminator 3
+ 104 0016 9818     	 adds r0,r3,r2
+ 105 0018 0132     	 adds r2,r2,#1
+ 106              	.LVL4:
+ 114:LPC17xxLib/src/lpc17xx_nvic.c **** 		SCB->SHP[tmp] = 0x00;
+ 107              	 .loc 1 114 0 discriminator 3
+ 108 001a 202A     	 cmp r2,#32
+ 109              	 .loc 1 115 0 discriminator 3
+ 110 001c 0176     	 strb r1,[r0,#24]
+ 114:LPC17xxLib/src/lpc17xx_nvic.c **** 		SCB->SHP[tmp] = 0x00;
+ 111              	 .loc 1 114 0 discriminator 3
+ 112 001e FAD1     	 bne .L7
+ 116:LPC17xxLib/src/lpc17xx_nvic.c **** 	}
+ 117:LPC17xxLib/src/lpc17xx_nvic.c **** 
+ 118:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->SHCSR = 0x00000000;
+ 119:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->CFSR = 0xFFFFFFFF;
+ 113              	 .loc 1 119 0
+ 114 0020 4FF0FF32 	 mov r2,#-1
+ 118:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->CFSR = 0xFFFFFFFF;
+ 115              	 .loc 1 118 0
+ 116 0024 5962     	 str r1,[r3,#36]
+ 117              	 .loc 1 119 0
+ 118 0026 9A62     	 str r2,[r3,#40]
+ 120:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->HFSR = 0xFFFFFFFF;
+ 119              	 .loc 1 120 0
+ 120 0028 DA62     	 str r2,[r3,#44]
+ 121:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->DFSR = 0xFFFFFFFF;
+ 121              	 .loc 1 121 0
+ 122 002a 1A63     	 str r2,[r3,#48]
+ 123 002c 7047     	 bx lr
+ 124              	.L10:
+ 125 002e 00BF     	 .align 2
+ 126              	.L9:
+ 127 0030 00ED00E0 	 .word -536810240
+ 128 0034 0000FA05 	 .word 100270080
+ 129              	 .cfi_endproc
+ 130              	.LFE56:
+ 132              	 .section .text.NVIC_SetVTOR,"ax",%progbits
+ 133              	 .align 1
+ 134              	 .global NVIC_SetVTOR
+ 135              	 .syntax unified
+ 136              	 .thumb
+ 137              	 .thumb_func
+ 138              	 .fpu softvfp
+ 140              	NVIC_SetVTOR:
+ 141              	.LFB57:
+ 122:LPC17xxLib/src/lpc17xx_nvic.c **** }
+ 123:LPC17xxLib/src/lpc17xx_nvic.c **** 
+ 124:LPC17xxLib/src/lpc17xx_nvic.c **** 
+ 125:LPC17xxLib/src/lpc17xx_nvic.c **** /*****************************************************************************//**
+ 126:LPC17xxLib/src/lpc17xx_nvic.c ****  * @brief		Set Vector Table Offset value
+ 127:LPC17xxLib/src/lpc17xx_nvic.c ****  * @param		offset Offset value
+ 128:LPC17xxLib/src/lpc17xx_nvic.c ****  * @return      None
+ 129:LPC17xxLib/src/lpc17xx_nvic.c ****  *******************************************************************************/
+ 130:LPC17xxLib/src/lpc17xx_nvic.c **** void NVIC_SetVTOR(uint32_t offset)
+ 131:LPC17xxLib/src/lpc17xx_nvic.c **** {
+ 142              	 .loc 1 131 0
+ 143              	 .cfi_startproc
+ 144              	 
+ 145              	 
+ 146              	 
+ 147              	.LVL5:
+ 132:LPC17xxLib/src/lpc17xx_nvic.c **** //	SCB->VTOR  = (offset & NVIC_VTOR_MASK);
+ 133:LPC17xxLib/src/lpc17xx_nvic.c **** 	SCB->VTOR  = offset;
+ 148              	 .loc 1 133 0
+ 149 0000 014B     	 ldr r3,.L12
+ 150 0002 9860     	 str r0,[r3,#8]
+ 151 0004 7047     	 bx lr
+ 152              	.L13:
+ 153 0006 00BF     	 .align 2
+ 154              	.L12:
+ 155 0008 00ED00E0 	 .word -536810240
+ 156              	 .cfi_endproc
+ 157              	.LFE57:
+ 159              	 .text
+ 160              	.Letext0:
+ 161              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 162              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 163              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 164              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_nvic.c
+    {standard input}:16     .text.NVIC_DeInit:0000000000000000 $t
+    {standard input}:23     .text.NVIC_DeInit:0000000000000000 NVIC_DeInit
+    {standard input}:64     .text.NVIC_DeInit:000000000000002c $d
+    {standard input}:69     .text.NVIC_SCBDeInit:0000000000000000 $t
+    {standard input}:76     .text.NVIC_SCBDeInit:0000000000000000 NVIC_SCBDeInit
+    {standard input}:127    .text.NVIC_SCBDeInit:0000000000000030 $d
+    {standard input}:133    .text.NVIC_SetVTOR:0000000000000000 $t
+    {standard input}:140    .text.NVIC_SetVTOR:0000000000000000 NVIC_SetVTOR
+    {standard input}:155    .text.NVIC_SetVTOR:0000000000000008 $d
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

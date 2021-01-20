@@ -1,0 +1,3 @@
+#!/bin/sh
+CFG=lpc17xx-stlink-v2.cfg
+openocd -f $CFG -c "dump_image flash_old.bin 0x0 0x80000" -c "reset run" -c "exit"

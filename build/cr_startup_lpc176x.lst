@@ -1,0 +1,975 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "cr_startup_lpc176x.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .after_vectors,"ax",%progbits
+  16              	 .align 1
+  17              	 .weak NMI_Handler
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	NMI_Handler:
+  24              	.LFB3:
+  25              	 .file 1 "CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c"
+   1:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #ifdef __LPC17XX__
+   2:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+   3:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+   4:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //   +--+
+   5:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //   | ++----+
+   6:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //   +-++    |
+   7:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //     |     |
+   8:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //   +-+--+  |
+   9:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //   | +--+--+
+  10:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //   +----+    Copyright (c) 2009-10 Code Red Technologies Ltd.
+  11:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  12:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Microcontroller Startup code for use with Red Suite
+  13:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  14:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Version : 101130
+  15:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  16:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Software License Agreement
+  17:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  18:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // The software is owned by Code Red Technologies and/or its suppliers, and is
+  19:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // protected under applicable copyright laws.  All rights are reserved.  Any
+  20:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // use in violation of the foregoing restrictions may subject the user to criminal
+  21:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // sanctions under applicable laws, as well as to civil liability for the breach
+  22:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // of the terms and conditions of this license.
+  23:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  24:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  25:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  26:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  27:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // USE OF THIS SOFTWARE FOR COMMERCIAL DEVELOPMENT AND/OR EDUCATION IS SUBJECT
+  28:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // TO A CURRENT END USER LICENSE AGREEMENT (COMMERCIAL OR EDUCATIONAL) WITH
+  29:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // CODE RED TECHNOLOGIES LTD.
+  30:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  31:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  32:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__cplusplus)
+  33:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #ifdef __REDLIB__
+  34:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #error Redlib does not support C++
+  35:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #else
+  36:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  37:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  38:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // The entry point for the C++ library startup
+  39:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  40:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  41:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern "C" {
+  42:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	extern void __libc_init_array(void);
+  43:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+  44:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+  45:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+  46:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+  47:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #define WEAK __attribute__ ((weak))
+  48:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #define ALIAS(f) __attribute__ ((weak, alias (#f)))
+  49:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+  50:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #define __USE_CMSIS // FIXME hard code to define _USE_CMSIS (temp)
+  51:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Code Red - if CMSIS is being used, then SystemInit() routine
+  52:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // will be called by startup code rather than in application's main()
+  53:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__USE_CMSIS)
+  54:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #include "system_LPC17xx.h"
+  55:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+  56:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+  57:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  58:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__cplusplus)
+  59:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern "C" {
+  60:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+  61:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+  62:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  63:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  64:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Forward declaration of the default handlers. These are aliased.
+  65:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // When the application defines a handler (with the same name), this will
+  66:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // automatically take precedence over these weak definitions
+  67:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  68:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  69:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****      void ResetISR(void);
+  70:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void NMI_Handler(void);
+  71:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void HardFault_Handler(void);
+  72:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void MemManage_Handler(void);
+  73:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void BusFault_Handler(void);
+  74:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void UsageFault_Handler(void);
+  75:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void SVCall_Handler(void);
+  76:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void DebugMon_Handler(void);
+  77:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void PendSV_Handler(void);
+  78:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void SysTick_Handler(void);
+  79:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** WEAK void IntDefaultHandler(void);
+  80:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+  81:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  82:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  83:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Forward declaration of the specific IRQ handlers. These are aliased
+  84:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // to the IntDefaultHandler, which is a 'forever' loop. When the application
+  85:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // defines a handler (with the same name), this will automatically take
+  86:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // precedence over these weak definitions
+  87:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+  88:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+  89:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void WDT_IRQHandler(void) ALIAS(IntDefaultHandler);
+  90:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void TIMER0_IRQHandler(void) ALIAS(IntDefaultHandler);
+  91:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void TIMER1_IRQHandler(void) ALIAS(IntDefaultHandler);
+  92:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void TIMER2_IRQHandler(void) ALIAS(IntDefaultHandler);
+  93:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void TIMER3_IRQHandler(void) ALIAS(IntDefaultHandler);
+  94:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void UART0_IRQHandler(void) ALIAS(IntDefaultHandler);
+  95:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void UART1_IRQHandler(void) ALIAS(IntDefaultHandler);
+  96:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void UART2_IRQHandler(void) ALIAS(IntDefaultHandler);
+  97:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void UART3_IRQHandler(void) ALIAS(IntDefaultHandler);
+  98:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void PWM1_IRQHandler(void) ALIAS(IntDefaultHandler);
+  99:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void I2C0_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 100:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void I2C1_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 101:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void I2C2_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 102:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void SPI_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 103:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void SSP0_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 104:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void SSP1_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 105:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void PLL0_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 106:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void RTC_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 107:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void EINT0_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 108:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void EINT1_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 109:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void EINT2_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 110:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void EINT3_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 111:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void ADC_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 112:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void BOD_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 113:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void USB_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 114:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void CAN_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 115:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void DMA_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 116:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void I2S_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 117:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void ENET_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 118:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void RIT_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 119:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void MCPWM_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 120:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void QEI_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 121:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void PLL1_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 122:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void USBActivity_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 123:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void CANActivity_IRQHandler(void) ALIAS(IntDefaultHandler);
+ 124:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 125:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 126:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 127:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // The entry point for the application.
+ 128:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // __main() is the entry point for Redlib based applications
+ 129:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // main() is the entry point for Newlib based applications
+ 130:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 131:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 132:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__REDLIB__)
+ 133:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern void __main(void);
+ 134:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 135:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern int main(void);
+ 136:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 137:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 138:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // External declaration for the pointer to the stack top from the Linker Script
+ 139:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 140:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 141:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern void _vStackTop(void);
+ 142:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 143:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 144:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__cplusplus)
+ 145:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** } // extern "C"
+ 146:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 147:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 148:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 149:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // The vector table.
+ 150:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // This relies on the linker script to place at correct location in memory.
+ 151:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 152:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 153:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern void (* const g_pfnVectors[])(void);
+ 154:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".isr_vector")))
+ 155:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void (* const g_pfnVectors[])(void) = {
+ 156:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Core Level - CM3
+ 157:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	&_vStackTop, // The initial stack pointer
+ 158:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	ResetISR,								// The reset handler
+ 159:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	NMI_Handler,							// The NMI handler
+ 160:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	HardFault_Handler,						// The hard fault handler
+ 161:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	MemManage_Handler,						// The MPU fault handler
+ 162:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	BusFault_Handler,						// The bus fault handler
+ 163:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	UsageFault_Handler,						// The usage fault handler
+ 164:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	0,										// Reserved
+ 165:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	0,										// Reserved
+ 166:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	0,										// Reserved
+ 167:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	0,										// Reserved
+ 168:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SVCall_Handler,							// SVCall handler
+ 169:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	DebugMon_Handler,						// Debug monitor handler
+ 170:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	0,										// Reserved
+ 171:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	PendSV_Handler,							// The PendSV handler
+ 172:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SysTick_Handler,						// The SysTick handler
+ 173:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 174:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Chip Level - LPC17
+ 175:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	WDT_IRQHandler,							// 16, 0x40 - WDT
+ 176:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	TIMER0_IRQHandler,						// 17, 0x44 - TIMER0
+ 177:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	TIMER1_IRQHandler,						// 18, 0x48 - TIMER1
+ 178:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	TIMER2_IRQHandler,						// 19, 0x4c - TIMER2
+ 179:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	TIMER3_IRQHandler,						// 20, 0x50 - TIMER3
+ 180:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	UART0_IRQHandler,						// 21, 0x54 - UART0
+ 181:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	UART1_IRQHandler,						// 22, 0x58 - UART1
+ 182:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	UART2_IRQHandler,						// 23, 0x5c - UART2
+ 183:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	UART3_IRQHandler,						// 24, 0x60 - UART3
+ 184:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	PWM1_IRQHandler,						// 25, 0x64 - PWM1
+ 185:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	I2C0_IRQHandler,						// 26, 0x68 - I2C0
+ 186:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	I2C1_IRQHandler,						// 27, 0x6c - I2C1
+ 187:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	I2C2_IRQHandler,						// 28, 0x70 - I2C2
+ 188:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SPI_IRQHandler,							// 29, 0x74 - SPI
+ 189:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SSP0_IRQHandler,						// 30, 0x78 - SSP0
+ 190:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SSP1_IRQHandler,						// 31, 0x7c - SSP1
+ 191:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	PLL0_IRQHandler,						// 32, 0x80 - PLL0 (Main PLL)
+ 192:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	RTC_IRQHandler,							// 33, 0x84 - RTC
+ 193:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	EINT0_IRQHandler,						// 34, 0x88 - EINT0
+ 194:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	EINT1_IRQHandler,						// 35, 0x8c - EINT1
+ 195:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	EINT2_IRQHandler,						// 36, 0x90 - EINT2
+ 196:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	EINT3_IRQHandler,						// 37, 0x94 - EINT3
+ 197:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	ADC_IRQHandler,							// 38, 0x98 - ADC
+ 198:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	BOD_IRQHandler,							// 39, 0x9c - BOD
+ 199:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	USB_IRQHandler,							// 40, 0xA0 - USB
+ 200:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	CAN_IRQHandler,							// 41, 0xa4 - CAN
+ 201:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	DMA_IRQHandler,							// 42, 0xa8 - GP DMA
+ 202:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	I2S_IRQHandler,							// 43, 0xac - I2S
+ 203:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	ENET_IRQHandler,						// 44, 0xb0 - Ethernet
+ 204:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	RIT_IRQHandler,							// 45, 0xb4 - RITINT
+ 205:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	MCPWM_IRQHandler,						// 46, 0xb8 - Motor Control PWM
+ 206:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	QEI_IRQHandler,							// 47, 0xbc - Quadrature Encoder
+ 207:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	PLL1_IRQHandler,						// 48, 0xc0 - PLL1 (USB PLL)
+ 208:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	USBActivity_IRQHandler,					// 49, 0xc4 - USB Activity interrupt to wakeup
+ 209:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	CANActivity_IRQHandler, 				// 50, 0xc8 - CAN Activity interrupt to wakeup
+ 210:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** };
+ 211:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 212:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 213:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Functions to carry out the initialization of RW and BSS data sections. These
+ 214:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // are written as separate functions rather than being inlined within the
+ 215:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // ResetISR() function in order to cope with MCUs with multiple banks of
+ 216:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // memory.
+ 217:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 218:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 219:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void data_init(unsigned int romstart, unsigned int start, unsigned int len) {
+ 220:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *pulDest = (unsigned int*) start;
+ 221:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *pulSrc = (unsigned int*) romstart;
+ 222:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int loop;
+ 223:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	for (loop = 0; loop < len; loop = loop + 4)
+ 224:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		*pulDest++ = *pulSrc++;
+ 225:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 226:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 227:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 228:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void bss_init(unsigned int start, unsigned int len) {
+ 229:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *pulDest = (unsigned int*) start;
+ 230:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int loop;
+ 231:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	for (loop = 0; loop < len; loop = loop + 4)
+ 232:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		*pulDest++ = 0;
+ 233:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 234:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 235:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #ifndef USE_OLD_STYLE_DATA_BSS_INIT
+ 236:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 237:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // The following symbols are constructs generated by the linker, indicating
+ 238:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // the location of various points in the "Global Section Table". This table is
+ 239:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // created by the linker via the Code Red managed linker script mechanism. It
+ 240:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // contains the load address, execution address and length of each RW data
+ 241:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // section and the execution and length of each BSS (zero initialized) section.
+ 242:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 243:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int __data_section_table;
+ 244:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int __data_section_table_end;
+ 245:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int __bss_section_table;
+ 246:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int __bss_section_table_end;
+ 247:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #else
+ 248:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 249:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // The following symbols are constructs generated by the linker, indicating
+ 250:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // the load address, execution address and length of the RW data section and
+ 251:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // the execution and length of the BSS (zero initialized) section.
+ 252:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Note that these symbols are not normally used by the managed linker script
+ 253:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // mechanism in Red Suite/LPCXpresso 3.6 (Windows) and LPCXpresso 3.8 (Linux).
+ 254:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // They are provide here simply so this startup code can be used with earlier
+ 255:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // versions of Red Suite which do not support the more advanced managed linker
+ 256:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // script mechanism introduced in the above version. To enable their use,
+ 257:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // define "USE_OLD_STYLE_DATA_BSS_INIT".
+ 258:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 259:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int _etext;
+ 260:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int _data;
+ 261:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int _edata;
+ 262:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int _bss;
+ 263:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** extern unsigned int _ebss;
+ 264:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 265:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 266:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 267:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 268:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Reset entry point for your code.
+ 269:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Sets up a simple runtime environment and initializes the C/C++
+ 270:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // library.
+ 271:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 272:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 273:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void
+ 274:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** ResetISR(void) {
+ 275:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 276:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #ifndef USE_OLD_STYLE_DATA_BSS_INIT
+ 277:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     //
+ 278:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     // Copy the data sections from flash to SRAM.
+ 279:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     //
+ 280:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int LoadAddr, ExeAddr, SectionLen;
+ 281:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *SectionTableAddr;
+ 282:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 283:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Load base address of Global Section Table
+ 284:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SectionTableAddr = &__data_section_table;
+ 285:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 286:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     // Copy the data sections from flash to SRAM.
+ 287:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	while (SectionTableAddr < &__data_section_table_end) {
+ 288:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		LoadAddr = *SectionTableAddr++;
+ 289:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		ExeAddr = *SectionTableAddr++;
+ 290:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		SectionLen = *SectionTableAddr++;
+ 291:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		data_init(LoadAddr, ExeAddr, SectionLen);
+ 292:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	}
+ 293:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// At this point, SectionTableAddr = &__bss_section_table;
+ 294:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Zero fill the bss segment
+ 295:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	while (SectionTableAddr < &__bss_section_table_end) {
+ 296:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		ExeAddr = *SectionTableAddr++;
+ 297:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		SectionLen = *SectionTableAddr++;
+ 298:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		bss_init(ExeAddr, SectionLen);
+ 299:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	}
+ 300:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #else
+ 301:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Use Old Style Data and BSS section initialization.
+ 302:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// This will only initialize a single RAM bank.
+ 303:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int * LoadAddr, *ExeAddr, *EndAddr, SectionLen;
+ 304:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 305:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     // Copy the data segment from flash to SRAM.
+ 306:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	LoadAddr = &_etext;
+ 307:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	ExeAddr = &_data;
+ 308:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	EndAddr = &_edata;
+ 309:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SectionLen = (void*)EndAddr - (void*)ExeAddr;
+ 310:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	data_init((unsigned int)LoadAddr, (unsigned int)ExeAddr, SectionLen);
+ 311:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Zero fill the bss segment
+ 312:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	ExeAddr = &_bss;
+ 313:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	EndAddr = &_ebss;
+ 314:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SectionLen = (void*)EndAddr - (void*)ExeAddr;
+ 315:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	bss_init ((unsigned int)ExeAddr, SectionLen);
+ 316:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 317:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 318:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #ifdef __USE_CMSIS
+ 319:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	SystemInit();
+ 320:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 321:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 322:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__cplusplus)
+ 323:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	//
+ 324:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Call C++ library initialisation
+ 325:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	//
+ 326:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	__libc_init_array();
+ 327:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 328:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 329:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #if defined (__REDLIB__)
+ 330:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// Call the Redlib library, which in turn calls main()
+ 331:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	__main() ;
+ 332:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #else
+ 333:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	main();
+ 334:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 335:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 336:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	//
+ 337:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	// main() shouldn't return, but if it does, we'll just enter an infinite loop
+ 338:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	//
+ 339:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	while (1) {
+ 340:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		;
+ 341:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	}
+ 342:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 343:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 344:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 345:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Default exception handlers. Override the ones here by defining your own
+ 346:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // handler routines in your application code.
+ 347:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 348:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 349:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void NMI_Handler(void)
+ 350:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+  26              	 .loc 1 350 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.L2:
+  32 0000 FEE7     	 b .L2
+  33              	 .cfi_endproc
+  34              	.LFE3:
+  36              	 .align 1
+  37              	 .weak HardFault_Handler
+  38              	 .syntax unified
+  39              	 .thumb
+  40              	 .thumb_func
+  41              	 .fpu softvfp
+  43              	HardFault_Handler:
+  44              	.LFB4:
+ 351:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 352:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 353:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 354:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 355:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 356:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void HardFault_Handler(void)
+ 357:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+  45              	 .loc 1 357 0
+  46              	 .cfi_startproc
+  47              	 
+  48              	 
+  49              	 
+  50              	.L4:
+  51 0002 FEE7     	 b .L4
+  52              	 .cfi_endproc
+  53              	.LFE4:
+  55              	 .align 1
+  56              	 .weak MemManage_Handler
+  57              	 .syntax unified
+  58              	 .thumb
+  59              	 .thumb_func
+  60              	 .fpu softvfp
+  62              	MemManage_Handler:
+  63              	.LFB5:
+ 358:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 359:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 360:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 361:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 362:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 363:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void MemManage_Handler(void)
+ 364:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+  64              	 .loc 1 364 0
+  65              	 .cfi_startproc
+  66              	 
+  67              	 
+  68              	 
+  69              	.L6:
+  70 0004 FEE7     	 b .L6
+  71              	 .cfi_endproc
+  72              	.LFE5:
+  74              	 .align 1
+  75              	 .weak BusFault_Handler
+  76              	 .syntax unified
+  77              	 .thumb
+  78              	 .thumb_func
+  79              	 .fpu softvfp
+  81              	BusFault_Handler:
+  82              	.LFB6:
+ 365:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 366:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 367:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 368:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 369:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 370:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void BusFault_Handler(void)
+ 371:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+  83              	 .loc 1 371 0
+  84              	 .cfi_startproc
+  85              	 
+  86              	 
+  87              	 
+  88              	.L8:
+  89 0006 FEE7     	 b .L8
+  90              	 .cfi_endproc
+  91              	.LFE6:
+  93              	 .align 1
+  94              	 .weak UsageFault_Handler
+  95              	 .syntax unified
+  96              	 .thumb
+  97              	 .thumb_func
+  98              	 .fpu softvfp
+ 100              	UsageFault_Handler:
+ 101              	.LFB7:
+ 372:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 373:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 374:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 375:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 376:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 377:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void UsageFault_Handler(void)
+ 378:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+ 102              	 .loc 1 378 0
+ 103              	 .cfi_startproc
+ 104              	 
+ 105              	 
+ 106              	 
+ 107              	.L10:
+ 108 0008 FEE7     	 b .L10
+ 109              	 .cfi_endproc
+ 110              	.LFE7:
+ 112              	 .align 1
+ 113              	 .weak SVCall_Handler
+ 114              	 .syntax unified
+ 115              	 .thumb
+ 116              	 .thumb_func
+ 117              	 .fpu softvfp
+ 119              	SVCall_Handler:
+ 120              	.LFB8:
+ 379:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 380:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 381:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 382:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 383:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 384:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void SVCall_Handler(void)
+ 385:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+ 121              	 .loc 1 385 0
+ 122              	 .cfi_startproc
+ 123              	 
+ 124              	 
+ 125              	 
+ 126              	.L12:
+ 127 000a FEE7     	 b .L12
+ 128              	 .cfi_endproc
+ 129              	.LFE8:
+ 131              	 .align 1
+ 132              	 .weak DebugMon_Handler
+ 133              	 .syntax unified
+ 134              	 .thumb
+ 135              	 .thumb_func
+ 136              	 .fpu softvfp
+ 138              	DebugMon_Handler:
+ 139              	.LFB9:
+ 386:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 387:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 388:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 389:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 390:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 391:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void DebugMon_Handler(void)
+ 392:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+ 140              	 .loc 1 392 0
+ 141              	 .cfi_startproc
+ 142              	 
+ 143              	 
+ 144              	 
+ 145              	.L14:
+ 146 000c FEE7     	 b .L14
+ 147              	 .cfi_endproc
+ 148              	.LFE9:
+ 150              	 .align 1
+ 151              	 .weak PendSV_Handler
+ 152              	 .syntax unified
+ 153              	 .thumb
+ 154              	 .thumb_func
+ 155              	 .fpu softvfp
+ 157              	PendSV_Handler:
+ 158              	.LFB10:
+ 393:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 394:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 395:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 396:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 397:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 398:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void PendSV_Handler(void)
+ 399:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+ 159              	 .loc 1 399 0
+ 160              	 .cfi_startproc
+ 161              	 
+ 162              	 
+ 163              	 
+ 164              	.L16:
+ 165 000e FEE7     	 b .L16
+ 166              	 .cfi_endproc
+ 167              	.LFE10:
+ 169              	 .align 1
+ 170              	 .weak SysTick_Handler
+ 171              	 .syntax unified
+ 172              	 .thumb
+ 173              	 .thumb_func
+ 174              	 .fpu softvfp
+ 176              	SysTick_Handler:
+ 177              	.LFB11:
+ 400:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 401:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 402:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 403:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 404:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 405:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void SysTick_Handler(void)
+ 406:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+ 178              	 .loc 1 406 0
+ 179              	 .cfi_startproc
+ 180              	 
+ 181              	 
+ 182              	 
+ 183              	.L18:
+ 184 0010 FEE7     	 b .L18
+ 185              	 .cfi_endproc
+ 186              	.LFE11:
+ 188              	 .align 1
+ 189              	 .weak IntDefaultHandler
+ 190              	 .syntax unified
+ 191              	 .thumb
+ 192              	 .thumb_func
+ 193              	 .fpu softvfp
+ 195              	IntDefaultHandler:
+ 196              	.LFB12:
+ 407:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     while(1)
+ 408:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     {
+ 409:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c ****     }
+ 410:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 411:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 412:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 413:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 414:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // Processor ends up here if an unexpected interrupt occurs or a specific
+ 415:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** // handler is not present in the application code.
+ 416:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //
+ 417:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** //*****************************************************************************
+ 418:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** __attribute__ ((section(".after_vectors")))
+ 419:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** void IntDefaultHandler(void)
+ 420:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** {
+ 197              	 .loc 1 420 0
+ 198              	 .cfi_startproc
+ 199              	 
+ 200              	 
+ 201              	 
+ 202              	.L20:
+ 203 0012 FEE7     	 b .L20
+ 204              	 .cfi_endproc
+ 205              	.LFE12:
+ 207              	 .weak CANActivity_IRQHandler
+ 208              	 .thumb_set CANActivity_IRQHandler,IntDefaultHandler
+ 209              	 .weak USBActivity_IRQHandler
+ 210              	 .thumb_set USBActivity_IRQHandler,IntDefaultHandler
+ 211              	 .weak PLL1_IRQHandler
+ 212              	 .thumb_set PLL1_IRQHandler,IntDefaultHandler
+ 213              	 .weak QEI_IRQHandler
+ 214              	 .thumb_set QEI_IRQHandler,IntDefaultHandler
+ 215              	 .weak MCPWM_IRQHandler
+ 216              	 .thumb_set MCPWM_IRQHandler,IntDefaultHandler
+ 217              	 .weak RIT_IRQHandler
+ 218              	 .thumb_set RIT_IRQHandler,IntDefaultHandler
+ 219              	 .weak ENET_IRQHandler
+ 220              	 .thumb_set ENET_IRQHandler,IntDefaultHandler
+ 221              	 .weak I2S_IRQHandler
+ 222              	 .thumb_set I2S_IRQHandler,IntDefaultHandler
+ 223              	 .weak DMA_IRQHandler
+ 224              	 .thumb_set DMA_IRQHandler,IntDefaultHandler
+ 225              	 .weak CAN_IRQHandler
+ 226              	 .thumb_set CAN_IRQHandler,IntDefaultHandler
+ 227              	 .weak USB_IRQHandler
+ 228              	 .thumb_set USB_IRQHandler,IntDefaultHandler
+ 229              	 .weak BOD_IRQHandler
+ 230              	 .thumb_set BOD_IRQHandler,IntDefaultHandler
+ 231              	 .weak ADC_IRQHandler
+ 232              	 .thumb_set ADC_IRQHandler,IntDefaultHandler
+ 233              	 .weak EINT3_IRQHandler
+ 234              	 .thumb_set EINT3_IRQHandler,IntDefaultHandler
+ 235              	 .weak EINT2_IRQHandler
+ 236              	 .thumb_set EINT2_IRQHandler,IntDefaultHandler
+ 237              	 .weak EINT1_IRQHandler
+ 238              	 .thumb_set EINT1_IRQHandler,IntDefaultHandler
+ 239              	 .weak EINT0_IRQHandler
+ 240              	 .thumb_set EINT0_IRQHandler,IntDefaultHandler
+ 241              	 .weak RTC_IRQHandler
+ 242              	 .thumb_set RTC_IRQHandler,IntDefaultHandler
+ 243              	 .weak PLL0_IRQHandler
+ 244              	 .thumb_set PLL0_IRQHandler,IntDefaultHandler
+ 245              	 .weak SSP1_IRQHandler
+ 246              	 .thumb_set SSP1_IRQHandler,IntDefaultHandler
+ 247              	 .weak SSP0_IRQHandler
+ 248              	 .thumb_set SSP0_IRQHandler,IntDefaultHandler
+ 249              	 .weak SPI_IRQHandler
+ 250              	 .thumb_set SPI_IRQHandler,IntDefaultHandler
+ 251              	 .weak I2C2_IRQHandler
+ 252              	 .thumb_set I2C2_IRQHandler,IntDefaultHandler
+ 253              	 .weak I2C1_IRQHandler
+ 254              	 .thumb_set I2C1_IRQHandler,IntDefaultHandler
+ 255              	 .weak I2C0_IRQHandler
+ 256              	 .thumb_set I2C0_IRQHandler,IntDefaultHandler
+ 257              	 .weak PWM1_IRQHandler
+ 258              	 .thumb_set PWM1_IRQHandler,IntDefaultHandler
+ 259              	 .weak UART3_IRQHandler
+ 260              	 .thumb_set UART3_IRQHandler,IntDefaultHandler
+ 261              	 .weak UART2_IRQHandler
+ 262              	 .thumb_set UART2_IRQHandler,IntDefaultHandler
+ 263              	 .weak UART1_IRQHandler
+ 264              	 .thumb_set UART1_IRQHandler,IntDefaultHandler
+ 265              	 .weak UART0_IRQHandler
+ 266              	 .thumb_set UART0_IRQHandler,IntDefaultHandler
+ 267              	 .weak TIMER3_IRQHandler
+ 268              	 .thumb_set TIMER3_IRQHandler,IntDefaultHandler
+ 269              	 .weak TIMER2_IRQHandler
+ 270              	 .thumb_set TIMER2_IRQHandler,IntDefaultHandler
+ 271              	 .weak TIMER1_IRQHandler
+ 272              	 .thumb_set TIMER1_IRQHandler,IntDefaultHandler
+ 273              	 .weak TIMER0_IRQHandler
+ 274              	 .thumb_set TIMER0_IRQHandler,IntDefaultHandler
+ 275              	 .weak WDT_IRQHandler
+ 276              	 .thumb_set WDT_IRQHandler,IntDefaultHandler
+ 277              	 .align 1
+ 278              	 .global data_init
+ 279              	 .syntax unified
+ 280              	 .thumb
+ 281              	 .thumb_func
+ 282              	 .fpu softvfp
+ 284              	data_init:
+ 285              	.LFB0:
+ 219:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *pulDest = (unsigned int*) start;
+ 286              	 .loc 1 219 0
+ 287              	 .cfi_startproc
+ 288              	 
+ 289              	 
+ 290              	.LVL0:
+ 223:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		*pulDest++ = *pulSrc++;
+ 291              	 .loc 1 223 0
+ 292 0014 0B46     	 mov r3,r1
+ 219:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *pulDest = (unsigned int*) start;
+ 293              	 .loc 1 219 0
+ 294 0016 10B5     	 push {r4,lr}
+ 295              	 .cfi_def_cfa_offset 8
+ 296              	 .cfi_offset 4,-8
+ 297              	 .cfi_offset 14,-4
+ 224:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 298              	 .loc 1 224 0
+ 299 0018 401A     	 subs r0,r0,r1
+ 300              	.LVL1:
+ 301              	.L22:
+ 223:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		*pulDest++ = *pulSrc++;
+ 302              	 .loc 1 223 0 discriminator 1
+ 303 001a 5C1A     	 subs r4,r3,r1
+ 304              	.LVL2:
+ 305 001c A242     	 cmp r2,r4
+ 306 001e 00D8     	 bhi .L23
+ 225:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 307              	 .loc 1 225 0
+ 308 0020 10BD     	 pop {r4,pc}
+ 309              	.LVL3:
+ 310              	.L23:
+ 224:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 311              	 .loc 1 224 0 discriminator 3
+ 312 0022 C458     	 ldr r4,[r0,r3]
+ 313              	.LVL4:
+ 314 0024 43F8044B 	 str r4,[r3],#4
+ 315              	.LVL5:
+ 316 0028 F7E7     	 b .L22
+ 317              	 .cfi_endproc
+ 318              	.LFE0:
+ 320              	 .align 1
+ 321              	 .global bss_init
+ 322              	 .syntax unified
+ 323              	 .thumb
+ 324              	 .thumb_func
+ 325              	 .fpu softvfp
+ 327              	bss_init:
+ 328              	.LFB1:
+ 228:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int *pulDest = (unsigned int*) start;
+ 329              	 .loc 1 228 0
+ 330              	 .cfi_startproc
+ 331              	 
+ 332              	 
+ 333              	.LVL6:
+ 334 002a 10B5     	 push {r4,lr}
+ 335              	 .cfi_def_cfa_offset 8
+ 336              	 .cfi_offset 4,-8
+ 337              	 .cfi_offset 14,-4
+ 229:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	unsigned int loop;
+ 338              	 .loc 1 229 0
+ 339 002c 0346     	 mov r3,r0
+ 340              	.LVL7:
+ 232:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 341              	 .loc 1 232 0
+ 342 002e 0024     	 movs r4,#0
+ 343              	.LVL8:
+ 344              	.L25:
+ 231:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		*pulDest++ = 0;
+ 345              	 .loc 1 231 0 discriminator 1
+ 346 0030 1A1A     	 subs r2,r3,r0
+ 347              	.LVL9:
+ 348 0032 9142     	 cmp r1,r2
+ 349 0034 00D8     	 bhi .L26
+ 233:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 350              	 .loc 1 233 0
+ 351 0036 10BD     	 pop {r4,pc}
+ 352              	.L26:
+ 232:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** }
+ 353              	 .loc 1 232 0 discriminator 3
+ 354 0038 43F8044B 	 str r4,[r3],#4
+ 355              	.LVL10:
+ 356 003c F8E7     	 b .L25
+ 357              	 .cfi_endproc
+ 358              	.LFE1:
+ 360              	 .align 1
+ 361              	 .global ResetISR
+ 362              	 .syntax unified
+ 363              	 .thumb
+ 364              	 .thumb_func
+ 365              	 .fpu softvfp
+ 367              	ResetISR:
+ 368              	.LFB2:
+ 274:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 369              	 .loc 1 274 0
+ 370              	 .cfi_startproc
+ 371              	 
+ 372              	 
+ 373              	.LVL11:
+ 374 003e 38B5     	 push {r3,r4,r5,lr}
+ 375              	 .cfi_def_cfa_offset 16
+ 376              	 .cfi_offset 3,-16
+ 377              	 .cfi_offset 4,-12
+ 378              	 .cfi_offset 5,-8
+ 379              	 .cfi_offset 14,-4
+ 284:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 
+ 380              	 .loc 1 284 0
+ 381 0040 0D4C     	 ldr r4,.L33
+ 287:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		LoadAddr = *SectionTableAddr++;
+ 382              	 .loc 1 287 0
+ 383 0042 0E4D     	 ldr r5,.L33+4
+ 384              	.LVL12:
+ 385              	.L28:
+ 386 0044 AC42     	 cmp r4,r5
+ 387 0046 07D3     	 bcc .L29
+ 295:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		ExeAddr = *SectionTableAddr++;
+ 388              	 .loc 1 295 0
+ 389 0048 0D4D     	 ldr r5,.L33+8
+ 390              	.L30:
+ 391 004a AC42     	 cmp r4,r5
+ 392 004c 0CD3     	 bcc .L31
+ 319:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 393              	 .loc 1 319 0
+ 394 004e 0D4B     	 ldr r3,.L33+12
+ 395 0050 9847     	 blx r3
+ 396              	.LVL13:
+ 333:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** #endif
+ 397              	 .loc 1 333 0
+ 398 0052 0D4B     	 ldr r3,.L33+16
+ 399 0054 9847     	 blx r3
+ 400              	.LVL14:
+ 401              	.L32:
+ 402 0056 FEE7     	 b .L32
+ 403              	.L29:
+ 404              	.LVL15:
+ 289:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		SectionLen = *SectionTableAddr++;
+ 405              	 .loc 1 289 0
+ 406 0058 94E80300 	 ldm r4,{r0,r1}
+ 407              	.LVL16:
+ 408 005c 0C34     	 adds r4,r4,#12
+ 409              	.LVL17:
+ 291:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	}
+ 410              	 .loc 1 291 0
+ 411 005e 54F8042C 	 ldr r2,[r4,#-4]
+ 412 0062 FFF7FEFF 	 bl data_init
+ 413              	.LVL18:
+ 414 0066 EDE7     	 b .L28
+ 415              	.LVL19:
+ 416              	.L31:
+ 296:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 		SectionLen = *SectionTableAddr++;
+ 417              	 .loc 1 296 0
+ 418 0068 54F8080B 	 ldr r0,[r4],#8
+ 419              	.LVL20:
+ 298:CMSISv2p00_LPC17xx/src/cr_startup_lpc176x.c **** 	}
+ 420              	 .loc 1 298 0
+ 421 006c 54F8041C 	 ldr r1,[r4,#-4]
+ 422 0070 FFF7FEFF 	 bl bss_init
+ 423              	.LVL21:
+ 424 0074 E9E7     	 b .L30
+ 425              	.L34:
+ 426 0076 00BF     	 .align 2
+ 427              	.L33:
+ 428 0078 00000000 	 .word __data_section_table
+ 429 007c 00000000 	 .word __data_section_table_end
+ 430 0080 00000000 	 .word __bss_section_table_end
+ 431 0084 00000000 	 .word SystemInit
+ 432 0088 00000000 	 .word main
+ 433              	 .cfi_endproc
+ 434              	.LFE2:
+ 436              	 .global g_pfnVectors
+ 437              	 .section .isr_vector,"a",%progbits
+ 438              	 .align 2
+ 441              	g_pfnVectors:
+ 442 0000 00000000 	 .word _vStackTop
+ 443 0004 00000000 	 .word ResetISR
+ 444 0008 00000000 	 .word NMI_Handler
+ 445 000c 00000000 	 .word HardFault_Handler
+ 446 0010 00000000 	 .word MemManage_Handler
+ 447 0014 00000000 	 .word BusFault_Handler
+ 448 0018 00000000 	 .word UsageFault_Handler
+ 449 001c 00000000 	 .word 0
+ 450 0020 00000000 	 .word 0
+ 451 0024 00000000 	 .word 0
+ 452 0028 00000000 	 .word 0
+ 453 002c 00000000 	 .word SVCall_Handler
+ 454 0030 00000000 	 .word DebugMon_Handler
+ 455 0034 00000000 	 .word 0
+ 456 0038 00000000 	 .word PendSV_Handler
+ 457 003c 00000000 	 .word SysTick_Handler
+ 458 0040 00000000 	 .word WDT_IRQHandler
+ 459 0044 00000000 	 .word TIMER0_IRQHandler
+ 460 0048 00000000 	 .word TIMER1_IRQHandler
+ 461 004c 00000000 	 .word TIMER2_IRQHandler
+ 462 0050 00000000 	 .word TIMER3_IRQHandler
+ 463 0054 00000000 	 .word UART0_IRQHandler
+ 464 0058 00000000 	 .word UART1_IRQHandler
+ 465 005c 00000000 	 .word UART2_IRQHandler
+ 466 0060 00000000 	 .word UART3_IRQHandler
+ 467 0064 00000000 	 .word PWM1_IRQHandler
+ 468 0068 00000000 	 .word I2C0_IRQHandler
+ 469 006c 00000000 	 .word I2C1_IRQHandler
+ 470 0070 00000000 	 .word I2C2_IRQHandler
+ 471 0074 00000000 	 .word SPI_IRQHandler
+ 472 0078 00000000 	 .word SSP0_IRQHandler
+ 473 007c 00000000 	 .word SSP1_IRQHandler
+ 474 0080 00000000 	 .word PLL0_IRQHandler
+ 475 0084 00000000 	 .word RTC_IRQHandler
+ 476 0088 00000000 	 .word EINT0_IRQHandler
+ 477 008c 00000000 	 .word EINT1_IRQHandler
+ 478 0090 00000000 	 .word EINT2_IRQHandler
+ 479 0094 00000000 	 .word EINT3_IRQHandler
+ 480 0098 00000000 	 .word ADC_IRQHandler
+ 481 009c 00000000 	 .word BOD_IRQHandler
+ 482 00a0 00000000 	 .word USB_IRQHandler
+ 483 00a4 00000000 	 .word CAN_IRQHandler
+ 484 00a8 00000000 	 .word DMA_IRQHandler
+ 485 00ac 00000000 	 .word I2S_IRQHandler
+ 486 00b0 00000000 	 .word ENET_IRQHandler
+ 487 00b4 00000000 	 .word RIT_IRQHandler
+ 488 00b8 00000000 	 .word MCPWM_IRQHandler
+ 489 00bc 00000000 	 .word QEI_IRQHandler
+ 490 00c0 00000000 	 .word PLL1_IRQHandler
+ 491 00c4 00000000 	 .word USBActivity_IRQHandler
+ 492 00c8 00000000 	 .word CANActivity_IRQHandler
+ 493              	 .text
+ 494              	.Letext0:
+ 495              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 496              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 497              	 .file 4 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 cr_startup_lpc176x.c
+    {standard input}:16     .after_vectors:0000000000000000 $t
+    {standard input}:23     .after_vectors:0000000000000000 NMI_Handler
+    {standard input}:43     .after_vectors:0000000000000002 HardFault_Handler
+    {standard input}:62     .after_vectors:0000000000000004 MemManage_Handler
+    {standard input}:81     .after_vectors:0000000000000006 BusFault_Handler
+    {standard input}:100    .after_vectors:0000000000000008 UsageFault_Handler
+    {standard input}:119    .after_vectors:000000000000000a SVCall_Handler
+    {standard input}:138    .after_vectors:000000000000000c DebugMon_Handler
+    {standard input}:157    .after_vectors:000000000000000e PendSV_Handler
+    {standard input}:176    .after_vectors:0000000000000010 SysTick_Handler
+    {standard input}:195    .after_vectors:0000000000000012 IntDefaultHandler
+    {standard input}:195    .after_vectors:0000000000000012 CANActivity_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 USBActivity_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 PLL1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 QEI_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 MCPWM_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 RIT_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 ENET_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 I2S_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 DMA_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 CAN_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 USB_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 BOD_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 ADC_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 EINT3_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 EINT2_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 EINT1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 EINT0_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 RTC_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 PLL0_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 SSP1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 SSP0_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 SPI_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 I2C2_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 I2C1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 I2C0_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 PWM1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 UART3_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 UART2_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 UART1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 UART0_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 TIMER3_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 TIMER2_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 TIMER1_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 TIMER0_IRQHandler
+    {standard input}:195    .after_vectors:0000000000000012 WDT_IRQHandler
+    {standard input}:284    .after_vectors:0000000000000014 data_init
+    {standard input}:327    .after_vectors:000000000000002a bss_init
+    {standard input}:367    .after_vectors:000000000000003e ResetISR
+    {standard input}:428    .after_vectors:0000000000000078 $d
+    {standard input}:441    .isr_vector:0000000000000000 g_pfnVectors
+    {standard input}:438    .isr_vector:0000000000000000 $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+__data_section_table
+__data_section_table_end
+__bss_section_table_end
+SystemInit
+main
+_vStackTop

@@ -1,0 +1,1561 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_i2s.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.I2S_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global I2S_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	I2S_Init:
+  24              	.LFB57:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_i2s.c"
+   1:LPC17xxLib/src/lpc17xx_i2s.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_i2s.c **** 
+   3:LPC17xxLib/src/lpc17xx_i2s.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_i2s.c **** * $Id$		lpc17xx_i2s.c				2010-09-23
+   5:LPC17xxLib/src/lpc17xx_i2s.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_i2s.c **** * @file		lpc17xx_gpio.c
+   7:LPC17xxLib/src/lpc17xx_i2s.c **** * @brief	Contains all functions support for I2S firmware
+   8:LPC17xxLib/src/lpc17xx_i2s.c **** * 			library on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_i2s.c **** * @version	3.1
+  10:LPC17xxLib/src/lpc17xx_i2s.c **** * @date		23. Sep. 2010
+  11:LPC17xxLib/src/lpc17xx_i2s.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_i2s.c **** *
+  13:LPC17xxLib/src/lpc17xx_i2s.c **** * Copyright(C) 2010, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_i2s.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_i2s.c **** *
+  16:LPC17xxLib/src/lpc17xx_i2s.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_i2s.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_i2s.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_i2s.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_i2s.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_i2s.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_i2s.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_i2s.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_i2s.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_i2s.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_i2s.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_i2s.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  29:LPC17xxLib/src/lpc17xx_i2s.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_i2s.c **** /** @addtogroup I2S
+  31:LPC17xxLib/src/lpc17xx_i2s.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_i2s.c ****  */
+  33:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  34:LPC17xxLib/src/lpc17xx_i2s.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_i2s.c **** #include "lpc17xx_i2s.h"
+  36:LPC17xxLib/src/lpc17xx_i2s.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  38:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  39:LPC17xxLib/src/lpc17xx_i2s.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  40:LPC17xxLib/src/lpc17xx_i2s.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  41:LPC17xxLib/src/lpc17xx_i2s.c ****  * otherwise the default FW library configuration file must be included instead
+  42:LPC17xxLib/src/lpc17xx_i2s.c ****  */
+  43:LPC17xxLib/src/lpc17xx_i2s.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  44:LPC17xxLib/src/lpc17xx_i2s.c **** #include "lpc17xx_libcfg.h"
+  45:LPC17xxLib/src/lpc17xx_i2s.c **** #else
+  46:LPC17xxLib/src/lpc17xx_i2s.c **** #include "lpc17xx_libcfg_default.h"
+  47:LPC17xxLib/src/lpc17xx_i2s.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  48:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  49:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  50:LPC17xxLib/src/lpc17xx_i2s.c **** #ifdef _I2S
+  51:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  52:LPC17xxLib/src/lpc17xx_i2s.c **** /* Private Functions ---------------------------------------------------------- */
+  53:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  54:LPC17xxLib/src/lpc17xx_i2s.c **** static uint8_t i2s_GetWordWidth(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode);
+  55:LPC17xxLib/src/lpc17xx_i2s.c **** static uint8_t i2s_GetChannel(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode);
+  56:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  57:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+  58:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Get I2S wordwidth value
+  59:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+  60:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is the I2S mode, should be:
+  61:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+  62:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+  63:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		The wordwidth value, should be: 8,16 or 32
+  64:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+  65:LPC17xxLib/src/lpc17xx_i2s.c **** static uint8_t i2s_GetWordWidth(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode) {
+  66:LPC17xxLib/src/lpc17xx_i2s.c **** 	uint8_t value;
+  67:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  68:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+  69:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+  70:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  71:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE) {
+  72:LPC17xxLib/src/lpc17xx_i2s.c **** 		value = (I2Sx->I2SDAO) & 0x03; /* get wordwidth bit */
+  73:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+  74:LPC17xxLib/src/lpc17xx_i2s.c **** 		value = (I2Sx->I2SDAI) & 0x03; /* get wordwidth bit */
+  75:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+  76:LPC17xxLib/src/lpc17xx_i2s.c **** 	switch (value) {
+  77:LPC17xxLib/src/lpc17xx_i2s.c **** 	case I2S_WORDWIDTH_8:
+  78:LPC17xxLib/src/lpc17xx_i2s.c **** 		return 8;
+  79:LPC17xxLib/src/lpc17xx_i2s.c **** 	case I2S_WORDWIDTH_16:
+  80:LPC17xxLib/src/lpc17xx_i2s.c **** 		return 16;
+  81:LPC17xxLib/src/lpc17xx_i2s.c **** 	default:
+  82:LPC17xxLib/src/lpc17xx_i2s.c **** 		return 32;
+  83:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+  84:LPC17xxLib/src/lpc17xx_i2s.c **** }
+  85:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  86:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+  87:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Get I2S channel value
+  88:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+  89:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is the I2S mode, should be:
+  90:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+  91:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+  92:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		The channel value, should be: 1(mono) or 2(stereo)
+  93:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+  94:LPC17xxLib/src/lpc17xx_i2s.c **** static uint8_t i2s_GetChannel(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode) {
+  95:LPC17xxLib/src/lpc17xx_i2s.c **** 	uint8_t value;
+  96:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  97:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+  98:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+  99:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 100:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE) {
+ 101:LPC17xxLib/src/lpc17xx_i2s.c **** 		value = ((I2Sx->I2SDAO) & 0x04)>>2; /* get bit[2] */
+ 102:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 103:LPC17xxLib/src/lpc17xx_i2s.c **** 		value = ((I2Sx->I2SDAI) & 0x04)>>2; /* get bit[2] */
+ 104:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 105:LPC17xxLib/src/lpc17xx_i2s.c ****         if(value == I2S_MONO) return 1;
+ 106:LPC17xxLib/src/lpc17xx_i2s.c ****           return 2;
+ 107:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 108:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 109:LPC17xxLib/src/lpc17xx_i2s.c **** /* End of Private Functions --------------------------------------------------- */
+ 110:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 111:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 112:LPC17xxLib/src/lpc17xx_i2s.c **** /* Public Functions ----------------------------------------------------------- */
+ 113:LPC17xxLib/src/lpc17xx_i2s.c **** /** @addtogroup I2S_Public_Functions
+ 114:LPC17xxLib/src/lpc17xx_i2s.c ****  * @{
+ 115:LPC17xxLib/src/lpc17xx_i2s.c ****  */
+ 116:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 117:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 118:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Initialize I2S
+ 119:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- Turn on power and clock
+ 120:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 121:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 122:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 123:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Init(LPC_I2S_TypeDef *I2Sx) {
+  26              	 .loc 1 123 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  31 0000 08B5     	 push {r3,lr}
+  32              	 .cfi_def_cfa_offset 8
+  33              	 .cfi_offset 3,-8
+  34              	 .cfi_offset 14,-4
+ 124:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 125:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 126:LPC17xxLib/src/lpc17xx_i2s.c **** 	// Turn on power and clock
+ 127:LPC17xxLib/src/lpc17xx_i2s.c **** 	CLKPWR_ConfigPPWR(CLKPWR_PCONP_PCI2S, ENABLE);
+  35              	 .loc 1 127 0
+  36 0002 0121     	 movs r1,#1
+  37 0004 044B     	 ldr r3,.L2
+  38 0006 4FF00060 	 mov r0,#134217728
+  39              	.LVL1:
+  40 000a 9847     	 blx r3
+  41              	.LVL2:
+ 128:LPC17xxLib/src/lpc17xx_i2s.c **** 	LPC_I2S->I2SDAI = LPC_I2S->I2SDAO = 0x00;
+  42              	 .loc 1 128 0
+  43 000c 0022     	 movs r2,#0
+  44 000e 034B     	 ldr r3,.L2+4
+  45 0010 1A60     	 str r2,[r3]
+  46 0012 5A60     	 str r2,[r3,#4]
+  47 0014 08BD     	 pop {r3,pc}
+  48              	.L3:
+  49 0016 00BF     	 .align 2
+  50              	.L2:
+  51 0018 00000000 	 .word CLKPWR_ConfigPPWR
+  52 001c 00800A40 	 .word 1074429952
+  53              	 .cfi_endproc
+  54              	.LFE57:
+  56              	 .section .text.I2S_Config,"ax",%progbits
+  57              	 .align 1
+  58              	 .global I2S_Config
+  59              	 .syntax unified
+  60              	 .thumb
+  61              	 .thumb_func
+  62              	 .fpu softvfp
+  64              	I2S_Config:
+  65              	.LFB58:
+ 129:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 130:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 131:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 132:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Configuration I2S, setting:
+ 133:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- master/slave mode
+ 134:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- wordwidth value
+ 135:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- channel mode
+ 136:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 137:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode transmit/receive mode, should be:
+ 138:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- I2S_TX_MODE = 0: transmit mode
+ 139:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- I2S_RX_MODE = 1: receive mode
+ 140:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	ConfigStruct pointer to I2S_CFG_Type structure
+ 141:LPC17xxLib/src/lpc17xx_i2s.c ****  *              which will be initialized.
+ 142:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 143:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 144:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Config(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode, I2S_CFG_Type* ConfigStruct)
+ 145:LPC17xxLib/src/lpc17xx_i2s.c **** {
+  66              	 .loc 1 145 0
+  67              	 .cfi_startproc
+  68              	 
+  69              	 
+  70              	.LVL3:
+  71 0000 10B5     	 push {r4,lr}
+  72              	 .cfi_def_cfa_offset 8
+  73              	 .cfi_offset 4,-8
+  74              	 .cfi_offset 14,-4
+ 146:LPC17xxLib/src/lpc17xx_i2s.c **** 	uint32_t bps, config;
+ 147:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 148:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 149:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 150:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_WORDWIDTH(ConfigStruct->wordwidth));
+ 151:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_CHANNEL(ConfigStruct->mono));
+ 152:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_STOP(ConfigStruct->stop));
+ 153:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_RESET(ConfigStruct->reset));
+ 154:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_WS_SEL(ConfigStruct->ws_sel));
+ 155:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_MUTE(ConfigStruct->mute));
+ 156:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 157:LPC17xxLib/src/lpc17xx_i2s.c **** 	/* Setup clock */
+ 158:LPC17xxLib/src/lpc17xx_i2s.c **** 	bps = (ConfigStruct->wordwidth +1)*8;
+ 159:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 160:LPC17xxLib/src/lpc17xx_i2s.c **** 	/* Calculate audio config */
+ 161:LPC17xxLib/src/lpc17xx_i2s.c **** 	config = (bps - 1)<<6 | (ConfigStruct->ws_sel)<<5 | (ConfigStruct->reset)<<4 |
+  75              	 .loc 1 161 0
+  76 0002 D378     	 ldrb r3,[r2,#3]
+  77 0004 1479     	 ldrb r4,[r2,#4]
+ 158:LPC17xxLib/src/lpc17xx_i2s.c **** 
+  78              	 .loc 1 158 0
+  79 0006 1078     	 ldrb r0,[r2]
+  80              	.LVL4:
+  81              	 .loc 1 161 0
+  82 0008 1B01     	 lsls r3,r3,#4
+  83 000a 43EA4413 	 orr r3,r3,r4,lsl#5
+ 162:LPC17xxLib/src/lpc17xx_i2s.c **** 		(ConfigStruct->stop)<<3 | (ConfigStruct->mono)<<2 | (ConfigStruct->wordwidth);
+  84              	 .loc 1 162 0
+  85 000e 9478     	 ldrb r4,[r2,#2]
+ 161:LPC17xxLib/src/lpc17xx_i2s.c **** 		(ConfigStruct->stop)<<3 | (ConfigStruct->mono)<<2 | (ConfigStruct->wordwidth);
+  86              	 .loc 1 161 0
+  87 0010 0343     	 orrs r3,r3,r0
+  88              	 .loc 1 162 0
+  89 0012 5278     	 ldrb r2,[r2,#1]
+  90              	.LVL5:
+ 161:LPC17xxLib/src/lpc17xx_i2s.c **** 		(ConfigStruct->stop)<<3 | (ConfigStruct->mono)<<2 | (ConfigStruct->wordwidth);
+  91              	 .loc 1 161 0
+  92 0014 43EAC403 	 orr r3,r3,r4,lsl#3
+  93 0018 4002     	 lsls r0,r0,#9
+  94              	.LVL6:
+  95 001a 43EA8203 	 orr r3,r3,r2,lsl#2
+  96 001e 00F5E070 	 add r0,r0,#448
+  97 0022 034A     	 ldr r2,.L7
+  98 0024 0343     	 orrs r3,r3,r0
+  99              	.LVL7:
+ 163:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 164:LPC17xxLib/src/lpc17xx_i2s.c **** 	if(TRMode == I2S_RX_MODE){
+ 100              	 .loc 1 164 0
+ 101 0026 0129     	 cmp r1,#1
+ 165:LPC17xxLib/src/lpc17xx_i2s.c **** 		LPC_I2S->I2SDAI = config;
+ 102              	 .loc 1 165 0
+ 103 0028 0CBF     	 ite eq
+ 104 002a 5360     	 streq r3,[r2,#4]
+ 166:LPC17xxLib/src/lpc17xx_i2s.c **** 	}else{
+ 167:LPC17xxLib/src/lpc17xx_i2s.c **** 		LPC_I2S->I2SDAO = config;
+ 105              	 .loc 1 167 0
+ 106 002c 1360     	 strne r3,[r2]
+ 107 002e 10BD     	 pop {r4,pc}
+ 108              	.L8:
+ 109              	 .align 2
+ 110              	.L7:
+ 111 0030 00800A40 	 .word 1074429952
+ 112              	 .cfi_endproc
+ 113              	.LFE58:
+ 115              	 .section .text.I2S_DeInit,"ax",%progbits
+ 116              	 .align 1
+ 117              	 .global I2S_DeInit
+ 118              	 .syntax unified
+ 119              	 .thumb
+ 120              	 .thumb_func
+ 121              	 .fpu softvfp
+ 123              	I2S_DeInit:
+ 124              	.LFB59:
+ 168:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 169:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 170:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 171:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 172:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		DeInitial both I2S transmit or receive
+ 173:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 174:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 175:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 176:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_DeInit(LPC_I2S_TypeDef *I2Sx) {
+ 125              	 .loc 1 176 0
+ 126              	 .cfi_startproc
+ 127              	 
+ 128              	 
+ 129              	 
+ 130              	.LVL8:
+ 177:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 178:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 179:LPC17xxLib/src/lpc17xx_i2s.c **** 	// Turn off power and clock
+ 180:LPC17xxLib/src/lpc17xx_i2s.c **** 	CLKPWR_ConfigPPWR(CLKPWR_PCONP_PCI2S, DISABLE);
+ 131              	 .loc 1 180 0
+ 132 0000 0021     	 movs r1,#0
+ 133 0002 4FF00060 	 mov r0,#134217728
+ 134              	.LVL9:
+ 135 0006 014B     	 ldr r3,.L10
+ 136 0008 1847     	 bx r3
+ 137              	.LVL10:
+ 138              	.L11:
+ 139 000a 00BF     	 .align 2
+ 140              	.L10:
+ 141 000c 00000000 	 .word CLKPWR_ConfigPPWR
+ 142              	 .cfi_endproc
+ 143              	.LFE59:
+ 145              	 .section .text.I2S_GetLevel,"ax",%progbits
+ 146              	 .align 1
+ 147              	 .global I2S_GetLevel
+ 148              	 .syntax unified
+ 149              	 .thumb
+ 150              	 .thumb_func
+ 151              	 .fpu softvfp
+ 153              	I2S_GetLevel:
+ 154              	.LFB60:
+ 181:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 182:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 183:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 184:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Get I2S Buffer Level
+ 185:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 186:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode Transmit/receive mode, should be:
+ 187:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- I2S_TX_MODE = 0: transmit mode
+ 188:LPC17xxLib/src/lpc17xx_i2s.c ****  * 					- I2S_RX_MODE = 1: receive mode
+ 189:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		current level of Transmit/Receive Buffer
+ 190:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 191:LPC17xxLib/src/lpc17xx_i2s.c **** uint8_t I2S_GetLevel(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode)
+ 192:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 155              	 .loc 1 192 0
+ 156              	 .cfi_startproc
+ 157              	 
+ 158              	 
+ 159              	 
+ 160              	.LVL11:
+ 193:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 194:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 195:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 196:LPC17xxLib/src/lpc17xx_i2s.c **** 	if(TRMode == I2S_TX_MODE)
+ 197:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 198:LPC17xxLib/src/lpc17xx_i2s.c **** 		return ((I2Sx->I2SSTATE >> 16) & 0xFF);
+ 161              	 .loc 1 198 0
+ 162 0000 0069     	 ldr r0,[r0,#16]
+ 163              	.LVL12:
+ 196:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 164              	 .loc 1 196 0
+ 165 0002 11B9     	 cbnz r1,.L13
+ 166              	 .loc 1 198 0
+ 167 0004 C0F30740 	 ubfx r0,r0,#16,#8
+ 168 0008 7047     	 bx lr
+ 169              	.L13:
+ 199:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 200:LPC17xxLib/src/lpc17xx_i2s.c **** 	else
+ 201:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 202:LPC17xxLib/src/lpc17xx_i2s.c **** 		return ((I2Sx->I2SSTATE >> 8) & 0xFF);
+ 170              	 .loc 1 202 0
+ 171 000a C0F30720 	 ubfx r0,r0,#8,#8
+ 203:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 204:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 172              	 .loc 1 204 0
+ 173 000e 7047     	 bx lr
+ 174              	 .cfi_endproc
+ 175              	.LFE60:
+ 177              	 .section .text.I2S_Start,"ax",%progbits
+ 178              	 .align 1
+ 179              	 .global I2S_Start
+ 180              	 .syntax unified
+ 181              	 .thumb
+ 182              	 .thumb_func
+ 183              	 .fpu softvfp
+ 185              	I2S_Start:
+ 186              	.LFB61:
+ 205:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 206:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 207:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S Start: clear all STOP,RESET and MUTE bit, ready to operate
+ 208:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 209:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 210:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 211:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Start(LPC_I2S_TypeDef *I2Sx)
+ 212:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 187              	 .loc 1 212 0
+ 188              	 .cfi_startproc
+ 189              	 
+ 190              	 
+ 191              	 
+ 192              	.LVL13:
+ 213:LPC17xxLib/src/lpc17xx_i2s.c **** 	//Clear STOP,RESET and MUTE bit
+ 214:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2SDAO &= ~I2S_DAI_RESET;
+ 193              	 .loc 1 214 0
+ 194 0000 0368     	 ldr r3,[r0]
+ 195 0002 23F01003 	 bic r3,r3,#16
+ 196 0006 0360     	 str r3,[r0]
+ 215:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2SDAI &= ~I2S_DAI_RESET;
+ 197              	 .loc 1 215 0
+ 198 0008 4368     	 ldr r3,[r0,#4]
+ 199 000a 23F01003 	 bic r3,r3,#16
+ 200 000e 4360     	 str r3,[r0,#4]
+ 216:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2SDAO &= ~I2S_DAI_STOP;
+ 201              	 .loc 1 216 0
+ 202 0010 0368     	 ldr r3,[r0]
+ 203 0012 23F00803 	 bic r3,r3,#8
+ 204 0016 0360     	 str r3,[r0]
+ 217:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2SDAI &= ~I2S_DAI_STOP;
+ 205              	 .loc 1 217 0
+ 206 0018 4368     	 ldr r3,[r0,#4]
+ 207 001a 23F00803 	 bic r3,r3,#8
+ 208 001e 4360     	 str r3,[r0,#4]
+ 218:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2SDAO &= ~I2S_DAI_MUTE;
+ 209              	 .loc 1 218 0
+ 210 0020 0368     	 ldr r3,[r0]
+ 211 0022 23F40043 	 bic r3,r3,#32768
+ 212 0026 0360     	 str r3,[r0]
+ 213 0028 7047     	 bx lr
+ 214              	 .cfi_endproc
+ 215              	.LFE61:
+ 217              	 .section .text.I2S_Send,"ax",%progbits
+ 218              	 .align 1
+ 219              	 .global I2S_Send
+ 220              	 .syntax unified
+ 221              	 .thumb
+ 222              	 .thumb_func
+ 223              	 .fpu softvfp
+ 225              	I2S_Send:
+ 226              	.LFB62:
+ 219:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 220:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 221:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 222:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S Send data
+ 223:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 224:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	BufferData pointer to uint32_t is the data will be send
+ 225:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 226:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 227:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Send(LPC_I2S_TypeDef *I2Sx, uint32_t BufferData) {
+ 227              	 .loc 1 227 0
+ 228              	 .cfi_startproc
+ 229              	 
+ 230              	 
+ 231              	 
+ 232              	.LVL14:
+ 228:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 229:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 230:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2STXFIFO = BufferData;
+ 233              	 .loc 1 230 0
+ 234 0000 8160     	 str r1,[r0,#8]
+ 235 0002 7047     	 bx lr
+ 236              	 .cfi_endproc
+ 237              	.LFE62:
+ 239              	 .section .text.I2S_Receive,"ax",%progbits
+ 240              	 .align 1
+ 241              	 .global I2S_Receive
+ 242              	 .syntax unified
+ 243              	 .thumb
+ 244              	 .thumb_func
+ 245              	 .fpu softvfp
+ 247              	I2S_Receive:
+ 248              	.LFB63:
+ 231:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 232:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 233:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 234:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S Receive Data
+ 235:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx pointer to LPC_I2S_TypeDef
+ 236:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		received value
+ 237:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 238:LPC17xxLib/src/lpc17xx_i2s.c **** uint32_t I2S_Receive(LPC_I2S_TypeDef* I2Sx) {
+ 249              	 .loc 1 238 0
+ 250              	 .cfi_startproc
+ 251              	 
+ 252              	 
+ 253              	 
+ 254              	.LVL15:
+ 239:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 240:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 241:LPC17xxLib/src/lpc17xx_i2s.c **** 	return (I2Sx->I2SRXFIFO);
+ 255              	 .loc 1 241 0
+ 256 0000 C068     	 ldr r0,[r0,#12]
+ 257              	.LVL16:
+ 242:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 243:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 258              	 .loc 1 243 0
+ 259 0002 7047     	 bx lr
+ 260              	 .cfi_endproc
+ 261              	.LFE63:
+ 263              	 .section .text.I2S_Pause,"ax",%progbits
+ 264              	 .align 1
+ 265              	 .global I2S_Pause
+ 266              	 .syntax unified
+ 267              	 .thumb
+ 268              	 .thumb_func
+ 269              	 .fpu softvfp
+ 271              	I2S_Pause:
+ 272              	.LFB64:
+ 244:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 245:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 246:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S Pause
+ 247:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 248:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 249:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 250:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 251:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 252:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 253:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Pause(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode) {
+ 273              	 .loc 1 253 0
+ 274              	 .cfi_startproc
+ 275              	 
+ 276              	 
+ 277              	 
+ 278              	.LVL17:
+ 254:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 255:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 256:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 257:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE) //Transmit mode
+ 279              	 .loc 1 257 0
+ 280 0000 21B9     	 cbnz r1,.L19
+ 258:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 259:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAO |= I2S_DAO_STOP;
+ 281              	 .loc 1 259 0
+ 282 0002 0368     	 ldr r3,[r0]
+ 283 0004 43F00803 	 orr r3,r3,#8
+ 284 0008 0360     	 str r3,[r0]
+ 285 000a 7047     	 bx lr
+ 286              	.L19:
+ 260:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else //Receive mode
+ 261:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 262:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAI |= I2S_DAI_STOP;
+ 287              	 .loc 1 262 0
+ 288 000c 4368     	 ldr r3,[r0,#4]
+ 289 000e 43F00803 	 orr r3,r3,#8
+ 290 0012 4360     	 str r3,[r0,#4]
+ 291 0014 7047     	 bx lr
+ 292              	 .cfi_endproc
+ 293              	.LFE64:
+ 295              	 .section .text.I2S_Mute,"ax",%progbits
+ 296              	 .align 1
+ 297              	 .global I2S_Mute
+ 298              	 .syntax unified
+ 299              	 .thumb
+ 300              	 .thumb_func
+ 301              	 .fpu softvfp
+ 303              	I2S_Mute:
+ 304              	.LFB65:
+ 263:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 264:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 265:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 266:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 267:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S Mute
+ 268:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 269:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 270:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 271:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 272:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 273:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 274:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Mute(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode) {
+ 305              	 .loc 1 274 0
+ 306              	 .cfi_startproc
+ 307              	 
+ 308              	 
+ 309              	 
+ 310              	.LVL18:
+ 275:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 276:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 277:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 278:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE) //Transmit mode
+ 311              	 .loc 1 278 0
+ 312 0000 21B9     	 cbnz r1,.L22
+ 279:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 280:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAO |= I2S_DAO_MUTE;
+ 313              	 .loc 1 280 0
+ 314 0002 0368     	 ldr r3,[r0]
+ 315 0004 43F40043 	 orr r3,r3,#32768
+ 316 0008 0360     	 str r3,[r0]
+ 317 000a 7047     	 bx lr
+ 318              	.L22:
+ 281:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else //Receive mode
+ 282:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 283:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAI |= I2S_DAI_MUTE;
+ 319              	 .loc 1 283 0
+ 320 000c 4368     	 ldr r3,[r0,#4]
+ 321 000e 43F40043 	 orr r3,r3,#32768
+ 322 0012 4360     	 str r3,[r0,#4]
+ 323 0014 7047     	 bx lr
+ 324              	 .cfi_endproc
+ 325              	.LFE65:
+ 327              	 .section .text.I2S_Stop,"ax",%progbits
+ 328              	 .align 1
+ 329              	 .global I2S_Stop
+ 330              	 .syntax unified
+ 331              	 .thumb
+ 332              	 .thumb_func
+ 333              	 .fpu softvfp
+ 335              	I2S_Stop:
+ 336              	.LFB66:
+ 284:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 285:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 286:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 287:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 288:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S Stop
+ 289:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 290:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 291:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 292:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 293:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 294:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 295:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_Stop(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode) {
+ 337              	 .loc 1 295 0
+ 338              	 .cfi_startproc
+ 339              	 
+ 340              	 
+ 341              	 
+ 342              	.LVL19:
+ 296:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 297:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 298:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 299:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE) //Transmit mode
+ 343              	 .loc 1 299 0
+ 344 0000 61B9     	 cbnz r1,.L25
+ 300:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 301:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAO &= ~I2S_DAO_MUTE;
+ 345              	 .loc 1 301 0
+ 346 0002 0368     	 ldr r3,[r0]
+ 347 0004 23F40043 	 bic r3,r3,#32768
+ 348 0008 0360     	 str r3,[r0]
+ 302:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAO |= I2S_DAO_STOP;
+ 349              	 .loc 1 302 0
+ 350 000a 0368     	 ldr r3,[r0]
+ 351 000c 43F00803 	 orr r3,r3,#8
+ 352 0010 0360     	 str r3,[r0]
+ 303:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAO |= I2S_DAO_RESET;
+ 353              	 .loc 1 303 0
+ 354 0012 0368     	 ldr r3,[r0]
+ 355 0014 43F01003 	 orr r3,r3,#16
+ 356 0018 0360     	 str r3,[r0]
+ 357 001a 7047     	 bx lr
+ 358              	.L25:
+ 304:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else //Receive mode
+ 305:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 306:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAI |= I2S_DAI_STOP;
+ 359              	 .loc 1 306 0
+ 360 001c 4368     	 ldr r3,[r0,#4]
+ 361 001e 43F00803 	 orr r3,r3,#8
+ 362 0022 4360     	 str r3,[r0,#4]
+ 307:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SDAI |= I2S_DAI_RESET;
+ 363              	 .loc 1 307 0
+ 364 0024 4368     	 ldr r3,[r0,#4]
+ 365 0026 43F01003 	 orr r3,r3,#16
+ 366 002a 4360     	 str r3,[r0,#4]
+ 367 002c 7047     	 bx lr
+ 368              	 .cfi_endproc
+ 369              	.LFE66:
+ 371              	 .section .text.I2S_FreqConfig,"ax",%progbits
+ 372              	 .align 1
+ 373              	 .global I2S_FreqConfig
+ 374              	 .syntax unified
+ 375              	 .thumb
+ 376              	 .thumb_func
+ 377              	 .fpu softvfp
+ 379              	I2S_FreqConfig:
+ 380              	.LFB67:
+ 308:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 309:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 310:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 311:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 312:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Set frequency for I2S
+ 313:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 314:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	Freq is the frequency for I2S will be set. It can range
+ 315:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				from 16-96 kHz(16, 22.05, 32, 44.1, 48, 96kHz)
+ 316:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 317:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 318:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 319:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		Status: ERROR or SUCCESS
+ 320:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 321:LPC17xxLib/src/lpc17xx_i2s.c **** Status I2S_FreqConfig(LPC_I2S_TypeDef *I2Sx, uint32_t Freq, uint8_t TRMode) {
+ 381              	 .loc 1 321 0
+ 382              	 .cfi_startproc
+ 383              	 
+ 384              	 
+ 385              	.LVL20:
+ 386 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 387              	 .cfi_def_cfa_offset 24
+ 388              	 .cfi_offset 3,-24
+ 389              	 .cfi_offset 4,-20
+ 390              	 .cfi_offset 5,-16
+ 391              	 .cfi_offset 6,-12
+ 392              	 .cfi_offset 7,-8
+ 393              	 .cfi_offset 14,-4
+ 394              	 .loc 1 321 0
+ 395 0002 0446     	 mov r4,r0
+ 322:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 323:LPC17xxLib/src/lpc17xx_i2s.c **** 	uint32_t i2sMclk;
+ 324:LPC17xxLib/src/lpc17xx_i2s.c **** 	uint8_t bitrate, channel, wordwidth;
+ 325:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 326:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 327:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PRAM_I2S_FREQ(Freq));
+ 328:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 329:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 330:LPC17xxLib/src/lpc17xx_i2s.c **** 	//set i2s reference is i2s_pclk/2 as default
+ 331:LPC17xxLib/src/lpc17xx_i2s.c **** 	i2sMclk = CLKPWR_GetPCLK(CLKPWR_PCLKSEL_I2S)/2;
+ 396              	 .loc 1 331 0
+ 397 0004 264B     	 ldr r3,.L43
+ 398 0006 3620     	 movs r0,#54
+ 399              	.LVL21:
+ 321:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 400              	 .loc 1 321 0
+ 401 0008 0F46     	 mov r7,r1
+ 402 000a 1646     	 mov r6,r2
+ 403              	 .loc 1 331 0
+ 404 000c 9847     	 blx r3
+ 405              	.LVL22:
+ 332:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2STXRATE = 1  | (1<<8);
+ 406              	 .loc 1 332 0
+ 407 000e 0122     	 movs r2,#1
+ 408 0010 94F82030 	 ldrb r3,[r4,#32]
+ 409 0014 0023     	 movs r3,#0
+ 410 0016 84F82020 	 strb r2,[r4,#32]
+ 411 001a 94F82110 	 ldrb r1,[r4,#33]
+ 412 001e 84F82120 	 strb r2,[r4,#33]
+ 413 0022 94F82210 	 ldrb r1,[r4,#34]
+ 414 0026 84F82230 	 strb r3,[r4,#34]
+ 415 002a 94F82310 	 ldrb r1,[r4,#35]
+ 416 002e 84F82330 	 strb r3,[r4,#35]
+ 333:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2SRXRATE = 1  | (1<<8);
+ 417              	 .loc 1 333 0
+ 418 0032 94F82410 	 ldrb r1,[r4,#36]
+ 419 0036 84F82420 	 strb r2,[r4,#36]
+ 420 003a 94F82510 	 ldrb r1,[r4,#37]
+ 421 003e 84F82520 	 strb r2,[r4,#37]
+ 422 0042 94F82620 	 ldrb r2,[r4,#38]
+ 423 0046 84F82630 	 strb r3,[r4,#38]
+ 424 004a 94F82720 	 ldrb r2,[r4,#39]
+ 331:LPC17xxLib/src/lpc17xx_i2s.c **** 	I2Sx->I2STXRATE = 1  | (1<<8);
+ 425              	 .loc 1 331 0
+ 426 004e 4008     	 lsrs r0,r0,#1
+ 427              	.LVL23:
+ 428              	 .loc 1 333 0
+ 429 0050 84F82730 	 strb r3,[r4,#39]
+ 334:LPC17xxLib/src/lpc17xx_i2s.c **** 	if(TRMode == I2S_TX_MODE)
+ 430              	 .loc 1 334 0
+ 431 0054 BEB9     	 cbnz r6,.L28
+ 432              	.LVL24:
+ 433              	.LBB10:
+ 434              	.LBB11:
+ 101:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 435              	 .loc 1 101 0
+ 436 0056 2368     	 ldr r3,[r4]
+ 437              	.LBE11:
+ 438              	.LBE10:
+ 439              	.LBB13:
+ 440              	.LBB14:
+  72:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 441              	 .loc 1 72 0
+ 442 0058 2268     	 ldr r2,[r4]
+ 443              	.LBE14:
+ 444              	.LBE13:
+ 445              	.LBB15:
+ 446              	.LBB12:
+ 101:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 447              	 .loc 1 101 0
+ 448 005a C3F38003 	 ubfx r3,r3,#2,#1
+ 449              	.LVL25:
+ 105:LPC17xxLib/src/lpc17xx_i2s.c ****           return 2;
+ 450              	 .loc 1 105 0
+ 451 005e 002B     	 cmp r3,#0
+ 106:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 452              	 .loc 1 106 0
+ 453 0060 08BF     	 it eq
+ 454 0062 0223     	 moveq r3,#2
+ 455              	.LVL26:
+ 456              	.L42:
+ 457              	.LBE12:
+ 458              	.LBE15:
+ 459              	.LBB16:
+ 460              	.LBB17:
+  76:LPC17xxLib/src/lpc17xx_i2s.c **** 	case I2S_WORDWIDTH_8:
+ 461              	 .loc 1 76 0
+ 462 0064 12F00302 	 ands r2,r2,#3
+ 463              	.LVL27:
+ 464 0068 15D0     	 beq .L39
+ 465 006a 012A     	 cmp r2,#1
+  82:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 466              	 .loc 1 82 0
+ 467 006c 0CBF     	 ite eq
+ 468 006e 1025     	 moveq r5,#16
+ 469 0070 2025     	 movne r5,#32
+ 470              	.L31:
+ 471              	.LVL28:
+ 472              	.LBE17:
+ 473              	.LBE16:
+ 335:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 336:LPC17xxLib/src/lpc17xx_i2s.c **** 		channel = i2s_GetChannel(I2Sx,I2S_TX_MODE);
+ 337:LPC17xxLib/src/lpc17xx_i2s.c **** 		wordwidth = i2s_GetWordWidth(I2Sx,I2S_TX_MODE);
+ 338:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 339:LPC17xxLib/src/lpc17xx_i2s.c **** 	else
+ 340:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 341:LPC17xxLib/src/lpc17xx_i2s.c **** 		channel = i2s_GetChannel(I2Sx,I2S_RX_MODE);
+ 342:LPC17xxLib/src/lpc17xx_i2s.c **** 		wordwidth = i2s_GetWordWidth(I2Sx,I2S_RX_MODE);
+ 343:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 344:LPC17xxLib/src/lpc17xx_i2s.c **** 	bitrate = i2sMclk/(Freq * channel * wordwidth) - 1;
+ 474              	 .loc 1 344 0
+ 475 0072 6B43     	 muls r3,r5,r3
+ 476 0074 7B43     	 muls r3,r7,r3
+ 477 0076 B0FBF3F0 	 udiv r0,r0,r3
+ 478              	.LVL29:
+ 479 007a 0138     	 subs r0,r0,#1
+ 480 007c C0B2     	 uxtb r0,r0
+ 481              	.LVL30:
+ 345:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE)// Transmitter
+ 482              	 .loc 1 345 0
+ 483 007e 66B9     	 cbnz r6,.L36
+ 346:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 347:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2STXBITRATE = bitrate;
+ 484              	 .loc 1 347 0
+ 485 0080 A062     	 str r0,[r4,#40]
+ 486              	.L37:
+ 348:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else //Receiver
+ 349:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 350:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SRXBITRATE = bitrate;
+ 351:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 352:LPC17xxLib/src/lpc17xx_i2s.c **** 	return SUCCESS;
+ 353:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 487              	 .loc 1 353 0
+ 488 0082 0120     	 movs r0,#1
+ 489              	.LVL31:
+ 490 0084 F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 491              	.LVL32:
+ 492              	.L28:
+ 493              	.LBB20:
+ 494              	.LBB21:
+ 103:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 495              	 .loc 1 103 0
+ 496 0086 6368     	 ldr r3,[r4,#4]
+ 497              	.LBE21:
+ 498              	.LBE20:
+ 499              	.LBB23:
+ 500              	.LBB18:
+  74:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 501              	 .loc 1 74 0
+ 502 0088 6268     	 ldr r2,[r4,#4]
+ 503              	.LBE18:
+ 504              	.LBE23:
+ 505              	.LBB24:
+ 506              	.LBB22:
+ 103:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 507              	 .loc 1 103 0
+ 508 008a C3F38003 	 ubfx r3,r3,#2,#1
+ 509              	.LVL33:
+ 105:LPC17xxLib/src/lpc17xx_i2s.c ****           return 2;
+ 510              	 .loc 1 105 0
+ 511 008e 002B     	 cmp r3,#0
+ 106:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 512              	 .loc 1 106 0
+ 513 0090 08BF     	 it eq
+ 514 0092 0223     	 moveq r3,#2
+ 515              	.LVL34:
+ 516 0094 E6E7     	 b .L42
+ 517              	.LVL35:
+ 518              	.L39:
+ 519              	.LBE22:
+ 520              	.LBE24:
+ 521              	.LBB25:
+ 522              	.LBB19:
+  78:LPC17xxLib/src/lpc17xx_i2s.c **** 	case I2S_WORDWIDTH_16:
+ 523              	 .loc 1 78 0
+ 524 0096 0825     	 movs r5,#8
+ 525 0098 EBE7     	 b .L31
+ 526              	.LVL36:
+ 527              	.L36:
+ 528              	.LBE19:
+ 529              	.LBE25:
+ 350:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 530              	 .loc 1 350 0
+ 531 009a E062     	 str r0,[r4,#44]
+ 532 009c F1E7     	 b .L37
+ 533              	.L44:
+ 534 009e 00BF     	 .align 2
+ 535              	.L43:
+ 536 00a0 00000000 	 .word CLKPWR_GetPCLK
+ 537              	 .cfi_endproc
+ 538              	.LFE67:
+ 540              	 .section .text.I2S_SetBitRate,"ax",%progbits
+ 541              	 .align 1
+ 542              	 .global I2S_SetBitRate
+ 543              	 .syntax unified
+ 544              	 .thumb
+ 545              	 .thumb_func
+ 546              	 .fpu softvfp
+ 548              	I2S_SetBitRate:
+ 549              	.LFB68:
+ 354:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 355:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 356:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		I2S set bitrate
+ 357:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 358:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	bitrate value will be set
+ 359:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				bitrate value should be in range: 0 .. 63
+ 360:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 361:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 362:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 363:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 364:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 365:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_SetBitRate(LPC_I2S_TypeDef *I2Sx, uint8_t bitrate, uint8_t TRMode)
+ 366:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 550              	 .loc 1 366 0
+ 551              	 .cfi_startproc
+ 552              	 
+ 553              	 
+ 554              	 
+ 555              	.LVL37:
+ 367:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 368:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_BITRATE(bitrate));
+ 369:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 370:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 371:LPC17xxLib/src/lpc17xx_i2s.c **** 	if(TRMode == I2S_TX_MODE)
+ 556              	 .loc 1 371 0
+ 557 0000 0AB9     	 cbnz r2,.L46
+ 372:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 373:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2STXBITRATE = bitrate;
+ 558              	 .loc 1 373 0
+ 559 0002 8162     	 str r1,[r0,#40]
+ 560 0004 7047     	 bx lr
+ 561              	.L46:
+ 374:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 375:LPC17xxLib/src/lpc17xx_i2s.c **** 	else
+ 376:LPC17xxLib/src/lpc17xx_i2s.c **** 	{
+ 377:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SRXBITRATE = bitrate;
+ 562              	 .loc 1 377 0
+ 563 0006 C162     	 str r1,[r0,#44]
+ 564 0008 7047     	 bx lr
+ 565              	 .cfi_endproc
+ 566              	.LFE68:
+ 568              	 .section .text.I2S_ModeConfig,"ax",%progbits
+ 569              	 .align 1
+ 570              	 .global I2S_ModeConfig
+ 571              	 .syntax unified
+ 572              	 .thumb
+ 573              	 .thumb_func
+ 574              	 .fpu softvfp
+ 576              	I2S_ModeConfig:
+ 577              	.LFB69:
+ 378:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 379:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 380:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 381:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 382:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Configuration operating mode for I2S
+ 383:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 384:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	ModeConfig pointer to I2S_MODEConf_Type will be used to
+ 385:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				configure
+ 386:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 387:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 388:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 389:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 390:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 391:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_ModeConfig(LPC_I2S_TypeDef *I2Sx, I2S_MODEConf_Type* ModeConfig,
+ 392:LPC17xxLib/src/lpc17xx_i2s.c **** 		uint8_t TRMode)
+ 393:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 578              	 .loc 1 393 0
+ 579              	 .cfi_startproc
+ 580              	 
+ 581              	 
+ 582              	 
+ 583              	.LVL38:
+ 394:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 395:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_CLKSEL(ModeConfig->clksel));
+ 396:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_4PIN(ModeConfig->fpin));
+ 397:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_MCLK(ModeConfig->mcena));
+ 398:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 399:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 400:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_TX_MODE) {
+ 584              	 .loc 1 400 0
+ 585 0000 CAB9     	 cbnz r2,.L49
+ 401:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2STXMODE &= ~0x0F; //clear bit 3:0 in I2STXMODE register
+ 586              	 .loc 1 401 0
+ 587 0002 036B     	 ldr r3,[r0,#48]
+ 588 0004 23F00F03 	 bic r3,r3,#15
+ 589 0008 0363     	 str r3,[r0,#48]
+ 402:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (ModeConfig->clksel == I2S_CLKSEL_MCLK) {
+ 590              	 .loc 1 402 0
+ 591 000a 0B78     	 ldrb r3,[r1]
+ 592 000c 022B     	 cmp r3,#2
+ 403:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2STXMODE |= 0x02;
+ 593              	 .loc 1 403 0
+ 594 000e 02BF     	 ittt eq
+ 595 0010 036B     	 ldreq r3,[r0,#48]
+ 596 0012 43F00203 	 orreq r3,r3,#2
+ 597 0016 0363     	 streq r3,[r0,#48]
+ 404:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 405:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (ModeConfig->fpin == I2S_4PIN_ENABLE) {
+ 598              	 .loc 1 405 0
+ 599 0018 4B78     	 ldrb r3,[r1,#1]
+ 600 001a 012B     	 cmp r3,#1
+ 406:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2STXMODE |= (1 << 2);
+ 601              	 .loc 1 406 0
+ 602 001c 02BF     	 ittt eq
+ 603 001e 036B     	 ldreq r3,[r0,#48]
+ 604 0020 43F00403 	 orreq r3,r3,#4
+ 605 0024 0363     	 streq r3,[r0,#48]
+ 407:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 408:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (ModeConfig->mcena == I2S_MCLK_ENABLE) {
+ 606              	 .loc 1 408 0
+ 607 0026 8B78     	 ldrb r3,[r1,#2]
+ 608 0028 012B     	 cmp r3,#1
+ 609 002a 1DD1     	 bne .L48
+ 409:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2STXMODE |= (1 << 3);
+ 610              	 .loc 1 409 0
+ 611 002c 036B     	 ldr r3,[r0,#48]
+ 612 002e 43F00803 	 orr r3,r3,#8
+ 613 0032 0363     	 str r3,[r0,#48]
+ 614 0034 7047     	 bx lr
+ 615              	.L49:
+ 410:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 411:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 412:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SRXMODE &= ~0x0F; //clear bit 3:0 in I2STXMODE register
+ 616              	 .loc 1 412 0
+ 617 0036 436B     	 ldr r3,[r0,#52]
+ 618 0038 23F00F03 	 bic r3,r3,#15
+ 619 003c 4363     	 str r3,[r0,#52]
+ 413:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (ModeConfig->clksel == I2S_CLKSEL_MCLK) {
+ 620              	 .loc 1 413 0
+ 621 003e 0B78     	 ldrb r3,[r1]
+ 622 0040 022B     	 cmp r3,#2
+ 414:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SRXMODE |= 0x02;
+ 623              	 .loc 1 414 0
+ 624 0042 02BF     	 ittt eq
+ 625 0044 436B     	 ldreq r3,[r0,#52]
+ 626 0046 43F00203 	 orreq r3,r3,#2
+ 627 004a 4363     	 streq r3,[r0,#52]
+ 415:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 416:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (ModeConfig->fpin == I2S_4PIN_ENABLE) {
+ 628              	 .loc 1 416 0
+ 629 004c 4B78     	 ldrb r3,[r1,#1]
+ 630 004e 012B     	 cmp r3,#1
+ 417:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SRXMODE |= (1 << 2);
+ 631              	 .loc 1 417 0
+ 632 0050 02BF     	 ittt eq
+ 633 0052 436B     	 ldreq r3,[r0,#52]
+ 634 0054 43F00403 	 orreq r3,r3,#4
+ 635 0058 4363     	 streq r3,[r0,#52]
+ 418:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 419:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (ModeConfig->mcena == I2S_MCLK_ENABLE) {
+ 636              	 .loc 1 419 0
+ 637 005a 8B78     	 ldrb r3,[r1,#2]
+ 638 005c 012B     	 cmp r3,#1
+ 420:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SRXMODE |= (1 << 3);
+ 639              	 .loc 1 420 0
+ 640 005e 02BF     	 ittt eq
+ 641 0060 436B     	 ldreq r3,[r0,#52]
+ 642 0062 43F00803 	 orreq r3,r3,#8
+ 643 0066 4363     	 streq r3,[r0,#52]
+ 644              	.L48:
+ 645 0068 7047     	 bx lr
+ 646              	 .cfi_endproc
+ 647              	.LFE69:
+ 649              	 .section .text.I2S_DMAConfig,"ax",%progbits
+ 650              	 .align 1
+ 651              	 .global I2S_DMAConfig
+ 652              	 .syntax unified
+ 653              	 .thumb
+ 654              	 .thumb_func
+ 655              	 .fpu softvfp
+ 657              	I2S_DMAConfig:
+ 658              	.LFB70:
+ 421:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 422:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 423:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 424:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 425:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 426:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Configure DMA operation for I2S
+ 427:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 428:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	DMAConfig pointer to I2S_DMAConf_Type will be used to configure
+ 429:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 430:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 431:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 432:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 433:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 434:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_DMAConfig(LPC_I2S_TypeDef *I2Sx, I2S_DMAConf_Type* DMAConfig,
+ 435:LPC17xxLib/src/lpc17xx_i2s.c **** 		uint8_t TRMode)
+ 436:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 659              	 .loc 1 436 0
+ 660              	 .cfi_startproc
+ 661              	 
+ 662              	 
+ 663              	 
+ 664              	.LVL39:
+ 665 0000 4B78     	 ldrb r3,[r1,#1]
+ 666 0002 0878     	 ldrb r0,[r1]
+ 667              	.LVL40:
+ 437:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 438:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_DMA(DMAConfig->DMAIndex));
+ 439:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_DMA_DEPTH(DMAConfig->depth));
+ 440:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 441:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 442:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_RX_MODE) {
+ 668              	 .loc 1 442 0
+ 669 0004 012A     	 cmp r2,#1
+ 443:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (DMAConfig->DMAIndex == I2S_DMA_1) {
+ 444:LPC17xxLib/src/lpc17xx_i2s.c **** 			LPC_I2S->I2SDMA1 = (DMAConfig->depth) << 8;
+ 670              	 .loc 1 444 0
+ 671 0006 08BF     	 it eq
+ 672 0008 1B02     	 lsleq r3,r3,#8
+ 673 000a 044A     	 ldr r2,.L65
+ 674              	.LVL41:
+ 445:LPC17xxLib/src/lpc17xx_i2s.c **** 		} else {
+ 446:LPC17xxLib/src/lpc17xx_i2s.c **** 			LPC_I2S->I2SDMA2 = (DMAConfig->depth) << 8;
+ 447:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 448:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 449:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (DMAConfig->DMAIndex == I2S_DMA_1) {
+ 450:LPC17xxLib/src/lpc17xx_i2s.c **** 			LPC_I2S->I2SDMA1 = (DMAConfig->depth) << 16;
+ 675              	 .loc 1 450 0
+ 676 000c 18BF     	 it ne
+ 677 000e 1B04     	 lslne r3,r3,#16
+ 449:LPC17xxLib/src/lpc17xx_i2s.c **** 			LPC_I2S->I2SDMA1 = (DMAConfig->depth) << 16;
+ 678              	 .loc 1 449 0
+ 679 0010 08B9     	 cbnz r0,.L61
+ 680              	 .loc 1 450 0
+ 681 0012 5361     	 str r3,[r2,#20]
+ 682 0014 7047     	 bx lr
+ 683              	.L61:
+ 451:LPC17xxLib/src/lpc17xx_i2s.c **** 		} else {
+ 452:LPC17xxLib/src/lpc17xx_i2s.c **** 			LPC_I2S->I2SDMA2 = (DMAConfig->depth) << 16;
+ 684              	 .loc 1 452 0
+ 685 0016 9361     	 str r3,[r2,#24]
+ 686 0018 7047     	 bx lr
+ 687              	.L66:
+ 688 001a 00BF     	 .align 2
+ 689              	.L65:
+ 690 001c 00800A40 	 .word 1074429952
+ 691              	 .cfi_endproc
+ 692              	.LFE70:
+ 694              	 .section .text.I2S_DMACmd,"ax",%progbits
+ 695              	 .align 1
+ 696              	 .global I2S_DMACmd
+ 697              	 .syntax unified
+ 698              	 .thumb
+ 699              	 .thumb_func
+ 700              	 .fpu softvfp
+ 702              	I2S_DMACmd:
+ 703              	.LFB71:
+ 453:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 454:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 455:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 456:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 457:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 458:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Enable/Disable DMA operation for I2S
+ 459:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx: I2S peripheral selected, should be: LPC_I2S
+ 460:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	DMAIndex chose what DMA is used, should be:
+ 461:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_DMA_1 = 0: DMA1
+ 462:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_DMA_2 = 1: DMA2
+ 463:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 464:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 465:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 466:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	NewState is new state of DMA operation, should be:
+ 467:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- ENABLE
+ 468:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- DISABLE
+ 469:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 470:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 471:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_DMACmd(LPC_I2S_TypeDef *I2Sx, uint8_t DMAIndex, uint8_t TRMode,
+ 472:LPC17xxLib/src/lpc17xx_i2s.c **** 		FunctionalState NewState)
+ 473:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 704              	 .loc 1 473 0
+ 705              	 .cfi_startproc
+ 706              	 
+ 707              	 
+ 708              	 
+ 709              	.LVL42:
+ 474:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 475:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 476:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_DMA(DMAIndex));
+ 477:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 478:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 479:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_RX_MODE) {
+ 710              	 .loc 1 479 0
+ 711 0000 012A     	 cmp r2,#1
+ 712 0002 12D1     	 bne .L68
+ 480:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (DMAIndex == I2S_DMA_1) {
+ 713              	 .loc 1 480 0
+ 714 0004 41B9     	 cbnz r1,.L69
+ 481:LPC17xxLib/src/lpc17xx_i2s.c **** 			if (NewState == ENABLE)
+ 715              	 .loc 1 481 0
+ 716 0006 012B     	 cmp r3,#1
+ 482:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA1 |= 0x01;
+ 717              	 .loc 1 482 0
+ 718 0008 4369     	 ldr r3,[r0,#20]
+ 719              	.LVL43:
+ 720 000a 0CBF     	 ite eq
+ 721 000c 43F00103 	 orreq r3,r3,#1
+ 483:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 484:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA1 &= ~0x01;
+ 722              	 .loc 1 484 0
+ 723 0010 23F00103 	 bicne r3,r3,#1
+ 724              	.L76:
+ 485:LPC17xxLib/src/lpc17xx_i2s.c **** 		} else {
+ 486:LPC17xxLib/src/lpc17xx_i2s.c **** 			if (NewState == ENABLE)
+ 487:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA2 |= 0x01;
+ 488:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 489:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA2 &= ~0x01;
+ 490:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 491:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 492:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (DMAIndex == I2S_DMA_1) {
+ 493:LPC17xxLib/src/lpc17xx_i2s.c **** 			if (NewState == ENABLE)
+ 494:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA1 |= 0x02;
+ 495:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 496:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA1 &= ~0x02;
+ 725              	 .loc 1 496 0
+ 726 0014 4361     	 str r3,[r0,#20]
+ 727 0016 7047     	 bx lr
+ 728              	.LVL44:
+ 729              	.L69:
+ 486:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA2 |= 0x01;
+ 730              	 .loc 1 486 0
+ 731 0018 012B     	 cmp r3,#1
+ 487:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 732              	 .loc 1 487 0
+ 733 001a 8369     	 ldr r3,[r0,#24]
+ 734              	.LVL45:
+ 735 001c 0CBF     	 ite eq
+ 736 001e 43F00103 	 orreq r3,r3,#1
+ 489:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 737              	 .loc 1 489 0
+ 738 0022 23F00103 	 bicne r3,r3,#1
+ 739              	.L77:
+ 497:LPC17xxLib/src/lpc17xx_i2s.c **** 		} else {
+ 498:LPC17xxLib/src/lpc17xx_i2s.c **** 			if (NewState == ENABLE)
+ 499:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA2 |= 0x02;
+ 500:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 501:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA2 &= ~0x02;
+ 740              	 .loc 1 501 0
+ 741 0026 8361     	 str r3,[r0,#24]
+ 742 0028 7047     	 bx lr
+ 743              	.LVL46:
+ 744              	.L68:
+ 492:LPC17xxLib/src/lpc17xx_i2s.c **** 			if (NewState == ENABLE)
+ 745              	 .loc 1 492 0
+ 746 002a 39B9     	 cbnz r1,.L73
+ 493:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA1 |= 0x02;
+ 747              	 .loc 1 493 0
+ 748 002c 012B     	 cmp r3,#1
+ 494:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 749              	 .loc 1 494 0
+ 750 002e 4369     	 ldr r3,[r0,#20]
+ 751              	.LVL47:
+ 752 0030 0CBF     	 ite eq
+ 753 0032 43F00203 	 orreq r3,r3,#2
+ 496:LPC17xxLib/src/lpc17xx_i2s.c **** 		} else {
+ 754              	 .loc 1 496 0
+ 755 0036 23F00203 	 bicne r3,r3,#2
+ 756 003a EBE7     	 b .L76
+ 757              	.LVL48:
+ 758              	.L73:
+ 498:LPC17xxLib/src/lpc17xx_i2s.c **** 				I2Sx->I2SDMA2 |= 0x02;
+ 759              	 .loc 1 498 0
+ 760 003c 012B     	 cmp r3,#1
+ 499:LPC17xxLib/src/lpc17xx_i2s.c **** 			else
+ 761              	 .loc 1 499 0
+ 762 003e 8369     	 ldr r3,[r0,#24]
+ 763              	.LVL49:
+ 764 0040 0CBF     	 ite eq
+ 765 0042 43F00203 	 orreq r3,r3,#2
+ 766              	 .loc 1 501 0
+ 767 0046 23F00203 	 bicne r3,r3,#2
+ 768 004a ECE7     	 b .L77
+ 769              	 .cfi_endproc
+ 770              	.LFE71:
+ 772              	 .section .text.I2S_IRQConfig,"ax",%progbits
+ 773              	 .align 1
+ 774              	 .global I2S_IRQConfig
+ 775              	 .syntax unified
+ 776              	 .thumb
+ 777              	 .thumb_func
+ 778              	 .fpu softvfp
+ 780              	I2S_IRQConfig:
+ 781              	.LFB72:
+ 502:LPC17xxLib/src/lpc17xx_i2s.c **** 		}
+ 503:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 504:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 505:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 506:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 507:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Configure IRQ for I2S
+ 508:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 509:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 510:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 511:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 512:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	level is the FIFO level that triggers IRQ request
+ 513:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 514:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 515:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_IRQConfig(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode, uint8_t level) {
+ 782              	 .loc 1 515 0
+ 783              	 .cfi_startproc
+ 784              	 
+ 785              	 
+ 786              	 
+ 787              	.LVL50:
+ 516:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 517:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_TRX(TRMode));
+ 518:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2S_IRQ_LEVEL(level));
+ 519:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 520:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_RX_MODE) {
+ 521:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SIRQ |= (level << 8);
+ 788              	 .loc 1 521 0
+ 789 0000 C369     	 ldr r3,[r0,#28]
+ 520:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SIRQ |= (level << 8);
+ 790              	 .loc 1 520 0
+ 791 0002 0129     	 cmp r1,#1
+ 792              	 .loc 1 521 0
+ 793 0004 0CBF     	 ite eq
+ 794 0006 43EA0222 	 orreq r2,r3,r2,lsl#8
+ 795              	.LVL51:
+ 522:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 523:LPC17xxLib/src/lpc17xx_i2s.c **** 		I2Sx->I2SIRQ |= (level << 16);
+ 796              	 .loc 1 523 0
+ 797 000a 43EA0242 	 orrne r2,r3,r2,lsl#16
+ 798 000e C261     	 str r2,[r0,#28]
+ 799 0010 7047     	 bx lr
+ 800              	 .cfi_endproc
+ 801              	.LFE72:
+ 803              	 .section .text.I2S_IRQCmd,"ax",%progbits
+ 804              	 .align 1
+ 805              	 .global I2S_IRQCmd
+ 806              	 .syntax unified
+ 807              	 .thumb
+ 808              	 .thumb_func
+ 809              	 .fpu softvfp
+ 811              	I2S_IRQCmd:
+ 812              	.LFB73:
+ 524:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 525:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 526:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 527:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 528:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Enable/Disable IRQ for I2S
+ 529:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 530:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 531:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 532:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 533:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	NewState is new state of DMA operation, should be:
+ 534:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- ENABLE
+ 535:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- DISABLE
+ 536:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		none
+ 537:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 538:LPC17xxLib/src/lpc17xx_i2s.c **** void I2S_IRQCmd(LPC_I2S_TypeDef *I2Sx, uint8_t TRMode, FunctionalState NewState) {
+ 813              	 .loc 1 538 0
+ 814              	 .cfi_startproc
+ 815              	 
+ 816              	 
+ 817              	 
+ 818              	.LVL52:
+ 539:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 540:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 541:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 542:LPC17xxLib/src/lpc17xx_i2s.c **** 	if (TRMode == I2S_RX_MODE) {
+ 819              	 .loc 1 542 0
+ 820 0000 0129     	 cmp r1,#1
+ 543:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (NewState == ENABLE)
+ 544:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SIRQ |= 0x01;
+ 821              	 .loc 1 544 0
+ 822 0002 C369     	 ldr r3,[r0,#28]
+ 542:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (NewState == ENABLE)
+ 823              	 .loc 1 542 0
+ 824 0004 07D1     	 bne .L83
+ 543:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (NewState == ENABLE)
+ 825              	 .loc 1 543 0
+ 826 0006 012A     	 cmp r2,#1
+ 827              	 .loc 1 544 0
+ 828 0008 0CBF     	 ite eq
+ 829 000a 43F00103 	 orreq r3,r3,#1
+ 545:LPC17xxLib/src/lpc17xx_i2s.c **** 		else
+ 546:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SIRQ &= ~0x01;
+ 830              	 .loc 1 546 0
+ 831 000e 23F00103 	 bicne r3,r3,#1
+ 832              	.L87:
+ 547:LPC17xxLib/src/lpc17xx_i2s.c **** 		//Enable DMA
+ 548:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 549:LPC17xxLib/src/lpc17xx_i2s.c **** 	} else {
+ 550:LPC17xxLib/src/lpc17xx_i2s.c **** 		if (NewState == ENABLE)
+ 551:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SIRQ |= 0x02;
+ 552:LPC17xxLib/src/lpc17xx_i2s.c **** 		else
+ 553:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SIRQ &= ~0x02;
+ 833              	 .loc 1 553 0
+ 834 0012 C361     	 str r3,[r0,#28]
+ 835 0014 7047     	 bx lr
+ 836              	.L83:
+ 550:LPC17xxLib/src/lpc17xx_i2s.c **** 			I2Sx->I2SIRQ |= 0x02;
+ 837              	 .loc 1 550 0
+ 838 0016 012A     	 cmp r2,#1
+ 551:LPC17xxLib/src/lpc17xx_i2s.c **** 		else
+ 839              	 .loc 1 551 0
+ 840 0018 0CBF     	 ite eq
+ 841 001a 43F00203 	 orreq r3,r3,#2
+ 842              	 .loc 1 553 0
+ 843 001e 23F00203 	 bicne r3,r3,#2
+ 844 0022 F6E7     	 b .L87
+ 845              	 .cfi_endproc
+ 846              	.LFE73:
+ 848              	 .section .text.I2S_GetIRQStatus,"ax",%progbits
+ 849              	 .align 1
+ 850              	 .global I2S_GetIRQStatus
+ 851              	 .syntax unified
+ 852              	 .thumb
+ 853              	 .thumb_func
+ 854              	 .fpu softvfp
+ 856              	I2S_GetIRQStatus:
+ 857              	.LFB74:
+ 554:LPC17xxLib/src/lpc17xx_i2s.c **** 	}
+ 555:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 556:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 557:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 558:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Get I2S interrupt status
+ 559:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 560:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 561:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 562:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 563:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		FunctionState	should be:
+ 564:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- ENABLE: interrupt is enable
+ 565:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- DISABLE: interrupt is disable
+ 566:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 567:LPC17xxLib/src/lpc17xx_i2s.c **** FunctionalState I2S_GetIRQStatus(LPC_I2S_TypeDef *I2Sx,uint8_t TRMode)
+ 568:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 858              	 .loc 1 568 0
+ 859              	 .cfi_startproc
+ 860              	 
+ 861              	 
+ 862              	 
+ 863              	.LVL53:
+ 569:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 570:LPC17xxLib/src/lpc17xx_i2s.c **** 	if(TRMode == I2S_TX_MODE)
+ 571:LPC17xxLib/src/lpc17xx_i2s.c **** 		return ((FunctionalState)((I2Sx->I2SIRQ >> 1)&0x01));
+ 864              	 .loc 1 571 0
+ 865 0000 C069     	 ldr r0,[r0,#28]
+ 866              	.LVL54:
+ 570:LPC17xxLib/src/lpc17xx_i2s.c **** 		return ((FunctionalState)((I2Sx->I2SIRQ >> 1)&0x01));
+ 867              	 .loc 1 570 0
+ 868 0002 11B9     	 cbnz r1,.L89
+ 869              	 .loc 1 571 0
+ 870 0004 C0F34000 	 ubfx r0,r0,#1,#1
+ 871 0008 7047     	 bx lr
+ 872              	.L89:
+ 572:LPC17xxLib/src/lpc17xx_i2s.c **** 	else
+ 573:LPC17xxLib/src/lpc17xx_i2s.c **** 		return ((FunctionalState)((I2Sx->I2SIRQ)&0x01));
+ 873              	 .loc 1 573 0
+ 874 000a 00F00100 	 and r0,r0,#1
+ 574:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 875              	 .loc 1 574 0
+ 876 000e 7047     	 bx lr
+ 877              	 .cfi_endproc
+ 878              	.LFE74:
+ 880              	 .section .text.I2S_GetIRQDepth,"ax",%progbits
+ 881              	 .align 1
+ 882              	 .global I2S_GetIRQDepth
+ 883              	 .syntax unified
+ 884              	 .thumb
+ 885              	 .thumb_func
+ 886              	 .fpu softvfp
+ 888              	I2S_GetIRQDepth:
+ 889              	.LFB75:
+ 575:LPC17xxLib/src/lpc17xx_i2s.c **** 
+ 576:LPC17xxLib/src/lpc17xx_i2s.c **** /********************************************************************//**
+ 577:LPC17xxLib/src/lpc17xx_i2s.c ****  * @brief		Get I2S interrupt depth
+ 578:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	I2Sx I2S peripheral selected, should be: LPC_I2S
+ 579:LPC17xxLib/src/lpc17xx_i2s.c ****  * @param[in]	TRMode is transmit/receive mode, should be:
+ 580:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_TX_MODE = 0: transmit mode
+ 581:LPC17xxLib/src/lpc17xx_i2s.c ****  * 				- I2S_RX_MODE = 1: receive mode
+ 582:LPC17xxLib/src/lpc17xx_i2s.c ****  * @return 		depth of FIFO level on which to create an irq request
+ 583:LPC17xxLib/src/lpc17xx_i2s.c ****  *********************************************************************/
+ 584:LPC17xxLib/src/lpc17xx_i2s.c **** uint8_t I2S_GetIRQDepth(LPC_I2S_TypeDef *I2Sx,uint8_t TRMode)
+ 585:LPC17xxLib/src/lpc17xx_i2s.c **** {
+ 890              	 .loc 1 585 0
+ 891              	 .cfi_startproc
+ 892              	 
+ 893              	 
+ 894              	 
+ 895              	.LVL55:
+ 586:LPC17xxLib/src/lpc17xx_i2s.c **** 	CHECK_PARAM(PARAM_I2Sx(I2Sx));
+ 587:LPC17xxLib/src/lpc17xx_i2s.c **** 	if(TRMode == I2S_TX_MODE)
+ 588:LPC17xxLib/src/lpc17xx_i2s.c **** 		return (((I2Sx->I2SIRQ)>>16)&0xFF);
+ 896              	 .loc 1 588 0
+ 897 0000 C069     	 ldr r0,[r0,#28]
+ 898              	.LVL56:
+ 587:LPC17xxLib/src/lpc17xx_i2s.c **** 		return (((I2Sx->I2SIRQ)>>16)&0xFF);
+ 899              	 .loc 1 587 0
+ 900 0002 11B9     	 cbnz r1,.L92
+ 901              	 .loc 1 588 0
+ 902 0004 C0F30740 	 ubfx r0,r0,#16,#8
+ 903 0008 7047     	 bx lr
+ 904              	.L92:
+ 589:LPC17xxLib/src/lpc17xx_i2s.c **** 	else
+ 590:LPC17xxLib/src/lpc17xx_i2s.c **** 		return (((I2Sx->I2SIRQ)>>8)&0xFF);
+ 905              	 .loc 1 590 0
+ 906 000a C0F30720 	 ubfx r0,r0,#8,#8
+ 591:LPC17xxLib/src/lpc17xx_i2s.c **** }
+ 907              	 .loc 1 591 0
+ 908 000e 7047     	 bx lr
+ 909              	 .cfi_endproc
+ 910              	.LFE75:
+ 912              	 .text
+ 913              	.Letext0:
+ 914              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 915              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 916              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 917              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 918              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 919              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 920              	 .file 8 "LPC17xxLib/inc/lpc17xx_i2s.h"
+ 921              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_i2s.c
+    {standard input}:16     .text.I2S_Init:0000000000000000 $t
+    {standard input}:23     .text.I2S_Init:0000000000000000 I2S_Init
+    {standard input}:51     .text.I2S_Init:0000000000000018 $d
+    {standard input}:57     .text.I2S_Config:0000000000000000 $t
+    {standard input}:64     .text.I2S_Config:0000000000000000 I2S_Config
+    {standard input}:111    .text.I2S_Config:0000000000000030 $d
+    {standard input}:116    .text.I2S_DeInit:0000000000000000 $t
+    {standard input}:123    .text.I2S_DeInit:0000000000000000 I2S_DeInit
+    {standard input}:141    .text.I2S_DeInit:000000000000000c $d
+    {standard input}:146    .text.I2S_GetLevel:0000000000000000 $t
+    {standard input}:153    .text.I2S_GetLevel:0000000000000000 I2S_GetLevel
+    {standard input}:178    .text.I2S_Start:0000000000000000 $t
+    {standard input}:185    .text.I2S_Start:0000000000000000 I2S_Start
+    {standard input}:218    .text.I2S_Send:0000000000000000 $t
+    {standard input}:225    .text.I2S_Send:0000000000000000 I2S_Send
+    {standard input}:240    .text.I2S_Receive:0000000000000000 $t
+    {standard input}:247    .text.I2S_Receive:0000000000000000 I2S_Receive
+    {standard input}:264    .text.I2S_Pause:0000000000000000 $t
+    {standard input}:271    .text.I2S_Pause:0000000000000000 I2S_Pause
+    {standard input}:296    .text.I2S_Mute:0000000000000000 $t
+    {standard input}:303    .text.I2S_Mute:0000000000000000 I2S_Mute
+    {standard input}:328    .text.I2S_Stop:0000000000000000 $t
+    {standard input}:335    .text.I2S_Stop:0000000000000000 I2S_Stop
+    {standard input}:372    .text.I2S_FreqConfig:0000000000000000 $t
+    {standard input}:379    .text.I2S_FreqConfig:0000000000000000 I2S_FreqConfig
+    {standard input}:536    .text.I2S_FreqConfig:00000000000000a0 $d
+    {standard input}:541    .text.I2S_SetBitRate:0000000000000000 $t
+    {standard input}:548    .text.I2S_SetBitRate:0000000000000000 I2S_SetBitRate
+    {standard input}:569    .text.I2S_ModeConfig:0000000000000000 $t
+    {standard input}:576    .text.I2S_ModeConfig:0000000000000000 I2S_ModeConfig
+    {standard input}:650    .text.I2S_DMAConfig:0000000000000000 $t
+    {standard input}:657    .text.I2S_DMAConfig:0000000000000000 I2S_DMAConfig
+    {standard input}:690    .text.I2S_DMAConfig:000000000000001c $d
+    {standard input}:695    .text.I2S_DMACmd:0000000000000000 $t
+    {standard input}:702    .text.I2S_DMACmd:0000000000000000 I2S_DMACmd
+    {standard input}:773    .text.I2S_IRQConfig:0000000000000000 $t
+    {standard input}:780    .text.I2S_IRQConfig:0000000000000000 I2S_IRQConfig
+    {standard input}:804    .text.I2S_IRQCmd:0000000000000000 $t
+    {standard input}:811    .text.I2S_IRQCmd:0000000000000000 I2S_IRQCmd
+    {standard input}:849    .text.I2S_GetIRQStatus:0000000000000000 $t
+    {standard input}:856    .text.I2S_GetIRQStatus:0000000000000000 I2S_GetIRQStatus
+    {standard input}:881    .text.I2S_GetIRQDepth:0000000000000000 $t
+    {standard input}:888    .text.I2S_GetIRQDepth:0000000000000000 I2S_GetIRQDepth
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR
+CLKPWR_GetPCLK

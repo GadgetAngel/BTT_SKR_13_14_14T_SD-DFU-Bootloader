@@ -1,0 +1,1100 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "usbcore.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.usb_provideDescriptors,"ax",%progbits
+  16              	 .align 1
+  17              	 .global usb_provideDescriptors
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	usb_provideDescriptors:
+  24              	.LFB1:
+  25              	 .file 1 "usbcore.c"
+   1:usbcore.c     **** /*****************************************************************************
+   2:usbcore.c     ****  *                                                                            *
+   3:usbcore.c     ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:usbcore.c     ****  *                                                                            *
+   5:usbcore.c     ****  * by Triffid Hunter                                                          *
+   6:usbcore.c     ****  *                                                                            *
+   7:usbcore.c     ****  *                                                                            *
+   8:usbcore.c     ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:usbcore.c     ****  *                                                                            *
+  10:usbcore.c     ****  * This program is free software; you can redistribute it and/or modify       *
+  11:usbcore.c     ****  * it under the terms of the GNU General Public License as published by       *
+  12:usbcore.c     ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:usbcore.c     ****  * (at your option) any later version.                                        *
+  14:usbcore.c     ****  *                                                                            *
+  15:usbcore.c     ****  * This program is distributed in the hope that it will be useful,            *
+  16:usbcore.c     ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:usbcore.c     ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:usbcore.c     ****  * GNU General Public License for more details.                               *
+  19:usbcore.c     ****  *                                                                            *
+  20:usbcore.c     ****  * You should have received a copy of the GNU General Public License          *
+  21:usbcore.c     ****  * along with this program; if not, write to the Free Software                *
+  22:usbcore.c     ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:usbcore.c     ****  *                                                                            *
+  24:usbcore.c     ****  *****************************************************************************/
+  25:usbcore.c     **** 
+  26:usbcore.c     **** #include "usbcore.h"
+  27:usbcore.c     **** 
+  28:usbcore.c     **** #include "usbhw.h"
+  29:usbcore.c     **** #include "lpc17xx_usb.h"
+  30:usbcore.c     **** #include "dfu.h"
+  31:usbcore.c     **** #include "descriptor.h"
+  32:usbcore.c     **** 
+  33:usbcore.c     **** #include <stdio.h>
+  34:usbcore.c     **** 
+  35:usbcore.c     **** #ifndef NULL
+  36:usbcore.c     **** #define NULL ((void *) 0)
+  37:usbcore.c     **** #endif
+  38:usbcore.c     **** 
+  39:usbcore.c     **** #if !(defined DEBUG)
+  40:usbcore.c     **** #define printf(...) do {} while (0)
+  41:usbcore.c     **** #endif
+  42:usbcore.c     **** 
+  43:usbcore.c     **** CONTROL_TRANSFER control;
+  44:usbcore.c     **** 
+  45:usbcore.c     **** void DFU_EP0in(void);
+  46:usbcore.c     **** void DFU_EP0out(void);
+  47:usbcore.c     **** 
+  48:usbcore.c     **** uint8_t control_buffer[64];
+  49:usbcore.c     **** 
+  50:usbcore.c     **** usbdesc_base *descriptors;
+  51:usbcore.c     **** 
+  52:usbcore.c     **** void usb_provideDescriptors(void *d)
+  53:usbcore.c     **** {
+  26              	 .loc 1 53 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+  54:usbcore.c     **** 	descriptors = (usbdesc_base *) d;
+  32              	 .loc 1 54 0
+  33 0000 014B     	 ldr r3,.L2
+  34 0002 1860     	 str r0,[r3]
+  35 0004 7047     	 bx lr
+  36              	.L3:
+  37 0006 00BF     	 .align 2
+  38              	.L2:
+  39 0008 00000000 	 .word descriptors
+  40              	 .cfi_endproc
+  41              	.LFE1:
+  43              	 .section .text.requestGetStatus,"ax",%progbits
+  44              	 .align 1
+  45              	 .global requestGetStatus
+  46              	 .syntax unified
+  47              	 .thumb
+  48              	 .thumb_func
+  49              	 .fpu softvfp
+  51              	requestGetStatus:
+  52              	.LFB2:
+  55:usbcore.c     **** }
+  56:usbcore.c     **** 
+  57:usbcore.c     **** void requestGetStatus(void)
+  58:usbcore.c     **** {
+  53              	 .loc 1 58 0
+  54              	 .cfi_startproc
+  55              	 
+  56              	 
+  57              	 
+  59:usbcore.c     **** 	control_buffer[0] = control_buffer[1] = 0;
+  58              	 .loc 1 59 0
+  59 0000 0023     	 movs r3,#0
+  60:usbcore.c     **** 	control.bufferlen = 2;
+  60              	 .loc 1 60 0
+  61 0002 0221     	 movs r1,#2
+  59:usbcore.c     **** 	control_buffer[0] = control_buffer[1] = 0;
+  62              	 .loc 1 59 0
+  63 0004 044A     	 ldr r2,.L5
+  64 0006 5370     	 strb r3,[r2,#1]
+  65 0008 1370     	 strb r3,[r2]
+  66              	 .loc 1 60 0
+  67 000a 044A     	 ldr r2,.L5+4
+  68 000c 1171     	 strb r1,[r2,#4]
+  69 000e 5371     	 strb r3,[r2,#5]
+  70 0010 9371     	 strb r3,[r2,#6]
+  71 0012 D371     	 strb r3,[r2,#7]
+  72 0014 7047     	 bx lr
+  73              	.L6:
+  74 0016 00BF     	 .align 2
+  75              	.L5:
+  76 0018 00000000 	 .word control_buffer
+  77 001c 00000000 	 .word control
+  78              	 .cfi_endproc
+  79              	.LFE2:
+  81              	 .section .text.requestGetDescriptor,"ax",%progbits
+  82              	 .align 1
+  83              	 .global requestGetDescriptor
+  84              	 .syntax unified
+  85              	 .thumb
+  86              	 .thumb_func
+  87              	 .fpu softvfp
+  89              	requestGetDescriptor:
+  90              	.LFB3:
+  61:usbcore.c     **** }
+  62:usbcore.c     **** 
+  63:usbcore.c     **** void requestGetDescriptor(void)
+  64:usbcore.c     **** {
+  91              	 .loc 1 64 0
+  92              	 .cfi_startproc
+  93              	 
+  94              	 
+  65:usbcore.c     **** 	uint8_t dType = control.setup.wValue >> 8;
+  66:usbcore.c     **** 	uint8_t dIndex = control.setup.wValue & 0xFF;
+  67:usbcore.c     **** 
+  68:usbcore.c     **** 	usbdesc_base *d = descriptors;
+  69:usbcore.c     **** 
+  70:usbcore.c     **** 	int i = 0;
+  95              	 .loc 1 70 0
+  96 0000 0021     	 movs r1,#0
+  64:usbcore.c     **** 	uint8_t dType = control.setup.wValue >> 8;
+  97              	 .loc 1 64 0
+  98 0002 F0B5     	 push {r4,r5,r6,r7,lr}
+  99              	 .cfi_def_cfa_offset 20
+ 100              	 .cfi_offset 4,-20
+ 101              	 .cfi_offset 5,-16
+ 102              	 .cfi_offset 6,-12
+ 103              	 .cfi_offset 7,-8
+ 104              	 .cfi_offset 14,-4
+  65:usbcore.c     **** 	uint8_t dType = control.setup.wValue >> 8;
+ 105              	 .loc 1 65 0
+ 106 0004 184B     	 ldr r3,.L22
+  68:usbcore.c     **** 
+ 107              	 .loc 1 68 0
+ 108 0006 194A     	 ldr r2,.L22+4
+  65:usbcore.c     **** 	uint8_t dType = control.setup.wValue >> 8;
+ 109              	 .loc 1 65 0
+ 110 0008 9C89     	 ldrh r4,[r3,#12]
+  68:usbcore.c     **** 
+ 111              	 .loc 1 68 0
+ 112 000a 1268     	 ldr r2,[r2]
+  65:usbcore.c     **** 	uint8_t dType = control.setup.wValue >> 8;
+ 113              	 .loc 1 65 0
+ 114 000c 250A     	 lsrs r5,r4,#8
+ 115              	.LVL1:
+  71:usbcore.c     **** 
+  72:usbcore.c     **** 	while (d->bLength > 0)
+  73:usbcore.c     **** 	{
+  74:usbcore.c     **** 		if (d->bDescType == dType)
+  75:usbcore.c     **** 		{
+  76:usbcore.c     **** 			switch (d->bDescType)
+ 116              	 .loc 1 76 0
+ 117 000e 6E1E     	 subs r6,r5,#1
+  66:usbcore.c     **** 
+ 118              	 .loc 1 66 0
+ 119 0010 E4B2     	 uxtb r4,r4
+ 120              	.LVL2:
+ 121              	.L8:
+  72:usbcore.c     **** 	{
+ 122              	 .loc 1 72 0
+ 123 0012 1078     	 ldrb r0,[r2]
+ 124 0014 30B9     	 cbnz r0,.L20
+  77:usbcore.c     **** 			{
+  78:usbcore.c     **** 				case DT_DEVICE:
+  79:usbcore.c     **** 					dIndex = i = 0;
+  80:usbcore.c     **** 					break;
+  81:usbcore.c     **** 				case DT_CONFIGURATION:
+  82:usbcore.c     **** 					dIndex = i = ((usbdesc_configuration *) d)->bConfigurationValue;
+  83:usbcore.c     **** 					break;
+  84:usbcore.c     **** 				case DT_INTERFACE:
+  85:usbcore.c     **** 					i = ((usbdesc_interface *) d)->bInterfaceNumber;
+  86:usbcore.c     **** 					break;
+  87:usbcore.c     **** 				case DT_ENDPOINT:
+  88:usbcore.c     **** 					i = ((usbdesc_endpoint *) d)->bEndpointAddress;
+  89:usbcore.c     **** 					break;
+  90:usbcore.c     **** 			}
+  91:usbcore.c     **** 			if (i == dIndex)
+  92:usbcore.c     **** 			{
+  93:usbcore.c     **** 				control.buffer = d;
+  94:usbcore.c     **** 				if (dType == DT_CONFIGURATION)
+  95:usbcore.c     **** 				{
+  96:usbcore.c     **** 					control.bufferlen = ((usbdesc_configuration *) d)->wTotalLength;
+  97:usbcore.c     **** 				}
+  98:usbcore.c     **** 				else
+  99:usbcore.c     **** 				{
+ 100:usbcore.c     **** 					control.bufferlen = d->bLength;
+ 101:usbcore.c     **** 				}
+ 102:usbcore.c     **** 				if (control.bufferlen > control.setup.wLength)
+ 103:usbcore.c     **** 					control.bufferlen = control.setup.wLength;
+ 104:usbcore.c     **** // 				printf("FOUND descriptor 0x%x:0x%x with length %d\n", dType, dIndex, control.bufferlen);
+ 105:usbcore.c     **** 				return;
+ 106:usbcore.c     **** 			}
+ 107:usbcore.c     **** 			i++;
+ 108:usbcore.c     **** 		}
+ 109:usbcore.c     **** 
+ 110:usbcore.c     **** 		d = (usbdesc_base *) (((uint8_t *) d) + d->bLength);
+ 111:usbcore.c     **** 	}
+ 112:usbcore.c     **** // 	printf("descriptor 0x%x:0x%x NOT FOUND\n", dType, dIndex);
+ 113:usbcore.c     **** 	control.bufferlen = 0;
+ 114:usbcore.c     **** 	control.zlp = 1;
+ 125              	 .loc 1 114 0
+ 126 0016 0122     	 movs r2,#1
+ 127              	.LVL3:
+ 113:usbcore.c     **** 	control.zlp = 1;
+ 128              	 .loc 1 113 0
+ 129 0018 1871     	 strb r0,[r3,#4]
+ 130 001a 5871     	 strb r0,[r3,#5]
+ 131 001c 9871     	 strb r0,[r3,#6]
+ 132 001e D871     	 strb r0,[r3,#7]
+ 133              	 .loc 1 114 0
+ 134 0020 1A72     	 strb r2,[r3,#8]
+ 135              	.L7:
+ 136 0022 F0BD     	 pop {r4,r5,r6,r7,pc}
+ 137              	.LVL4:
+ 138              	.L20:
+  74:usbcore.c     **** 		{
+ 139              	 .loc 1 74 0
+ 140 0024 5778     	 ldrb r7,[r2,#1]
+ 141 0026 BD42     	 cmp r5,r7
+ 142 0028 1CD1     	 bne .L9
+  76:usbcore.c     **** 			{
+ 143              	 .loc 1 76 0
+ 144 002a 042E     	 cmp r6,#4
+ 145 002c 06D8     	 bhi .L11
+ 146 002e DFE806F0 	 tbb [pc,r6]
+ 147              	.L12:
+ 148 0032 15       	 .byte (.L21-.L12)/2
+ 149 0033 03       	 .byte (.L13-.L12)/2
+ 150 0034 05       	 .byte (.L11-.L12)/2
+ 151 0035 13       	 .byte (.L15-.L12)/2
+ 152 0036 13       	 .byte (.L15-.L12)/2
+ 153 0037 00       	 .p2align 1
+ 154              	.L13:
+ 155              	.LVL5:
+  82:usbcore.c     **** 					break;
+ 156              	 .loc 1 82 0
+ 157 0038 5479     	 ldrb r4,[r2,#5]
+ 158              	.LVL6:
+ 159 003a 2146     	 mov r1,r4
+ 160              	.LVL7:
+ 161              	.L11:
+  91:usbcore.c     **** 			{
+ 162              	 .loc 1 91 0
+ 163 003c A142     	 cmp r1,r4
+ 164 003e 10D1     	 bne .L16
+  94:usbcore.c     **** 				{
+ 165              	 .loc 1 94 0
+ 166 0040 022F     	 cmp r7,#2
+  93:usbcore.c     **** 				if (dType == DT_CONFIGURATION)
+ 167              	 .loc 1 93 0
+ 168 0042 1A60     	 str r2,[r3]
+  96:usbcore.c     **** 				}
+ 169              	 .loc 1 96 0
+ 170 0044 0ABF     	 itet eq
+ 171 0046 5288     	 ldrheq r2,[r2,#2]
+ 172              	.LVL8:
+ 100:usbcore.c     **** 				}
+ 173              	 .loc 1 100 0
+ 174 0048 5860     	 strne r0,[r3,#4]
+  96:usbcore.c     **** 				}
+ 175              	 .loc 1 96 0
+ 176 004a 5A60     	 streq r2,[r3,#4]
+ 177              	.LBB4:
+ 178              	.LBB5:
+ 102:usbcore.c     **** 					control.bufferlen = control.setup.wLength;
+ 179              	 .loc 1 102 0
+ 180 004c 5968     	 ldr r1,[r3,#4]
+ 181 004e 1A8A     	 ldrh r2,[r3,#16]
+ 182 0050 9142     	 cmp r1,r2
+ 183 0052 E6DD     	 ble .L7
+ 103:usbcore.c     **** // 				printf("FOUND descriptor 0x%x:0x%x with length %d\n", dType, dIndex, control.bufferlen);
+ 184              	 .loc 1 103 0
+ 185 0054 5A60     	 str r2,[r3,#4]
+ 186 0056 F0BD     	 pop {r4,r5,r6,r7,pc}
+ 187              	.LVL9:
+ 188              	.L15:
+ 189              	.LBE5:
+ 190              	.LBE4:
+  88:usbcore.c     **** 					break;
+ 191              	 .loc 1 88 0
+ 192 0058 9178     	 ldrb r1,[r2,#2]
+ 193              	.LVL10:
+  89:usbcore.c     **** 			}
+ 194              	 .loc 1 89 0
+ 195 005a EFE7     	 b .L11
+ 196              	.LVL11:
+ 197              	.L21:
+  79:usbcore.c     **** 					break;
+ 198              	 .loc 1 79 0
+ 199 005c 0021     	 movs r1,#0
+ 200              	.LVL12:
+ 201 005e 0C46     	 mov r4,r1
+ 202 0060 ECE7     	 b .L11
+ 203              	.LVL13:
+ 204              	.L16:
+ 107:usbcore.c     **** 		}
+ 205              	 .loc 1 107 0
+ 206 0062 0131     	 adds r1,r1,#1
+ 207              	.LVL14:
+ 208              	.L9:
+ 110:usbcore.c     **** 	}
+ 209              	 .loc 1 110 0
+ 210 0064 0244     	 add r2,r2,r0
+ 211              	.LVL15:
+ 212 0066 D4E7     	 b .L8
+ 213              	.L23:
+ 214              	 .align 2
+ 215              	.L22:
+ 216 0068 00000000 	 .word control
+ 217 006c 00000000 	 .word descriptors
+ 218              	 .cfi_endproc
+ 219              	.LFE3:
+ 221              	 .section .text.requestSetConfiguration,"ax",%progbits
+ 222              	 .align 1
+ 223              	 .global requestSetConfiguration
+ 224              	 .syntax unified
+ 225              	 .thumb
+ 226              	 .thumb_func
+ 227              	 .fpu softvfp
+ 229              	requestSetConfiguration:
+ 230              	.LFB4:
+ 115:usbcore.c     **** }
+ 116:usbcore.c     **** 
+ 117:usbcore.c     **** void requestSetConfiguration(void)
+ 118:usbcore.c     **** {
+ 231              	 .loc 1 118 0
+ 232              	 .cfi_startproc
+ 233              	 
+ 234              	 
+ 235              	 
+ 119:usbcore.c     **** 	SIE_ConfigureDevice(1);
+ 236              	 .loc 1 119 0
+ 237 0000 0120     	 movs r0,#1
+ 238 0002 014B     	 ldr r3,.L25
+ 239 0004 1847     	 bx r3
+ 240              	.LVL16:
+ 241              	.L26:
+ 242 0006 00BF     	 .align 2
+ 243              	.L25:
+ 244 0008 00000000 	 .word SIE_ConfigureDevice
+ 245              	 .cfi_endproc
+ 246              	.LFE4:
+ 248              	 .section .text.requestGetConfiguration,"ax",%progbits
+ 249              	 .align 1
+ 250              	 .global requestGetConfiguration
+ 251              	 .syntax unified
+ 252              	 .thumb
+ 253              	 .thumb_func
+ 254              	 .fpu softvfp
+ 256              	requestGetConfiguration:
+ 257              	.LFB5:
+ 120:usbcore.c     **** }
+ 121:usbcore.c     **** 
+ 122:usbcore.c     **** void requestGetConfiguration(void)
+ 123:usbcore.c     **** {
+ 258              	 .loc 1 123 0
+ 259              	 .cfi_startproc
+ 260              	 
+ 261              	 
+ 262              	 
+ 124:usbcore.c     **** 	control_buffer[0] = 1;
+ 263              	 .loc 1 124 0
+ 264 0000 0121     	 movs r1,#1
+ 125:usbcore.c     **** 	control.bufferlen = 1;
+ 265              	 .loc 1 125 0
+ 266 0002 0022     	 movs r2,#0
+ 124:usbcore.c     **** 	control_buffer[0] = 1;
+ 267              	 .loc 1 124 0
+ 268 0004 034B     	 ldr r3,.L28
+ 269 0006 1970     	 strb r1,[r3]
+ 270              	 .loc 1 125 0
+ 271 0008 034B     	 ldr r3,.L28+4
+ 272 000a 1971     	 strb r1,[r3,#4]
+ 273 000c 5A71     	 strb r2,[r3,#5]
+ 274 000e 9A71     	 strb r2,[r3,#6]
+ 275 0010 DA71     	 strb r2,[r3,#7]
+ 276 0012 7047     	 bx lr
+ 277              	.L29:
+ 278              	 .align 2
+ 279              	.L28:
+ 280 0014 00000000 	 .word control_buffer
+ 281 0018 00000000 	 .word control
+ 282              	 .cfi_endproc
+ 283              	.LFE5:
+ 285              	 .section .text.EP0Complete,"ax",%progbits
+ 286              	 .align 1
+ 287              	 .global EP0Complete
+ 288              	 .syntax unified
+ 289              	 .thumb
+ 290              	 .thumb_func
+ 291              	 .fpu softvfp
+ 293              	EP0Complete:
+ 294              	.LFB6:
+ 126:usbcore.c     **** }
+ 127:usbcore.c     **** 
+ 128:usbcore.c     **** void EP0Complete(void)
+ 129:usbcore.c     **** {
+ 295              	 .loc 1 129 0
+ 296              	 .cfi_startproc
+ 297              	 
+ 298              	 
+ 299              	 
+ 130:usbcore.c     **** 	printf(" Complete\n");
+ 131:usbcore.c     **** 	if ((control.setup.bmRequestType & 0x7C) == 0)
+ 300              	 .loc 1 131 0
+ 301 0000 0348     	 ldr r0,.L32
+ 302 0002 837A     	 ldrb r3,[r0,#10]
+ 303 0004 13F07C0F 	 tst r3,#124
+ 304 0008 01D0     	 beq .L30
+ 132:usbcore.c     **** 	{
+ 133:usbcore.c     **** 	}
+ 134:usbcore.c     **** 	else
+ 135:usbcore.c     **** 	{
+ 136:usbcore.c     **** 		DFU_transferComplete(&control);
+ 305              	 .loc 1 136 0
+ 306 000a 024B     	 ldr r3,.L32+4
+ 307 000c 1847     	 bx r3
+ 308              	.LVL17:
+ 309              	.L30:
+ 310 000e 7047     	 bx lr
+ 311              	.L33:
+ 312              	 .align 2
+ 313              	.L32:
+ 314 0010 00000000 	 .word control
+ 315 0014 00000000 	 .word DFU_transferComplete
+ 316              	 .cfi_endproc
+ 317              	.LFE6:
+ 319              	 .section .text.EP0setup,"ax",%progbits
+ 320              	 .align 1
+ 321              	 .global EP0setup
+ 322              	 .syntax unified
+ 323              	 .thumb
+ 324              	 .thumb_func
+ 325              	 .fpu softvfp
+ 327              	EP0setup:
+ 328              	.LFB7:
+ 137:usbcore.c     **** 	}
+ 138:usbcore.c     **** }
+ 139:usbcore.c     **** 
+ 140:usbcore.c     **** void EP0setup(void)
+ 141:usbcore.c     **** {
+ 329              	 .loc 1 141 0
+ 330              	 .cfi_startproc
+ 331              	 
+ 332              	 
+ 333 0000 10B5     	 push {r4,lr}
+ 334              	 .cfi_def_cfa_offset 8
+ 335              	 .cfi_offset 4,-8
+ 336              	 .cfi_offset 14,-4
+ 142:usbcore.c     **** // 	printf("SETUP\n");
+ 143:usbcore.c     **** 
+ 144:usbcore.c     **** 	int l;
+ 145:usbcore.c     **** 
+ 146:usbcore.c     **** 	if ((l = usb_read_packet(EP0OUT, &control.setup, 8)) == 8)
+ 337              	 .loc 1 146 0
+ 338 0002 1E4C     	 ldr r4,.L45
+ 339 0004 0822     	 movs r2,#8
+ 340 0006 2146     	 mov r1,r4
+ 341 0008 0020     	 movs r0,#0
+ 342 000a 1D4B     	 ldr r3,.L45+4
+ 343 000c 9847     	 blx r3
+ 344              	.LVL18:
+ 345 000e 0828     	 cmp r0,#8
+ 346 0010 33D1     	 bne .L34
+ 147:usbcore.c     **** 	{
+ 148:usbcore.c     **** 		control.complete = 0;
+ 347              	 .loc 1 148 0
+ 348 0012 0023     	 movs r3,#0
+ 349 0014 A4F10A00 	 sub r0,r4,#10
+ 350              	.LVL19:
+ 351 0018 4372     	 strb r3,[r0,#9]
+ 149:usbcore.c     **** 		control.buffer = control_buffer;
+ 352              	 .loc 1 149 0
+ 353 001a 1A4B     	 ldr r3,.L45+8
+ 354 001c 44F80A3C 	 str r3,[r4,#-10]
+ 150:usbcore.c     **** 		control.bufferlen = control.setup.wLength;
+ 355              	 .loc 1 150 0
+ 356 0020 038A     	 ldrh r3,[r0,#16]
+ 357 0022 4360     	 str r3,[r0,#4]
+ 151:usbcore.c     **** 
+ 152:usbcore.c     **** // 		printf("bmRequestType: 0x%x\n", control.setup.bmRequestType);
+ 153:usbcore.c     **** // 		printf("bRequest     : 0x%x\n", control.setup.bRequest);
+ 154:usbcore.c     **** // 		printf("wValue       : 0x%x\n", control.setup.wValue);
+ 155:usbcore.c     **** // 		printf("wIndex       : 0x%x\n", control.setup.wIndex);
+ 156:usbcore.c     **** // 		printf("wLength      : 0x%x\n", control.setup.wLength);
+ 157:usbcore.c     **** 
+ 158:usbcore.c     **** 		printf("S[0x%x 0x%x 0x%x 0x%x 0x%x]: ", control.setup.bmRequestType, control.setup.bRequest, cont
+ 159:usbcore.c     **** 
+ 160:usbcore.c     **** 		if ((control.setup.bmRequestType & 0x7C) == 0)
+ 358              	 .loc 1 160 0
+ 359 0024 837A     	 ldrb r3,[r0,#10]
+ 360 0026 13F07C0F 	 tst r3,#124
+ 361 002a 22D1     	 bne .L36
+ 161:usbcore.c     **** 		{
+ 162:usbcore.c     **** 			switch(control.setup.bRequest)
+ 362              	 .loc 1 162 0
+ 363 002c C27A     	 ldrb r2,[r0,#11]
+ 364 002e 092A     	 cmp r2,#9
+ 365 0030 1BD8     	 bhi .L37
+ 366 0032 DFE802F0 	 tbb [pc,r2]
+ 367              	.L39:
+ 368 0036 05       	 .byte (.L38-.L39)/2
+ 369 0037 22       	 .byte (.L34-.L39)/2
+ 370 0038 1A       	 .byte (.L37-.L39)/2
+ 371 0039 22       	 .byte (.L34-.L39)/2
+ 372 003a 1A       	 .byte (.L37-.L39)/2
+ 373 003b 09       	 .byte (.L40-.L39)/2
+ 374 003c 14       	 .byte (.L41-.L39)/2
+ 375 003d 22       	 .byte (.L34-.L39)/2
+ 376 003e 16       	 .byte (.L42-.L39)/2
+ 377 003f 18       	 .byte (.L43-.L39)/2
+ 378              	 .p2align 1
+ 379              	.L38:
+ 163:usbcore.c     **** 			{
+ 164:usbcore.c     **** 				case REQ_GET_STATUS:
+ 165:usbcore.c     ****  					requestGetStatus();
+ 380              	 .loc 1 165 0
+ 381 0040 114B     	 ldr r3,.L45+12
+ 382              	.L44:
+ 166:usbcore.c     **** 					break;
+ 167:usbcore.c     **** 				case REQ_CLEAR_FEATURE:
+ 168:usbcore.c     **** 					break;
+ 169:usbcore.c     **** 				case REQ_SET_FEATURE:
+ 170:usbcore.c     **** 					break;
+ 171:usbcore.c     **** 				case REQ_SET_ADDRESS:
+ 172:usbcore.c     **** 					SIE_SetAddress(control.setup.wValue);
+ 173:usbcore.c     **** 					printf("USB: Got USB Address %d\n", control.setup.wValue);
+ 174:usbcore.c     **** 					usb_write_packet(EP0IN, NULL, 0);
+ 175:usbcore.c     **** 					break;
+ 176:usbcore.c     **** 				case REQ_GET_DESCRIPTOR:
+ 177:usbcore.c     **** 					requestGetDescriptor();
+ 178:usbcore.c     **** 					break;
+ 179:usbcore.c     **** 				case REQ_SET_DESCRIPTOR:
+ 180:usbcore.c     **** 					break;
+ 181:usbcore.c     **** 				case REQ_GET_CONFIGURATION:
+ 182:usbcore.c     **** 					requestGetConfiguration();
+ 183:usbcore.c     **** 					break;
+ 184:usbcore.c     **** 				case REQ_SET_CONFIGURATION:
+ 185:usbcore.c     **** 					requestSetConfiguration();
+ 186:usbcore.c     **** 					break;
+ 187:usbcore.c     **** 				default:
+ 188:usbcore.c     **** 					usb_ep0_stall();
+ 189:usbcore.c     **** 					break;
+ 190:usbcore.c     **** 			}
+ 191:usbcore.c     **** 		}
+ 192:usbcore.c     **** 		else
+ 193:usbcore.c     **** 		{
+ 194:usbcore.c     **** 			DFU_controlTransfer(&control);
+ 195:usbcore.c     **** 		}
+ 196:usbcore.c     **** 	}
+ 197:usbcore.c     **** // 	else
+ 198:usbcore.c     **** // 	{
+ 199:usbcore.c     **** // 		printf("Got a setup packet with size %d\n", l);
+ 200:usbcore.c     **** // 	}
+ 201:usbcore.c     **** }
+ 383              	 .loc 1 201 0
+ 384 0042 BDE81040 	 pop {r4,lr}
+ 385              	 .cfi_remember_state
+ 386              	 .cfi_restore 14
+ 387              	 .cfi_restore 4
+ 388              	 .cfi_def_cfa_offset 0
+ 177:usbcore.c     **** 					break;
+ 389              	 .loc 1 177 0
+ 390 0046 1847     	 bx r3
+ 391              	.LVL20:
+ 392              	.L40:
+ 393              	 .cfi_restore_state
+ 172:usbcore.c     **** 					printf("USB: Got USB Address %d\n", control.setup.wValue);
+ 394              	 .loc 1 172 0
+ 395 0048 8089     	 ldrh r0,[r0,#12]
+ 396 004a 104B     	 ldr r3,.L45+16
+ 397 004c C0B2     	 uxtb r0,r0
+ 398 004e 9847     	 blx r3
+ 399              	.LVL21:
+ 400              	 .loc 1 201 0
+ 401 0050 BDE81040 	 pop {r4,lr}
+ 402              	 .cfi_remember_state
+ 403              	 .cfi_restore 14
+ 404              	 .cfi_restore 4
+ 405              	 .cfi_def_cfa_offset 0
+ 174:usbcore.c     **** 					break;
+ 406              	 .loc 1 174 0
+ 407 0054 0022     	 movs r2,#0
+ 408 0056 8020     	 movs r0,#128
+ 409 0058 1146     	 mov r1,r2
+ 410 005a 0D4B     	 ldr r3,.L45+20
+ 411 005c 1847     	 bx r3
+ 412              	.LVL22:
+ 413              	.L41:
+ 414              	 .cfi_restore_state
+ 177:usbcore.c     **** 					break;
+ 415              	 .loc 1 177 0
+ 416 005e 0D4B     	 ldr r3,.L45+24
+ 417 0060 EFE7     	 b .L44
+ 418              	.L42:
+ 182:usbcore.c     **** 					break;
+ 419              	 .loc 1 182 0
+ 420 0062 0D4B     	 ldr r3,.L45+28
+ 421 0064 EDE7     	 b .L44
+ 422              	.L43:
+ 185:usbcore.c     **** 					break;
+ 423              	 .loc 1 185 0
+ 424 0066 0D4B     	 ldr r3,.L45+32
+ 425 0068 EBE7     	 b .L44
+ 426              	.L37:
+ 188:usbcore.c     **** 					break;
+ 427              	 .loc 1 188 0
+ 428 006a 0D4B     	 ldr r3,.L45+36
+ 429              	 .loc 1 201 0
+ 430 006c BDE81040 	 pop {r4,lr}
+ 431              	 .cfi_remember_state
+ 432              	 .cfi_restore 14
+ 433              	 .cfi_restore 4
+ 434              	 .cfi_def_cfa_offset 0
+ 188:usbcore.c     **** 					break;
+ 435              	 .loc 1 188 0
+ 436 0070 1847     	 bx r3
+ 437              	.LVL23:
+ 438              	.L36:
+ 439              	 .cfi_restore_state
+ 194:usbcore.c     **** 		}
+ 440              	 .loc 1 194 0
+ 441 0072 0C4B     	 ldr r3,.L45+40
+ 442              	 .loc 1 201 0
+ 443 0074 BDE81040 	 pop {r4,lr}
+ 444              	 .cfi_remember_state
+ 445              	 .cfi_restore 14
+ 446              	 .cfi_restore 4
+ 447              	 .cfi_def_cfa_offset 0
+ 194:usbcore.c     **** 		}
+ 448              	 .loc 1 194 0
+ 449 0078 1847     	 bx r3
+ 450              	.LVL24:
+ 451              	.L34:
+ 452              	 .cfi_restore_state
+ 453 007a 10BD     	 pop {r4,pc}
+ 454              	.L46:
+ 455              	 .align 2
+ 456              	.L45:
+ 457 007c 0A000000 	 .word control+10
+ 458 0080 00000000 	 .word usb_read_packet
+ 459 0084 00000000 	 .word control_buffer
+ 460 0088 00000000 	 .word requestGetStatus
+ 461 008c 00000000 	 .word SIE_SetAddress
+ 462 0090 00000000 	 .word usb_write_packet
+ 463 0094 00000000 	 .word requestGetDescriptor
+ 464 0098 00000000 	 .word requestGetConfiguration
+ 465 009c 00000000 	 .word requestSetConfiguration
+ 466 00a0 00000000 	 .word usb_ep0_stall
+ 467 00a4 00000000 	 .word DFU_controlTransfer
+ 468              	 .cfi_endproc
+ 469              	.LFE7:
+ 471              	 .section .text.EP0in,"ax",%progbits
+ 472              	 .align 1
+ 473              	 .global EP0in
+ 474              	 .syntax unified
+ 475              	 .thumb
+ 476              	 .thumb_func
+ 477              	 .fpu softvfp
+ 479              	EP0in:
+ 480              	.LFB8:
+ 202:usbcore.c     **** 
+ 203:usbcore.c     **** void EP0in(void)
+ 204:usbcore.c     **** {
+ 481              	 .loc 1 204 0
+ 482              	 .cfi_startproc
+ 483              	 
+ 484              	 
+ 485 0000 70B5     	 push {r4,r5,r6,lr}
+ 486              	 .cfi_def_cfa_offset 16
+ 487              	 .cfi_offset 4,-16
+ 488              	 .cfi_offset 5,-12
+ 489              	 .cfi_offset 6,-8
+ 490              	 .cfi_offset 14,-4
+ 205:usbcore.c     **** // 	printf("EP0IN %d (%d)\n", control.complete, control.bufferlen);
+ 206:usbcore.c     **** 	if (control.complete == 0)
+ 491              	 .loc 1 206 0
+ 492 0002 194C     	 ldr r4,.L57
+ 493 0004 637A     	 ldrb r3,[r4,#9]
+ 494 0006 73BB     	 cbnz r3,.L47
+ 207:usbcore.c     **** 	{
+ 208:usbcore.c     **** 		if (control.setup.bmRequestType_Data_Transfer_Direction == DATA_DIRECTION_DEVICE_TO_HOST)
+ 495              	 .loc 1 208 0
+ 496 0008 94F90A30 	 ldrsb r3,[r4,#10]
+ 497 000c 6568     	 ldr r5,[r4,#4]
+ 498 000e 002B     	 cmp r3,#0
+ 499 0010 1DDA     	 bge .L50
+ 209:usbcore.c     **** 		{
+ 210:usbcore.c     **** 			if (control.bufferlen)
+ 500              	 .loc 1 210 0
+ 501 0012 9DB1     	 cbz r5,.L51
+ 502              	.LVL25:
+ 503              	.LBB6:
+ 211:usbcore.c     **** 			{
+ 212:usbcore.c     **** 				int l = control.bufferlen;
+ 213:usbcore.c     **** 				if (l > sizeof(control_buffer))
+ 214:usbcore.c     **** 					l = sizeof(control_buffer);
+ 504              	 .loc 1 214 0
+ 505 0014 412D     	 cmp r5,#65
+ 506              	.LVL26:
+ 215:usbcore.c     **** 				l = usb_write_packet(EP0IN, control.buffer, l);
+ 507              	 .loc 1 215 0
+ 508 0016 34BF     	 ite cc
+ 509 0018 2A46     	 movcc r2,r5
+ 510 001a 4022     	 movcs r2,#64
+ 511 001c 134B     	 ldr r3,.L57+4
+ 512 001e 2168     	 ldr r1,[r4]
+ 513 0020 8020     	 movs r0,#128
+ 514 0022 9847     	 blx r3
+ 515              	.LVL27:
+ 216:usbcore.c     **** // 				printf("W:%d\n", l);
+ 217:usbcore.c     **** 				control.bufferlen -= l;
+ 516              	 .loc 1 217 0
+ 517 0024 6368     	 ldr r3,[r4,#4]
+ 218:usbcore.c     **** 				control.buffer += l;
+ 518              	 .loc 1 218 0
+ 519 0026 2268     	 ldr r2,[r4]
+ 217:usbcore.c     **** 				control.buffer += l;
+ 520              	 .loc 1 217 0
+ 521 0028 1B1A     	 subs r3,r3,r0
+ 522              	 .loc 1 218 0
+ 523 002a 0244     	 add r2,r2,r0
+ 217:usbcore.c     **** 				control.buffer += l;
+ 524              	 .loc 1 217 0
+ 525 002c 6360     	 str r3,[r4,#4]
+ 526              	 .loc 1 218 0
+ 527 002e 2260     	 str r2,[r4]
+ 219:usbcore.c     **** 				printf(":w%d", l);
+ 220:usbcore.c     **** 				if (control.bufferlen == 0)
+ 528              	 .loc 1 220 0
+ 529 0030 CBB9     	 cbnz r3,.L47
+ 221:usbcore.c     **** 				{
+ 222:usbcore.c     **** 					if (l == 64)
+ 530              	 .loc 1 222 0
+ 531 0032 4028     	 cmp r0,#64
+ 532 0034 17D1     	 bne .L47
+ 223:usbcore.c     **** 						control.zlp = 1;
+ 533              	 .loc 1 223 0
+ 534 0036 0123     	 movs r3,#1
+ 535 0038 2372     	 strb r3,[r4,#8]
+ 536 003a 70BD     	 pop {r4,r5,r6,pc}
+ 537              	.LVL28:
+ 538              	.L51:
+ 539              	.LBE6:
+ 224:usbcore.c     **** 				}
+ 225:usbcore.c     **** 			}
+ 226:usbcore.c     **** 			else if (control.zlp)
+ 540              	 .loc 1 226 0
+ 541 003c 237A     	 ldrb r3,[r4,#8]
+ 542 003e 93B1     	 cbz r3,.L47
+ 227:usbcore.c     **** 			{
+ 228:usbcore.c     **** 				usb_write_packet(EP0IN, NULL, 0);
+ 543              	 .loc 1 228 0
+ 544 0040 2A46     	 mov r2,r5
+ 545 0042 2946     	 mov r1,r5
+ 546 0044 8020     	 movs r0,#128
+ 547 0046 094B     	 ldr r3,.L57+4
+ 548 0048 9847     	 blx r3
+ 549              	.LVL29:
+ 229:usbcore.c     **** 				control.zlp = 0;
+ 550              	 .loc 1 229 0
+ 551 004a 2572     	 strb r5,[r4,#8]
+ 552 004c 70BD     	 pop {r4,r5,r6,pc}
+ 553              	.L50:
+ 230:usbcore.c     **** 				printf(" sent ZLP,");
+ 231:usbcore.c     **** 			}
+ 232:usbcore.c     **** 		}
+ 233:usbcore.c     **** 		else if (control.bufferlen == 0)
+ 554              	 .loc 1 233 0
+ 555 004e 55B9     	 cbnz r5,.L47
+ 234:usbcore.c     **** 		{
+ 235:usbcore.c     **** 			printf(" Sent ACK,");
+ 236:usbcore.c     **** 			usb_write_packet(EP0IN, NULL, 0);
+ 556              	 .loc 1 236 0
+ 557 0050 2A46     	 mov r2,r5
+ 558 0052 2946     	 mov r1,r5
+ 559 0054 054B     	 ldr r3,.L57+4
+ 560 0056 8020     	 movs r0,#128
+ 561 0058 9847     	 blx r3
+ 562              	.LVL30:
+ 237:usbcore.c     **** 			control.complete = 1;
+ 563              	 .loc 1 237 0
+ 564 005a 0123     	 movs r3,#1
+ 565 005c 6372     	 strb r3,[r4,#9]
+ 238:usbcore.c     **** 			EP0Complete();
+ 239:usbcore.c     **** 		}
+ 240:usbcore.c     **** 	}
+ 241:usbcore.c     **** }
+ 566              	 .loc 1 241 0
+ 567 005e BDE87040 	 pop {r4,r5,r6,lr}
+ 568              	 .cfi_remember_state
+ 569              	 .cfi_restore 14
+ 570              	 .cfi_restore 6
+ 571              	 .cfi_restore 5
+ 572              	 .cfi_restore 4
+ 573              	 .cfi_def_cfa_offset 0
+ 238:usbcore.c     **** 			EP0Complete();
+ 574              	 .loc 1 238 0
+ 575 0062 034B     	 ldr r3,.L57+8
+ 576 0064 1847     	 bx r3
+ 577              	.LVL31:
+ 578              	.L47:
+ 579              	 .cfi_restore_state
+ 580 0066 70BD     	 pop {r4,r5,r6,pc}
+ 581              	.L58:
+ 582              	 .align 2
+ 583              	.L57:
+ 584 0068 00000000 	 .word control
+ 585 006c 00000000 	 .word usb_write_packet
+ 586 0070 00000000 	 .word EP0Complete
+ 587              	 .cfi_endproc
+ 588              	.LFE8:
+ 590              	 .section .text.EP0out,"ax",%progbits
+ 591              	 .align 1
+ 592              	 .global EP0out
+ 593              	 .syntax unified
+ 594              	 .thumb
+ 595              	 .thumb_func
+ 596              	 .fpu softvfp
+ 598              	EP0out:
+ 599              	.LFB9:
+ 242:usbcore.c     **** 
+ 243:usbcore.c     **** void EP0out(void)
+ 244:usbcore.c     **** {
+ 600              	 .loc 1 244 0
+ 601              	 .cfi_startproc
+ 602              	 
+ 603              	 
+ 604 0000 10B5     	 push {r4,lr}
+ 605              	 .cfi_def_cfa_offset 8
+ 606              	 .cfi_offset 4,-8
+ 607              	 .cfi_offset 14,-4
+ 245:usbcore.c     **** // 	printf("EP0OUT %d (%d)\n", control.complete, control.bufferlen);
+ 246:usbcore.c     **** 	if (control.complete == 0)
+ 608              	 .loc 1 246 0
+ 609 0002 194C     	 ldr r4,.L68
+ 610 0004 607A     	 ldrb r0,[r4,#9]
+ 611 0006 38BB     	 cbnz r0,.L60
+ 247:usbcore.c     **** 	{
+ 248:usbcore.c     **** 		if (control.setup.bmRequestType_Data_Transfer_Direction == DATA_DIRECTION_HOST_TO_DEVICE)
+ 612              	 .loc 1 248 0
+ 613 0008 94F90A30 	 ldrsb r3,[r4,#10]
+ 614 000c 6268     	 ldr r2,[r4,#4]
+ 615 000e 002B     	 cmp r3,#0
+ 616 0010 14DB     	 blt .L61
+ 617 0012 164B     	 ldr r3,.L68+4
+ 249:usbcore.c     **** 		{
+ 250:usbcore.c     **** 			if (control.bufferlen)
+ 618              	 .loc 1 250 0
+ 619 0014 52B1     	 cbz r2,.L62
+ 620              	.LBB7:
+ 251:usbcore.c     **** 			{
+ 252:usbcore.c     **** 				int l;
+ 253:usbcore.c     **** 				l = usb_read_packet(EP0OUT, control.buffer, control.bufferlen);
+ 621              	 .loc 1 253 0
+ 622 0016 2168     	 ldr r1,[r4]
+ 623 0018 9847     	 blx r3
+ 624              	.LVL32:
+ 254:usbcore.c     **** 
+ 255:usbcore.c     **** 				if (l <= control.bufferlen)
+ 625              	 .loc 1 255 0
+ 626 001a 6368     	 ldr r3,[r4,#4]
+ 627 001c 9842     	 cmp r0,r3
+ 628 001e 09DC     	 bgt .L63
+ 256:usbcore.c     **** 				{
+ 257:usbcore.c     **** 					control.bufferlen -= l;
+ 629              	 .loc 1 257 0
+ 630 0020 1B1A     	 subs r3,r3,r0
+ 631 0022 6360     	 str r3,[r4,#4]
+ 258:usbcore.c     **** 					control.buffer += l;
+ 632              	 .loc 1 258 0
+ 633 0024 2368     	 ldr r3,[r4]
+ 634 0026 1844     	 add r0,r0,r3
+ 635              	.LVL33:
+ 636 0028 2060     	 str r0,[r4]
+ 259:usbcore.c     **** 					printf(":r%d", l);
+ 260:usbcore.c     **** 					return;
+ 637              	 .loc 1 260 0
+ 638 002a 10BD     	 pop {r4,pc}
+ 639              	.L62:
+ 640              	.LBE7:
+ 641              	.LBB8:
+ 261:usbcore.c     **** 				}
+ 262:usbcore.c     **** 			}
+ 263:usbcore.c     **** 			else
+ 264:usbcore.c     **** 			{
+ 265:usbcore.c     **** 				int l = usb_read_packet(EP0OUT, NULL, 0);
+ 642              	 .loc 1 265 0
+ 643 002c 1146     	 mov r1,r2
+ 644 002e 1046     	 mov r0,r2
+ 645 0030 9847     	 blx r3
+ 646              	.LVL34:
+ 266:usbcore.c     **** 				if (l == 0)
+ 647              	 .loc 1 266 0
+ 648 0032 C0B1     	 cbz r0,.L59
+ 649              	.LVL35:
+ 650              	.L63:
+ 651              	.LBE8:
+ 267:usbcore.c     **** 					return;
+ 268:usbcore.c     **** 			}
+ 269:usbcore.c     **** 		}
+ 270:usbcore.c     **** 		else if (control.bufferlen == 0)
+ 271:usbcore.c     **** 		{
+ 272:usbcore.c     **** 			int l = usb_read_packet(EP0OUT, NULL, 0);
+ 273:usbcore.c     **** 			if (l == 0)
+ 274:usbcore.c     **** 			{
+ 275:usbcore.c     **** 				printf(" Recv ACK,");
+ 276:usbcore.c     **** 				control.complete = 1;
+ 277:usbcore.c     **** 				EP0Complete();
+ 278:usbcore.c     **** 				return;
+ 279:usbcore.c     **** 			}
+ 280:usbcore.c     **** 		}
+ 281:usbcore.c     **** 		usb_ep0_stall();
+ 282:usbcore.c     **** 		return;
+ 283:usbcore.c     **** 	}
+ 284:usbcore.c     **** 	usb_read_packet(EP0OUT, control_buffer, sizeof(control_buffer));
+ 285:usbcore.c     **** }
+ 652              	 .loc 1 285 0
+ 653 0034 BDE81040 	 pop {r4,lr}
+ 654              	 .cfi_remember_state
+ 655              	 .cfi_restore 14
+ 656              	 .cfi_restore 4
+ 657              	 .cfi_def_cfa_offset 0
+ 281:usbcore.c     **** 		return;
+ 658              	 .loc 1 281 0
+ 659 0038 0D4B     	 ldr r3,.L68+8
+ 660 003a 1847     	 bx r3
+ 661              	.LVL36:
+ 662              	.L61:
+ 663              	 .cfi_restore_state
+ 270:usbcore.c     **** 		{
+ 664              	 .loc 1 270 0
+ 665 003c 002A     	 cmp r2,#0
+ 666 003e F9D1     	 bne .L63
+ 667              	.LBB9:
+ 272:usbcore.c     **** 			if (l == 0)
+ 668              	 .loc 1 272 0
+ 669 0040 1146     	 mov r1,r2
+ 670 0042 1046     	 mov r0,r2
+ 671 0044 094B     	 ldr r3,.L68+4
+ 672 0046 9847     	 blx r3
+ 673              	.LVL37:
+ 273:usbcore.c     **** 			{
+ 674              	 .loc 1 273 0
+ 675 0048 0028     	 cmp r0,#0
+ 676 004a F3D1     	 bne .L63
+ 276:usbcore.c     **** 				EP0Complete();
+ 677              	 .loc 1 276 0
+ 678 004c 0123     	 movs r3,#1
+ 679 004e 6372     	 strb r3,[r4,#9]
+ 680              	.LBE9:
+ 681              	 .loc 1 285 0
+ 682 0050 BDE81040 	 pop {r4,lr}
+ 683              	 .cfi_remember_state
+ 684              	 .cfi_restore 14
+ 685              	 .cfi_restore 4
+ 686              	 .cfi_def_cfa_offset 0
+ 687              	.LBB10:
+ 277:usbcore.c     **** 				return;
+ 688              	 .loc 1 277 0
+ 689 0054 074B     	 ldr r3,.L68+12
+ 690 0056 1847     	 bx r3
+ 691              	.LVL38:
+ 692              	.L60:
+ 693              	 .cfi_restore_state
+ 694              	.LBE10:
+ 284:usbcore.c     **** }
+ 695              	 .loc 1 284 0
+ 696 0058 4022     	 movs r2,#64
+ 697              	 .loc 1 285 0
+ 698 005a BDE81040 	 pop {r4,lr}
+ 699              	 .cfi_remember_state
+ 700              	 .cfi_restore 14
+ 701              	 .cfi_restore 4
+ 702              	 .cfi_def_cfa_offset 0
+ 284:usbcore.c     **** }
+ 703              	 .loc 1 284 0
+ 704 005e 0649     	 ldr r1,.L68+16
+ 705 0060 0020     	 movs r0,#0
+ 706 0062 024B     	 ldr r3,.L68+4
+ 707 0064 1847     	 bx r3
+ 708              	.LVL39:
+ 709              	.L59:
+ 710              	 .cfi_restore_state
+ 711 0066 10BD     	 pop {r4,pc}
+ 712              	.L69:
+ 713              	 .align 2
+ 714              	.L68:
+ 715 0068 00000000 	 .word control
+ 716 006c 00000000 	 .word usb_read_packet
+ 717 0070 00000000 	 .word usb_ep0_stall
+ 718 0074 00000000 	 .word EP0Complete
+ 719 0078 00000000 	 .word control_buffer
+ 720              	 .cfi_endproc
+ 721              	.LFE9:
+ 723              	 .comm descriptors,4,4
+ 724              	 .comm control_buffer,64,1
+ 725              	 .comm control,18,1
+ 726              	 .text
+ 727              	.Letext0:
+ 728              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 729              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 730              	 .file 4 "usbcore.h"
+ 731              	 .file 5 "usbhw.h"
+ 732              	 .file 6 "descriptor.h"
+ 733              	 .file 7 "/usr/include/newlib/sys/lock.h"
+ 734              	 .file 8 "/usr/include/newlib/sys/_types.h"
+ 735              	 .file 9 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 736              	 .file 10 "/usr/include/newlib/sys/reent.h"
+ 737              	 .file 11 "lpc17xx_usb.h"
+ 738              	 .file 12 "dfu.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbcore.c
+    {standard input}:16     .text.usb_provideDescriptors:0000000000000000 $t
+    {standard input}:23     .text.usb_provideDescriptors:0000000000000000 usb_provideDescriptors
+    {standard input}:39     .text.usb_provideDescriptors:0000000000000008 $d
+                            *COM*:0000000000000004 descriptors
+    {standard input}:44     .text.requestGetStatus:0000000000000000 $t
+    {standard input}:51     .text.requestGetStatus:0000000000000000 requestGetStatus
+    {standard input}:76     .text.requestGetStatus:0000000000000018 $d
+                            *COM*:0000000000000040 control_buffer
+                            *COM*:0000000000000012 control
+    {standard input}:82     .text.requestGetDescriptor:0000000000000000 $t
+    {standard input}:89     .text.requestGetDescriptor:0000000000000000 requestGetDescriptor
+    {standard input}:148    .text.requestGetDescriptor:0000000000000032 $d
+    {standard input}:216    .text.requestGetDescriptor:0000000000000068 $d
+    {standard input}:222    .text.requestSetConfiguration:0000000000000000 $t
+    {standard input}:229    .text.requestSetConfiguration:0000000000000000 requestSetConfiguration
+    {standard input}:244    .text.requestSetConfiguration:0000000000000008 $d
+    {standard input}:249    .text.requestGetConfiguration:0000000000000000 $t
+    {standard input}:256    .text.requestGetConfiguration:0000000000000000 requestGetConfiguration
+    {standard input}:280    .text.requestGetConfiguration:0000000000000014 $d
+    {standard input}:286    .text.EP0Complete:0000000000000000 $t
+    {standard input}:293    .text.EP0Complete:0000000000000000 EP0Complete
+    {standard input}:314    .text.EP0Complete:0000000000000010 $d
+    {standard input}:320    .text.EP0setup:0000000000000000 $t
+    {standard input}:327    .text.EP0setup:0000000000000000 EP0setup
+    {standard input}:368    .text.EP0setup:0000000000000036 $d
+    {standard input}:378    .text.EP0setup:0000000000000040 $t
+    {standard input}:457    .text.EP0setup:000000000000007c $d
+    {standard input}:472    .text.EP0in:0000000000000000 $t
+    {standard input}:479    .text.EP0in:0000000000000000 EP0in
+    {standard input}:584    .text.EP0in:0000000000000068 $d
+    {standard input}:591    .text.EP0out:0000000000000000 $t
+    {standard input}:598    .text.EP0out:0000000000000000 EP0out
+    {standard input}:715    .text.EP0out:0000000000000068 $d
+                     .debug_frame:0000000000000010 $d
+    {standard input}:153    .text.requestGetDescriptor:0000000000000037 $d
+    {standard input}:153    .text.requestGetDescriptor:0000000000000038 $t
+
+UNDEFINED SYMBOLS
+SIE_ConfigureDevice
+DFU_transferComplete
+usb_read_packet
+SIE_SetAddress
+usb_write_packet
+usb_ep0_stall
+DFU_controlTransfer

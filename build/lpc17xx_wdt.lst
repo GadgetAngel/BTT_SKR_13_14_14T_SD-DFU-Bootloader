@@ -1,0 +1,1298 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_wdt.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.WDT_SetTimeOut,"ax",%progbits
+  16              	 .align 1
+  17              	 .syntax unified
+  18              	 .thumb
+  19              	 .thumb_func
+  20              	 .fpu softvfp
+  22              	WDT_SetTimeOut:
+  23              	.LFB55:
+  24              	 .file 1 "LPC17xxLib/src/lpc17xx_wdt.c"
+   1:LPC17xxLib/src/lpc17xx_wdt.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_wdt.c **** 
+   3:LPC17xxLib/src/lpc17xx_wdt.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_wdt.c **** * $Id$		lpc17xx_wdt.c			2010-05-21
+   5:LPC17xxLib/src/lpc17xx_wdt.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_wdt.c **** * @file		lpc17xx_wdt.c
+   7:LPC17xxLib/src/lpc17xx_wdt.c **** * @brief	Contains all functions support for WDT firmware library
+   8:LPC17xxLib/src/lpc17xx_wdt.c **** * 			on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_wdt.c **** * @version	2.0
+  10:LPC17xxLib/src/lpc17xx_wdt.c **** * @date		21. May. 2010
+  11:LPC17xxLib/src/lpc17xx_wdt.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_wdt.c **** *
+  13:LPC17xxLib/src/lpc17xx_wdt.c **** * Copyright(C) 2010, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_wdt.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_wdt.c **** *
+  16:LPC17xxLib/src/lpc17xx_wdt.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_wdt.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_wdt.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_wdt.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_wdt.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_wdt.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_wdt.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_wdt.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_wdt.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_wdt.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_wdt.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_wdt.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  29:LPC17xxLib/src/lpc17xx_wdt.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_wdt.c **** /** @addtogroup WDT
+  31:LPC17xxLib/src/lpc17xx_wdt.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_wdt.c ****  */
+  33:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  34:LPC17xxLib/src/lpc17xx_wdt.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_wdt.c **** #include "lpc17xx_wdt.h"
+  36:LPC17xxLib/src/lpc17xx_wdt.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_wdt.c **** #include "lpc17xx_pinsel.h"
+  38:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  39:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  40:LPC17xxLib/src/lpc17xx_wdt.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  41:LPC17xxLib/src/lpc17xx_wdt.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  42:LPC17xxLib/src/lpc17xx_wdt.c ****  * otherwise the default FW library configuration file must be included instead
+  43:LPC17xxLib/src/lpc17xx_wdt.c ****  */
+  44:LPC17xxLib/src/lpc17xx_wdt.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  45:LPC17xxLib/src/lpc17xx_wdt.c **** #include "lpc17xx_libcfg.h"
+  46:LPC17xxLib/src/lpc17xx_wdt.c **** #else
+  47:LPC17xxLib/src/lpc17xx_wdt.c **** #include "lpc17xx_libcfg_default.h"
+  48:LPC17xxLib/src/lpc17xx_wdt.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  49:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  50:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  51:LPC17xxLib/src/lpc17xx_wdt.c **** #ifdef _WDT
+  52:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  53:LPC17xxLib/src/lpc17xx_wdt.c **** /* Private Functions ---------------------------------------------------------- */
+  54:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  55:LPC17xxLib/src/lpc17xx_wdt.c **** static uint8_t WDT_SetTimeOut (uint8_t clk_source, uint32_t timeout);
+  56:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  57:LPC17xxLib/src/lpc17xx_wdt.c **** /********************************************************************//**
+  58:LPC17xxLib/src/lpc17xx_wdt.c ****  * @brief 		Set WDT time out value and WDT mode
+  59:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	clk_source select Clock source for WDT device
+  60:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	timeout value of time-out for WDT (us)
+  61:LPC17xxLib/src/lpc17xx_wdt.c ****  * @return		None
+  62:LPC17xxLib/src/lpc17xx_wdt.c ****  *********************************************************************/
+  63:LPC17xxLib/src/lpc17xx_wdt.c **** static uint8_t WDT_SetTimeOut (uint8_t clk_source, uint32_t timeout)
+  64:LPC17xxLib/src/lpc17xx_wdt.c **** {
+  25              	 .loc 1 64 0
+  26              	 .cfi_startproc
+  27              	 
+  28              	 
+  29              	.LVL0:
+  30 0000 70B5     	 push {r4,r5,r6,lr}
+  31              	 .cfi_def_cfa_offset 16
+  32              	 .cfi_offset 4,-16
+  33              	 .cfi_offset 5,-12
+  34              	 .cfi_offset 6,-8
+  35              	 .cfi_offset 14,-4
+  65:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  66:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t pclk_wdt = 0;
+  67:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t tempval = 0;
+  68:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  69:LPC17xxLib/src/lpc17xx_wdt.c **** 	switch ((WDT_CLK_OPT) clk_source)
+  36              	 .loc 1 69 0
+  37 0002 0546     	 mov r5,r0
+  38 0004 18B1     	 cbz r0,.L3
+  39 0006 0128     	 cmp r0,#1
+  40 0008 0BD0     	 beq .L4
+  41              	.LVL1:
+  42              	.L8:
+  70:LPC17xxLib/src/lpc17xx_wdt.c ****     {
+  71:LPC17xxLib/src/lpc17xx_wdt.c ****     case WDT_CLKSRC_IRC:
+  72:LPC17xxLib/src/lpc17xx_wdt.c ****     	pclk_wdt = 4000000;
+  73:LPC17xxLib/src/lpc17xx_wdt.c ****     	// Calculate TC in WDT
+  74:LPC17xxLib/src/lpc17xx_wdt.c ****     	tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
+  75:LPC17xxLib/src/lpc17xx_wdt.c ****     	// Check if it valid
+  76:LPC17xxLib/src/lpc17xx_wdt.c ****     	if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
+  77:LPC17xxLib/src/lpc17xx_wdt.c ****     	{
+  78:LPC17xxLib/src/lpc17xx_wdt.c ****     		LPC_WDT->WDTC = tempval;
+  79:LPC17xxLib/src/lpc17xx_wdt.c ****     		return	SUCCESS;
+  80:LPC17xxLib/src/lpc17xx_wdt.c ****     	}
+  81:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  82:LPC17xxLib/src/lpc17xx_wdt.c ****     	break;
+  83:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  84:LPC17xxLib/src/lpc17xx_wdt.c ****     case WDT_CLKSRC_PCLK:
+  85:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  86:LPC17xxLib/src/lpc17xx_wdt.c ****     	// Get WDT clock with CCLK divider = 4
+  87:LPC17xxLib/src/lpc17xx_wdt.c **** 		pclk_wdt = SystemCoreClock / 4;
+  88:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Calculate TC in WDT
+  89:LPC17xxLib/src/lpc17xx_wdt.c **** 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
+  90:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  91:LPC17xxLib/src/lpc17xx_wdt.c **** 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
+  92:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+  93:LPC17xxLib/src/lpc17xx_wdt.c **** 			CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_4);
+  94:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+  95:LPC17xxLib/src/lpc17xx_wdt.c **** 			return SUCCESS;
+  96:LPC17xxLib/src/lpc17xx_wdt.c **** 		}
+  97:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  98:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Get WDT clock with CCLK divider = 2
+  99:LPC17xxLib/src/lpc17xx_wdt.c **** 		pclk_wdt = SystemCoreClock / 2;
+ 100:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Calculate TC in WDT
+ 101:LPC17xxLib/src/lpc17xx_wdt.c **** 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
+ 102:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 103:LPC17xxLib/src/lpc17xx_wdt.c **** 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
+ 104:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+ 105:LPC17xxLib/src/lpc17xx_wdt.c **** 			CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_2);
+ 106:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+ 107:LPC17xxLib/src/lpc17xx_wdt.c **** 			return	SUCCESS;
+ 108:LPC17xxLib/src/lpc17xx_wdt.c **** 		}
+ 109:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 110:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Get WDT clock with CCLK divider = 1
+ 111:LPC17xxLib/src/lpc17xx_wdt.c **** 		pclk_wdt = SystemCoreClock;
+ 112:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Calculate TC in WDT
+ 113:LPC17xxLib/src/lpc17xx_wdt.c **** 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
+ 114:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 115:LPC17xxLib/src/lpc17xx_wdt.c **** 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
+ 116:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+ 117:LPC17xxLib/src/lpc17xx_wdt.c **** 			CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_1);
+ 118:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+ 119:LPC17xxLib/src/lpc17xx_wdt.c **** 			return	SUCCESS;
+ 120:LPC17xxLib/src/lpc17xx_wdt.c **** 		}
+ 121:LPC17xxLib/src/lpc17xx_wdt.c **** 		break ;
+ 122:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 123:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 124:LPC17xxLib/src/lpc17xx_wdt.c ****     case WDT_CLKSRC_RTC:
+ 125:LPC17xxLib/src/lpc17xx_wdt.c **** 		pclk_wdt = 32768;
+ 126:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Calculate TC in WDT
+ 127:LPC17xxLib/src/lpc17xx_wdt.c **** 		tempval  = (((pclk_wdt) / WDT_US_INDEX) * (timeout / 4));
+ 128:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Check if it valid
+ 129:LPC17xxLib/src/lpc17xx_wdt.c **** 		if ((tempval >= WDT_TIMEOUT_MIN) && (tempval <= WDT_TIMEOUT_MAX))
+ 130:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+ 131:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+ 132:LPC17xxLib/src/lpc17xx_wdt.c **** 			return	SUCCESS;
+ 133:LPC17xxLib/src/lpc17xx_wdt.c **** 		}
+ 134:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 135:LPC17xxLib/src/lpc17xx_wdt.c **** 		break;
+ 136:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 137:LPC17xxLib/src/lpc17xx_wdt.c **** // Error parameter
+ 138:LPC17xxLib/src/lpc17xx_wdt.c **** 		default:
+ 139:LPC17xxLib/src/lpc17xx_wdt.c **** 			break;
+ 140:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 141:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 142:LPC17xxLib/src/lpc17xx_wdt.c **** 	return ERROR;
+  43              	 .loc 1 142 0
+  44 000a 0025     	 movs r5,#0
+  45 000c 07E0     	 b .L2
+  46              	.LVL2:
+  47              	.L3:
+  74:LPC17xxLib/src/lpc17xx_wdt.c ****     	// Check if it valid
+  48              	 .loc 1 74 0
+  49 000e 21F00301 	 bic r1,r1,#3
+  50              	.LVL3:
+  76:LPC17xxLib/src/lpc17xx_wdt.c ****     	{
+  51              	 .loc 1 76 0
+  52 0012 FE29     	 cmp r1,#254
+  53 0014 03D9     	 bls .L2
+  78:LPC17xxLib/src/lpc17xx_wdt.c ****     		return	SUCCESS;
+  54              	 .loc 1 78 0
+  55 0016 4FF08043 	 mov r3,#1073741824
+  79:LPC17xxLib/src/lpc17xx_wdt.c ****     	}
+  56              	 .loc 1 79 0
+  57 001a 0125     	 movs r5,#1
+  78:LPC17xxLib/src/lpc17xx_wdt.c ****     		return	SUCCESS;
+  58              	 .loc 1 78 0
+  59 001c 5960     	 str r1,[r3,#4]
+  60              	.LVL4:
+  61              	.L2:
+ 143:LPC17xxLib/src/lpc17xx_wdt.c **** }
+  62              	 .loc 1 143 0
+  63 001e 2846     	 mov r0,r5
+  64 0020 70BD     	 pop {r4,r5,r6,pc}
+  65              	.LVL5:
+  66              	.L4:
+  67              	.LBB8:
+  68              	.LBB9:
+  87:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Calculate TC in WDT
+  69              	 .loc 1 87 0
+  70 0022 134B     	 ldr r3,.L11
+  89:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  71              	 .loc 1 89 0
+  72 0024 134E     	 ldr r6,.L11+4
+  87:LPC17xxLib/src/lpc17xx_wdt.c **** 		// Calculate TC in WDT
+  73              	 .loc 1 87 0
+  74 0026 1C68     	 ldr r4,[r3]
+  75              	.LVL6:
+  89:LPC17xxLib/src/lpc17xx_wdt.c **** 
+  76              	 .loc 1 89 0
+  77 0028 8908     	 lsrs r1,r1,#2
+  78              	.LVL7:
+  79 002a B4FBF6F6 	 udiv r6,r4,r6
+  80 002e 4E43     	 muls r6,r1,r6
+  81              	.LVL8:
+  91:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+  82              	 .loc 1 91 0
+  83 0030 FE2E     	 cmp r6,#254
+  84 0032 07D9     	 bls .L5
+  93:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+  85              	 .loc 1 93 0
+  86 0034 0021     	 movs r1,#0
+  87              	.LVL9:
+  88              	.L10:
+ 105:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+  89              	 .loc 1 105 0
+  90 0036 104B     	 ldr r3,.L11+8
+  91 0038 0020     	 movs r0,#0
+  92              	.LVL10:
+  93 003a 9847     	 blx r3
+  94              	.LVL11:
+ 106:LPC17xxLib/src/lpc17xx_wdt.c **** 			return	SUCCESS;
+  95              	 .loc 1 106 0
+  96 003c 4FF08043 	 mov r3,#1073741824
+  97 0040 5E60     	 str r6,[r3,#4]
+  98 0042 ECE7     	 b .L2
+  99              	.LVL12:
+ 100              	.L5:
+ 101:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 101              	 .loc 1 101 0
+ 102 0044 0D4E     	 ldr r6,.L11+12
+ 103              	.LVL13:
+ 104 0046 B4FBF6F6 	 udiv r6,r4,r6
+ 105 004a 4E43     	 muls r6,r1,r6
+ 106              	.LVL14:
+ 103:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+ 107              	 .loc 1 103 0
+ 108 004c FE2E     	 cmp r6,#254
+ 109 004e 01D9     	 bls .L6
+ 105:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+ 110              	 .loc 1 105 0
+ 111 0050 0221     	 movs r1,#2
+ 112 0052 F0E7     	 b .L10
+ 113              	.L6:
+ 114              	.LVL15:
+ 113:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 115              	 .loc 1 113 0
+ 116 0054 0A4B     	 ldr r3,.L11+16
+ 117 0056 B4FBF3F4 	 udiv r4,r4,r3
+ 118              	.LVL16:
+ 119 005a 4C43     	 muls r4,r1,r4
+ 120              	.LVL17:
+ 115:LPC17xxLib/src/lpc17xx_wdt.c **** 		{
+ 121              	 .loc 1 115 0
+ 122 005c FE2C     	 cmp r4,#254
+ 123 005e D4D9     	 bls .L8
+ 117:LPC17xxLib/src/lpc17xx_wdt.c **** 			LPC_WDT->WDTC = (uint32_t) tempval;
+ 124              	 .loc 1 117 0
+ 125 0060 0146     	 mov r1,r0
+ 126 0062 054B     	 ldr r3,.L11+8
+ 127 0064 0020     	 movs r0,#0
+ 128              	.LVL18:
+ 129 0066 9847     	 blx r3
+ 130              	.LVL19:
+ 118:LPC17xxLib/src/lpc17xx_wdt.c **** 			return	SUCCESS;
+ 131              	 .loc 1 118 0
+ 132 0068 4FF08043 	 mov r3,#1073741824
+ 133 006c 5C60     	 str r4,[r3,#4]
+ 134 006e D6E7     	 b .L2
+ 135              	.L12:
+ 136              	 .align 2
+ 137              	.L11:
+ 138 0070 00000000 	 .word SystemCoreClock
+ 139 0074 00093D00 	 .word 4000000
+ 140 0078 00000000 	 .word CLKPWR_SetPCLKDiv
+ 141 007c 80841E00 	 .word 2000000
+ 142 0080 40420F00 	 .word 1000000
+ 143              	.LBE9:
+ 144              	.LBE8:
+ 145              	 .cfi_endproc
+ 146              	.LFE55:
+ 148              	 .section .text.WDT_Init,"ax",%progbits
+ 149              	 .align 1
+ 150              	 .global WDT_Init
+ 151              	 .syntax unified
+ 152              	 .thumb
+ 153              	 .thumb_func
+ 154              	 .fpu softvfp
+ 156              	WDT_Init:
+ 157              	.LFB56:
+ 144:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 145:LPC17xxLib/src/lpc17xx_wdt.c **** /* End of Private Functions --------------------------------------------------- */
+ 146:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 147:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 148:LPC17xxLib/src/lpc17xx_wdt.c **** /* Public Functions ----------------------------------------------------------- */
+ 149:LPC17xxLib/src/lpc17xx_wdt.c **** /** @addtogroup WDT_Public_Functions
+ 150:LPC17xxLib/src/lpc17xx_wdt.c ****  * @{
+ 151:LPC17xxLib/src/lpc17xx_wdt.c ****  */
+ 152:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 153:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 154:LPC17xxLib/src/lpc17xx_wdt.c **** /*********************************************************************//**
+ 155:LPC17xxLib/src/lpc17xx_wdt.c **** * @brief 		Initial for Watchdog function
+ 156:LPC17xxLib/src/lpc17xx_wdt.c **** * 					Clock source = RTC ,
+ 157:LPC17xxLib/src/lpc17xx_wdt.c **** * @param[in]	ClkSrc  Select clock source, should be:
+ 158:LPC17xxLib/src/lpc17xx_wdt.c **** * 				- WDT_CLKSRC_IRC: Clock source from Internal RC oscillator
+ 159:LPC17xxLib/src/lpc17xx_wdt.c **** * 				- WDT_CLKSRC_PCLK: Selects the APB peripheral clock (PCLK)
+ 160:LPC17xxLib/src/lpc17xx_wdt.c **** * 				- WDT_CLKSRC_RTC: Selects the RTC oscillator
+ 161:LPC17xxLib/src/lpc17xx_wdt.c **** * @param[in]	WDTMode WDT mode, should be:
+ 162:LPC17xxLib/src/lpc17xx_wdt.c **** * 				- WDT_MODE_INT_ONLY: Use WDT to generate interrupt only
+ 163:LPC17xxLib/src/lpc17xx_wdt.c **** * 				- WDT_MODE_RESET: Use WDT to generate interrupt and reset MCU
+ 164:LPC17xxLib/src/lpc17xx_wdt.c **** * @return 		None
+ 165:LPC17xxLib/src/lpc17xx_wdt.c ****  **********************************************************************/
+ 166:LPC17xxLib/src/lpc17xx_wdt.c **** void WDT_Init (WDT_CLK_OPT ClkSrc, WDT_MODE_OPT WDTMode)
+ 167:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 158              	 .loc 1 167 0
+ 159              	 .cfi_startproc
+ 160              	 
+ 161              	 
+ 162              	.LVL20:
+ 163 0000 38B5     	 push {r3,r4,r5,lr}
+ 164              	 .cfi_def_cfa_offset 16
+ 165              	 .cfi_offset 3,-16
+ 166              	 .cfi_offset 4,-12
+ 167              	 .cfi_offset 5,-8
+ 168              	 .cfi_offset 14,-4
+ 169              	 .loc 1 167 0
+ 170 0002 0D46     	 mov r5,r1
+ 168:LPC17xxLib/src/lpc17xx_wdt.c **** 	CHECK_PARAM(PARAM_WDT_CLK_OPT(ClkSrc));
+ 169:LPC17xxLib/src/lpc17xx_wdt.c **** 	CHECK_PARAM(PARAM_WDT_MODE_OPT(WDTMode));
+ 170:LPC17xxLib/src/lpc17xx_wdt.c **** 	CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_WDT, CLKPWR_PCLKSEL_CCLK_DIV_4);
+ 171              	 .loc 1 170 0
+ 172 0004 0021     	 movs r1,#0
+ 173              	.LVL21:
+ 167:LPC17xxLib/src/lpc17xx_wdt.c **** 	CHECK_PARAM(PARAM_WDT_CLK_OPT(ClkSrc));
+ 174              	 .loc 1 167 0
+ 175 0006 0446     	 mov r4,r0
+ 176              	 .loc 1 170 0
+ 177 0008 094B     	 ldr r3,.L15
+ 178 000a 0846     	 mov r0,r1
+ 179              	.LVL22:
+ 180 000c 9847     	 blx r3
+ 181              	.LVL23:
+ 171:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 172:LPC17xxLib/src/lpc17xx_wdt.c **** 	//Set clock source
+ 173:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDCLKSEL &= ~WDT_WDCLKSEL_MASK;
+ 182              	 .loc 1 173 0
+ 183 000e 4FF08043 	 mov r3,#1073741824
+ 184 0012 1A69     	 ldr r2,[r3,#16]
+ 174:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDCLKSEL |= ClkSrc;
+ 175:LPC17xxLib/src/lpc17xx_wdt.c **** 	//Set WDT mode
+ 176:LPC17xxLib/src/lpc17xx_wdt.c **** 	if (WDTMode == WDT_MODE_RESET){
+ 185              	 .loc 1 176 0
+ 186 0014 012D     	 cmp r5,#1
+ 173:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDCLKSEL |= ClkSrc;
+ 187              	 .loc 1 173 0
+ 188 0016 22F00302 	 bic r2,r2,#3
+ 189 001a 1A61     	 str r2,[r3,#16]
+ 174:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDCLKSEL |= ClkSrc;
+ 190              	 .loc 1 174 0
+ 191 001c 1A69     	 ldr r2,[r3,#16]
+ 192 001e 44EA0204 	 orr r4,r4,r2
+ 193 0022 1C61     	 str r4,[r3,#16]
+ 177:LPC17xxLib/src/lpc17xx_wdt.c **** 		LPC_WDT->WDMOD |= WDT_WDMOD(WDTMode);
+ 194              	 .loc 1 177 0
+ 195 0024 02BF     	 ittt eq
+ 196 0026 1A78     	 ldrbeq r2,[r3]
+ 197 0028 42F00202 	 orreq r2,r2,#2
+ 198 002c 1A70     	 strbeq r2,[r3]
+ 199 002e 38BD     	 pop {r3,r4,r5,pc}
+ 200              	.L16:
+ 201              	 .align 2
+ 202              	.L15:
+ 203 0030 00000000 	 .word CLKPWR_SetPCLKDiv
+ 204              	 .cfi_endproc
+ 205              	.LFE56:
+ 207              	 .section .text.WDT_ReadTimeOutFlag,"ax",%progbits
+ 208              	 .align 1
+ 209              	 .global WDT_ReadTimeOutFlag
+ 210              	 .syntax unified
+ 211              	 .thumb
+ 212              	 .thumb_func
+ 213              	 .fpu softvfp
+ 215              	WDT_ReadTimeOutFlag:
+ 216              	.LFB58:
+ 178:LPC17xxLib/src/lpc17xx_wdt.c **** 	}
+ 179:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 180:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 181:LPC17xxLib/src/lpc17xx_wdt.c **** /*********************************************************************//**
+ 182:LPC17xxLib/src/lpc17xx_wdt.c **** * @brief 		Start WDT activity with given timeout value
+ 183:LPC17xxLib/src/lpc17xx_wdt.c **** * @param[in]	TimeOut WDT reset after timeout if it is not feed
+ 184:LPC17xxLib/src/lpc17xx_wdt.c **** * @return 		None
+ 185:LPC17xxLib/src/lpc17xx_wdt.c ****  **********************************************************************/
+ 186:LPC17xxLib/src/lpc17xx_wdt.c **** void WDT_Start(uint32_t TimeOut)
+ 187:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 188:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t ClkSrc;
+ 189:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 190:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc = LPC_WDT->WDCLKSEL;
+ 191:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc &=WDT_WDCLKSEL_MASK;
+ 192:LPC17xxLib/src/lpc17xx_wdt.c **** 	WDT_SetTimeOut(ClkSrc,TimeOut);
+ 193:LPC17xxLib/src/lpc17xx_wdt.c **** 	//enable watchdog
+ 194:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDMOD |= WDT_WDMOD_WDEN;
+ 195:LPC17xxLib/src/lpc17xx_wdt.c **** 	WDT_Feed();
+ 196:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 197:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 198:LPC17xxLib/src/lpc17xx_wdt.c **** /********************************************************************//**
+ 199:LPC17xxLib/src/lpc17xx_wdt.c ****  * @brief 		Read WDT Time out flag
+ 200:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	None
+ 201:LPC17xxLib/src/lpc17xx_wdt.c ****  * @return		Time out flag status of WDT
+ 202:LPC17xxLib/src/lpc17xx_wdt.c ****  *********************************************************************/
+ 203:LPC17xxLib/src/lpc17xx_wdt.c **** FlagStatus WDT_ReadTimeOutFlag (void)
+ 204:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 217              	 .loc 1 204 0
+ 218              	 .cfi_startproc
+ 219              	 
+ 220              	 
+ 221              	 
+ 205:LPC17xxLib/src/lpc17xx_wdt.c **** 	return ((FlagStatus)((LPC_WDT->WDMOD & WDT_WDMOD_WDTOF) >>2));
+ 222              	 .loc 1 205 0
+ 223 0000 4FF08043 	 mov r3,#1073741824
+ 224 0004 1878     	 ldrb r0,[r3]
+ 206:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 225              	 .loc 1 206 0
+ 226 0006 C0F38000 	 ubfx r0,r0,#2,#1
+ 227 000a 7047     	 bx lr
+ 228              	 .cfi_endproc
+ 229              	.LFE58:
+ 231              	 .section .text.WDT_ClrTimeOutFlag,"ax",%progbits
+ 232              	 .align 1
+ 233              	 .global WDT_ClrTimeOutFlag
+ 234              	 .syntax unified
+ 235              	 .thumb
+ 236              	 .thumb_func
+ 237              	 .fpu softvfp
+ 239              	WDT_ClrTimeOutFlag:
+ 240              	.LFB59:
+ 207:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 208:LPC17xxLib/src/lpc17xx_wdt.c **** /********************************************************************//**
+ 209:LPC17xxLib/src/lpc17xx_wdt.c ****  * @brief 		Clear WDT Time out flag
+ 210:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	None
+ 211:LPC17xxLib/src/lpc17xx_wdt.c ****  * @return		None
+ 212:LPC17xxLib/src/lpc17xx_wdt.c ****  *********************************************************************/
+ 213:LPC17xxLib/src/lpc17xx_wdt.c **** void WDT_ClrTimeOutFlag (void)
+ 214:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 241              	 .loc 1 214 0
+ 242              	 .cfi_startproc
+ 243              	 
+ 244              	 
+ 245              	 
+ 215:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDMOD &=~WDT_WDMOD_WDTOF;
+ 246              	 .loc 1 215 0
+ 247 0000 4FF08042 	 mov r2,#1073741824
+ 248 0004 1378     	 ldrb r3,[r2]
+ 249 0006 03F0FB03 	 and r3,r3,#251
+ 250 000a 1370     	 strb r3,[r2]
+ 251 000c 7047     	 bx lr
+ 252              	 .cfi_endproc
+ 253              	.LFE59:
+ 255              	 .section .text.WDT_Feed,"ax",%progbits
+ 256              	 .align 1
+ 257              	 .global WDT_Feed
+ 258              	 .syntax unified
+ 259              	 .thumb
+ 260              	 .thumb_func
+ 261              	 .fpu softvfp
+ 263              	WDT_Feed:
+ 264              	.LFB61:
+ 216:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 217:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 218:LPC17xxLib/src/lpc17xx_wdt.c **** /********************************************************************//**
+ 219:LPC17xxLib/src/lpc17xx_wdt.c ****  * @brief 		Update WDT timeout value and feed
+ 220:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	TimeOut	TimeOut value to be updated
+ 221:LPC17xxLib/src/lpc17xx_wdt.c ****  * @return		None
+ 222:LPC17xxLib/src/lpc17xx_wdt.c ****  *********************************************************************/
+ 223:LPC17xxLib/src/lpc17xx_wdt.c **** void WDT_UpdateTimeOut ( uint32_t TimeOut)
+ 224:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 225:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t ClkSrc;
+ 226:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc = LPC_WDT->WDCLKSEL;
+ 227:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc &=WDT_WDCLKSEL_MASK;
+ 228:LPC17xxLib/src/lpc17xx_wdt.c **** 	WDT_SetTimeOut(ClkSrc,TimeOut);
+ 229:LPC17xxLib/src/lpc17xx_wdt.c **** 	WDT_Feed();
+ 230:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 231:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 232:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 233:LPC17xxLib/src/lpc17xx_wdt.c **** /********************************************************************//**
+ 234:LPC17xxLib/src/lpc17xx_wdt.c ****  * @brief 		After set WDTEN, call this function to start Watchdog
+ 235:LPC17xxLib/src/lpc17xx_wdt.c ****  * 				or reload the Watchdog timer
+ 236:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	None
+ 237:LPC17xxLib/src/lpc17xx_wdt.c ****  *
+ 238:LPC17xxLib/src/lpc17xx_wdt.c ****  * @return		None
+ 239:LPC17xxLib/src/lpc17xx_wdt.c ****  *********************************************************************/
+ 240:LPC17xxLib/src/lpc17xx_wdt.c **** void WDT_Feed (void)
+ 241:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 265              	 .loc 1 241 0
+ 266              	 .cfi_startproc
+ 267              	 
+ 268              	 
+ 269              	 
+ 270              	.LBB10:
+ 271              	.LBB11:
+ 272              	 .file 2 "CMSISv2p00_LPC17xx/inc/core_cmFunc.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @file     core_cmFunc.h
+   3:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @brief    CMSIS Cortex-M Core Function Access Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M 
+  12:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * processor based microcontrollers.  This file can be freely distributed 
+  13:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * within development tools that are supporting such ARM based processors. 
+  14:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  24:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #ifndef __CORE_CMFUNC_H__
+  25:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __CORE_CMFUNC_H__
+  26:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ###########################  Core Function Access  ########################### */
+  28:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \ingroup  CMSIS_Core_FunctionInterface   
+  29:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+  30:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   @{
+  31:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  32:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  33:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined ( __CC_ARM   ) /*------------------ RealView Compiler ----------------*/
+  34:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ARM armcc specific functions */
+  35:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  36:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __enable_irq();     */
+  37:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __disable_irq();    */
+  38:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  39:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Control Register
+  40:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  41:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the Control Register.
+  42:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  43:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Control Register value
+  44:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  45:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  46:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_CONTROL(void);
+  47:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  48:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_CONTROL(void)
+  49:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  50:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  51:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regControl);
+  52:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  53:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  54:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  56:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Control Register
+  57:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  58:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function writes the given value to the Control Register.
+  59:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  60:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+  61:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  62:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  63:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_CONTROL(uint32_t control);
+  64:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  65:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_CONTROL(uint32_t control)
+  66:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  67:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  68:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regControl = control;
+  69:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  70:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  71:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  72:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  73:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+  74:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  75:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+  76:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+  78:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  79:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  80:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_IPSR(void);
+  81:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  82:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_IPSR(void)
+  83:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  84:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regIPSR          __ASM("ipsr");
+  85:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regIPSR);
+  86:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  87:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  88:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  89:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  90:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+  91:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  92:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+  93:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  94:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+  95:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  96:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  97:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_APSR(void);
+  98:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  99:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_APSR(void)
+ 100:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 101:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regAPSR          __ASM("apsr");
+ 102:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regAPSR);
+ 103:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 104:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 105:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 106:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 107:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 108:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 109:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 110:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 111:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 112:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 113:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 114:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_xPSR(void);
+ 115:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 116:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_xPSR(void)
+ 117:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 118:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regXPSR          __ASM("xpsr");
+ 119:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regXPSR);
+ 120:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 121:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 122:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 123:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 124:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 125:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 126:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 127:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 128:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 129:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 130:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 131:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PSP(void);
+ 132:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 133:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PSP(void)
+ 134:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 135:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 136:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regProcessStackPointer);
+ 137:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 138:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 139:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 140:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 142:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 143:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 144:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 145:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 146:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 147:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 148:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PSP(uint32_t topOfProcStack);
+ 149:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 150:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PSP(uint32_t topOfProcStack)
+ 151:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 152:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 153:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regProcessStackPointer = topOfProcStack;
+ 154:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 155:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 156:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 157:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 158:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 159:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 160:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 161:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 162:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 163:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 164:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 165:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_MSP(void);
+ 166:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 167:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_MSP(void)
+ 168:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 169:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 170:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regMainStackPointer);
+ 171:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 172:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 173:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 174:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 175:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 176:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 177:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 178:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 179:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 180:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 181:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 182:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_MSP(uint32_t topOfMainStack);
+ 183:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 184:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_MSP(uint32_t topOfMainStack)
+ 185:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 186:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 187:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regMainStackPointer = topOfMainStack;
+ 188:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 189:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 190:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 191:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 192:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Priority Mask
+ 193:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 194:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current state of the priority mask bit from the Priority Mask Registe
+ 195:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 196:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Priority Mask value
+ 197:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 198:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 199:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PRIMASK(void);
+ 200:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 201:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PRIMASK(void)
+ 202:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 203:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 204:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regPriMask);
+ 205:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 206:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 207:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 208:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 209:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Priority Mask
+ 210:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 211:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Priority Mask Register.
+ 212:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 213:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    priMask  Priority Mask
+ 214:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 215:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 216:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PRIMASK(uint32_t priMask);
+ 217:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 218:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PRIMASK(uint32_t priMask)
+ 219:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 220:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 221:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regPriMask = (priMask);
+ 222:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 223:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 224:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 225:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 226:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 227:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 228:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 229:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 230:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 231:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 232:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 233:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_fault_irq                __enable_fiq
+ 234:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 235:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 236:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 237:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 238:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 239:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 240:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 241:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_fault_irq               __disable_fiq
+ 242:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 243:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 244:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Base Priority
+ 245:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 246:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Base Priority register.
+ 247:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 248:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Base Priority register value
+ 249:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 250:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 251:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_BASEPRI(void);
+ 252:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 253:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t  __get_BASEPRI(void)
+ 254:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 255:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 256:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regBasePri);
+ 257:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 258:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 259:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 260:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 261:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Base Priority
+ 262:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 263:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Base Priority register.
+ 264:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 265:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    basePri  Base Priority value to set
+ 266:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 267:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 268:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_BASEPRI(uint32_t basePri);
+ 269:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 270:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_BASEPRI(uint32_t basePri)
+ 271:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 272:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 273:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regBasePri = (basePri & 0xff);
+ 274:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 275:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 276:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 277:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 278:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Fault Mask
+ 279:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Fault Mask register.
+ 281:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 282:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Fault Mask register value
+ 283:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 284:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 285:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_FAULTMASK(void);
+ 286:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 287:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FAULTMASK(void)
+ 288:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 289:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 290:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regFaultMask);
+ 291:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 292:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 293:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 294:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 295:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Fault Mask
+ 296:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 297:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Fault Mask register.
+ 298:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 299:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    faultMask  Fault Mask value to set
+ 300:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 301:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 302:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_FAULTMASK(uint32_t faultMask);
+ 303:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 304:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FAULTMASK(uint32_t faultMask)
+ 305:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 306:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 307:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regFaultMask = (faultMask & 1);
+ 308:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 309:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 310:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 311:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 312:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 313:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 314:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 315:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 316:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 317:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 319:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 320:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 321:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 322:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FPSCR(void)
+ 323:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 324:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 325:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 326:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regfpscr);
+ 327:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 328:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****    return(0);
+ 329:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 330:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 331:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 332:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 333:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 334:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 335:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 336:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 337:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 338:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 339:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FPSCR(uint32_t fpscr)
+ 340:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 341:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 342:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 343:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regfpscr = (fpscr);
+ 344:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 345:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 346:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 347:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 348:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 349:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 350:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  #elif (defined (__ICCARM__)) /*---------------- ICC Compiler ---------------------*/
+ 351:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* IAR iccarm specific functions */
+ 352:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined (__ICCARM__)
+ 354:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   #include <intrinsics.h>                     /* IAR Intrinsics   */
+ 355:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 356:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 357:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_suppress=Pe940
+ 358:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 359:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 360:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 361:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 362:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 363:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 364:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_irq                              __enable_interrupt
+ 365:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 367:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 368:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 369:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 370:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 371:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 372:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_irq                             __disable_interrupt
+ 373:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 374:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_CONTROL( void ); (see intrinsic.h) */
+ 376:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_CONTROL( unsigned long ); (see intrinsic.h) */
+ 377:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 378:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 379:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+ 380:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 381:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+ 382:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 383:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+ 384:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 385:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_IPSR(void)
+ 386:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 387:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, ipsr");
+ 388:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 389:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 390:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 391:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+ 392:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 394:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 395:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+ 396:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 397:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_APSR(void)
+ 398:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 399:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, apsr");
+ 400:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 401:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 402:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 403:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 404:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 405:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 406:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 407:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 408:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 409:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_xPSR(void)
+ 410:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 411:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psr");           // assembler does not know "xpsr"
+ 412:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 413:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 414:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 415:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 416:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 417:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 418:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 420:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 421:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_PSP(void)
+ 422:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 423:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psp");
+ 424:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 425:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 426:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 427:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 428:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 429:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 430:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 431:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 432:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 433:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_PSP(uint32_t topOfProcStack)
+ 434:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 435:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr psp, r0");
+ 436:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 437:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 438:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 439:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 440:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 441:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 442:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 443:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 444:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 445:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_MSP(void)
+ 446:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 447:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, msp");
+ 448:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 449:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 450:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 451:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 452:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 453:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 454:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 455:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 456:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 457:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_MSP(uint32_t topOfMainStack)
+ 458:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 459:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr msp, r0");
+ 460:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 461:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 462:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 463:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_PRIMASK( void ); (see intrinsic.h) */
+ 464:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_PRIMASK( unsigned long ); (see intrinsic.h) */
+ 465:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 466:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 467:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 468:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 469:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 470:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 471:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 472:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 473:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 474:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __enable_fault_irq(void)
+ 475:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 476:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsie f");
+ 477:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 478:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 479:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 480:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 481:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 482:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 483:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 484:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 485:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __disable_fault_irq(void)
+ 486:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 487:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsid f");
+ 488:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 489:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 491:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_BASEPRI( void );   (see intrinsic.h) */
+ 492:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_BASEPRI( unsigned long );   (see intrinsic.h) */
+ 493:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_FAULTMASK( void ); (see intrinsic.h) */
+ 494:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_FAULTMASK(unsigned long);   (see intrinsic.h) */
+ 495:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 496:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 497:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 498:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 499:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 500:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 501:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 502:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 503:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 504:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 505:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 506:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 507:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_FPSCR(void)
+ 508:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 509:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 510:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmrs r0, fpscr"); 
+ 511:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 512:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(0);
+ 513:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 514:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 515:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 516:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 517:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 518:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 519:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 520:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 521:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 522:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 523:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_FPSCR(uint32_t fpscr)
+ 524:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 525:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 526:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmsr fpscr, r0");
+ 527:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 528:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 529:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 530:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 531:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 532:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_default=Pe940
+ 533:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 534:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 535:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 536:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* GNU gcc specific functions */
+ 537:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 538:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 539:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 540:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 541:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 542:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 543:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __enable_irq(void)
+ 544:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsie i");
+ 546:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 547:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 548:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 549:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 550:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 551:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 552:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 553:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 554:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __disable_irq(void)
+ 555:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 556:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsid i");
+ 273              	 .loc 2 556 0
+ 274              	 .syntax unified
+ 275              	
+ 276 0000 72B6     	 cpsid i
+ 277              	
+ 278              	 .thumb
+ 279              	 .syntax unified
+ 280              	.LBE11:
+ 281              	.LBE10:
+ 242:LPC17xxLib/src/lpc17xx_wdt.c **** 	// Disable irq interrupt
+ 243:LPC17xxLib/src/lpc17xx_wdt.c **** 	__disable_irq();
+ 244:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDFEED = 0xAA;
+ 282              	 .loc 1 244 0
+ 283 0002 4FF08043 	 mov r3,#1073741824
+ 284 0006 AA22     	 movs r2,#170
+ 285 0008 1A72     	 strb r2,[r3,#8]
+ 245:LPC17xxLib/src/lpc17xx_wdt.c **** 	LPC_WDT->WDFEED = 0x55;
+ 286              	 .loc 1 245 0
+ 287 000a 5522     	 movs r2,#85
+ 288 000c 1A72     	 strb r2,[r3,#8]
+ 289              	.LBB12:
+ 290              	.LBB13:
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 291              	 .loc 2 545 0
+ 292              	 .syntax unified
+ 293              	
+ 294 000e 62B6     	 cpsie i
+ 295              	
+ 296              	 .thumb
+ 297              	 .syntax unified
+ 298 0010 7047     	 bx lr
+ 299              	.LBE13:
+ 300              	.LBE12:
+ 301              	 .cfi_endproc
+ 302              	.LFE61:
+ 304              	 .section .text.WDT_Start,"ax",%progbits
+ 305              	 .align 1
+ 306              	 .global WDT_Start
+ 307              	 .syntax unified
+ 308              	 .thumb
+ 309              	 .thumb_func
+ 310              	 .fpu softvfp
+ 312              	WDT_Start:
+ 313              	.LFB57:
+ 187:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t ClkSrc;
+ 314              	 .loc 1 187 0
+ 315              	 .cfi_startproc
+ 316              	 
+ 317              	 
+ 318              	.LVL24:
+ 319 0000 10B5     	 push {r4,lr}
+ 320              	 .cfi_def_cfa_offset 8
+ 321              	 .cfi_offset 4,-8
+ 322              	 .cfi_offset 14,-4
+ 190:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc &=WDT_WDCLKSEL_MASK;
+ 323              	 .loc 1 190 0
+ 324 0002 4FF08044 	 mov r4,#1073741824
+ 325 0006 2369     	 ldr r3,[r4,#16]
+ 326              	.LVL25:
+ 192:LPC17xxLib/src/lpc17xx_wdt.c **** 	//enable watchdog
+ 327              	 .loc 1 192 0
+ 328 0008 0146     	 mov r1,r0
+ 329 000a 03F00300 	 and r0,r3,#3
+ 330              	.LVL26:
+ 331 000e 054B     	 ldr r3,.L21
+ 332 0010 9847     	 blx r3
+ 333              	.LVL27:
+ 194:LPC17xxLib/src/lpc17xx_wdt.c **** 	WDT_Feed();
+ 334              	 .loc 1 194 0
+ 335 0012 2378     	 ldrb r3,[r4]
+ 336 0014 43F00103 	 orr r3,r3,#1
+ 337 0018 2370     	 strb r3,[r4]
+ 196:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 338              	 .loc 1 196 0
+ 339 001a BDE81040 	 pop {r4,lr}
+ 340              	 .cfi_restore 14
+ 341              	 .cfi_restore 4
+ 342              	 .cfi_def_cfa_offset 0
+ 195:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 343              	 .loc 1 195 0
+ 344 001e 024B     	 ldr r3,.L21+4
+ 345 0020 1847     	 bx r3
+ 346              	.LVL28:
+ 347              	.L22:
+ 348 0022 00BF     	 .align 2
+ 349              	.L21:
+ 350 0024 00000000 	 .word WDT_SetTimeOut
+ 351 0028 00000000 	 .word WDT_Feed
+ 352              	 .cfi_endproc
+ 353              	.LFE57:
+ 355              	 .section .text.WDT_UpdateTimeOut,"ax",%progbits
+ 356              	 .align 1
+ 357              	 .global WDT_UpdateTimeOut
+ 358              	 .syntax unified
+ 359              	 .thumb
+ 360              	 .thumb_func
+ 361              	 .fpu softvfp
+ 363              	WDT_UpdateTimeOut:
+ 364              	.LFB60:
+ 224:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t ClkSrc;
+ 365              	 .loc 1 224 0
+ 366              	 .cfi_startproc
+ 367              	 
+ 368              	 
+ 369              	.LVL29:
+ 226:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc &=WDT_WDCLKSEL_MASK;
+ 370              	 .loc 1 226 0
+ 371 0000 4FF08043 	 mov r3,#1073741824
+ 224:LPC17xxLib/src/lpc17xx_wdt.c **** 	uint32_t ClkSrc;
+ 372              	 .loc 1 224 0
+ 373 0004 10B5     	 push {r4,lr}
+ 374              	 .cfi_def_cfa_offset 8
+ 375              	 .cfi_offset 4,-8
+ 376              	 .cfi_offset 14,-4
+ 226:LPC17xxLib/src/lpc17xx_wdt.c **** 	ClkSrc &=WDT_WDCLKSEL_MASK;
+ 377              	 .loc 1 226 0
+ 378 0006 1B69     	 ldr r3,[r3,#16]
+ 379              	.LVL30:
+ 228:LPC17xxLib/src/lpc17xx_wdt.c **** 	WDT_Feed();
+ 380              	 .loc 1 228 0
+ 381 0008 0146     	 mov r1,r0
+ 382 000a 03F00300 	 and r0,r3,#3
+ 383              	.LVL31:
+ 384 000e 034B     	 ldr r3,.L24
+ 385 0010 9847     	 blx r3
+ 386              	.LVL32:
+ 230:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 387              	 .loc 1 230 0
+ 388 0012 BDE81040 	 pop {r4,lr}
+ 389              	 .cfi_restore 14
+ 390              	 .cfi_restore 4
+ 391              	 .cfi_def_cfa_offset 0
+ 229:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 392              	 .loc 1 229 0
+ 393 0016 024B     	 ldr r3,.L24+4
+ 394 0018 1847     	 bx r3
+ 395              	.LVL33:
+ 396              	.L25:
+ 397 001a 00BF     	 .align 2
+ 398              	.L24:
+ 399 001c 00000000 	 .word WDT_SetTimeOut
+ 400 0020 00000000 	 .word WDT_Feed
+ 401              	 .cfi_endproc
+ 402              	.LFE60:
+ 404              	 .section .text.WDT_GetCurrentCount,"ax",%progbits
+ 405              	 .align 1
+ 406              	 .global WDT_GetCurrentCount
+ 407              	 .syntax unified
+ 408              	 .thumb
+ 409              	 .thumb_func
+ 410              	 .fpu softvfp
+ 412              	WDT_GetCurrentCount:
+ 413              	.LFB62:
+ 246:LPC17xxLib/src/lpc17xx_wdt.c **** 	// Then enable irq interrupt
+ 247:LPC17xxLib/src/lpc17xx_wdt.c **** 	__enable_irq();
+ 248:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 249:LPC17xxLib/src/lpc17xx_wdt.c **** 
+ 250:LPC17xxLib/src/lpc17xx_wdt.c **** /********************************************************************//**
+ 251:LPC17xxLib/src/lpc17xx_wdt.c ****  * @brief 		Get the current value of WDT
+ 252:LPC17xxLib/src/lpc17xx_wdt.c ****  * @param[in]	None
+ 253:LPC17xxLib/src/lpc17xx_wdt.c ****  * @return		current value of WDT
+ 254:LPC17xxLib/src/lpc17xx_wdt.c ****  *********************************************************************/
+ 255:LPC17xxLib/src/lpc17xx_wdt.c **** uint32_t WDT_GetCurrentCount(void)
+ 256:LPC17xxLib/src/lpc17xx_wdt.c **** {
+ 414              	 .loc 1 256 0
+ 415              	 .cfi_startproc
+ 416              	 
+ 417              	 
+ 418              	 
+ 257:LPC17xxLib/src/lpc17xx_wdt.c **** 	return LPC_WDT->WDTV;
+ 419              	 .loc 1 257 0
+ 420 0000 4FF08043 	 mov r3,#1073741824
+ 421 0004 D868     	 ldr r0,[r3,#12]
+ 258:LPC17xxLib/src/lpc17xx_wdt.c **** }
+ 422              	 .loc 1 258 0
+ 423 0006 7047     	 bx lr
+ 424              	 .cfi_endproc
+ 425              	.LFE62:
+ 427              	 .text
+ 428              	.Letext0:
+ 429              	 .file 3 "/usr/include/newlib/machine/_default_types.h"
+ 430              	 .file 4 "/usr/include/newlib/sys/_stdint.h"
+ 431              	 .file 5 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 432              	 .file 6 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 433              	 .file 7 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 434              	 .file 8 "LPC17xxLib/inc/lpc_types.h"
+ 435              	 .file 9 "LPC17xxLib/inc/lpc17xx_wdt.h"
+ 436              	 .file 10 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_wdt.c
+    {standard input}:16     .text.WDT_SetTimeOut:0000000000000000 $t
+    {standard input}:22     .text.WDT_SetTimeOut:0000000000000000 WDT_SetTimeOut
+    {standard input}:138    .text.WDT_SetTimeOut:0000000000000070 $d
+    {standard input}:149    .text.WDT_Init:0000000000000000 $t
+    {standard input}:156    .text.WDT_Init:0000000000000000 WDT_Init
+    {standard input}:203    .text.WDT_Init:0000000000000030 $d
+    {standard input}:208    .text.WDT_ReadTimeOutFlag:0000000000000000 $t
+    {standard input}:215    .text.WDT_ReadTimeOutFlag:0000000000000000 WDT_ReadTimeOutFlag
+    {standard input}:232    .text.WDT_ClrTimeOutFlag:0000000000000000 $t
+    {standard input}:239    .text.WDT_ClrTimeOutFlag:0000000000000000 WDT_ClrTimeOutFlag
+    {standard input}:256    .text.WDT_Feed:0000000000000000 $t
+    {standard input}:263    .text.WDT_Feed:0000000000000000 WDT_Feed
+    {standard input}:305    .text.WDT_Start:0000000000000000 $t
+    {standard input}:312    .text.WDT_Start:0000000000000000 WDT_Start
+    {standard input}:350    .text.WDT_Start:0000000000000024 $d
+    {standard input}:356    .text.WDT_UpdateTimeOut:0000000000000000 $t
+    {standard input}:363    .text.WDT_UpdateTimeOut:0000000000000000 WDT_UpdateTimeOut
+    {standard input}:399    .text.WDT_UpdateTimeOut:000000000000001c $d
+    {standard input}:405    .text.WDT_GetCurrentCount:0000000000000000 $t
+    {standard input}:412    .text.WDT_GetCurrentCount:0000000000000000 WDT_GetCurrentCount
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+SystemCoreClock
+CLKPWR_SetPCLKDiv

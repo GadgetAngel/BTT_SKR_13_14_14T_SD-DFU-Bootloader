@@ -1,0 +1,2289 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "main.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.delay_loop,"ax",%progbits
+  16              	 .align 1
+  17              	 .syntax unified
+  18              	 .thumb
+  19              	 .thumb_func
+  20              	 .fpu softvfp
+  22              	delay_loop:
+  23              	.LFB59:
+  24              	 .file 1 "main.c"
+   1:main.c        **** /*****************************************************************************
+   2:main.c        ****  *                                                                            *
+   3:main.c        ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:main.c        ****  *                                                                            *
+   5:main.c        ****  * by Triffid Hunter                                                          *
+   6:main.c        ****  *                                                                            *
+   7:main.c        ****  * lightly modified GadgetAngel for BTT SKR (mini) E3 TURBO                   *
+   8:main.c        ****  *  - DFU can be included and will be launched if flash is empty or if the    *
+   9:main.c        ****  *    encoder button of the display board is pressed while booting            *
+  10:main.c        ****  *  - Bootloader will hold down the BEEPER_PIN on EXP1 while marlin boots to  *
+  11:main.c        ****  *    have a silent boot process                                              *
+  12:main.c        ****  *                                                                            *
+  13:main.c        ****  * lightly modified Armin Diehl for BTT SKR 1.3 and 1.4[T]                    *
+  14:main.c        ****  *  - DFU can be included and will be launched if flash is empty or if the    *
+  15:main.c        ****  *    encoder button of the display board is pressed while booting            *
+  16:main.c        ****  *  - Firware can also be loaded from the sdcard on the display board (on my  *
+  17:main.c        ****  *    board the sd card slot on the skr board was broken)                     *
+  18:main.c        ****  *                                                                            *
+  19:main.c        ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+  20:main.c        ****  *                                                                            *
+  21:main.c        ****  * This program is free software; you can redistribute it and/or modify       *
+  22:main.c        ****  * it under the terms of the GNU General Public License as published by       *
+  23:main.c        ****  * the Free Software Foundation; either version 2 of the License, or          *
+  24:main.c        ****  * (at your option) any later version.                                        *
+  25:main.c        ****  *                                                                            *
+  26:main.c        ****  * This program is distributed in the hope that it will be useful,            *
+  27:main.c        ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  28:main.c        ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  29:main.c        ****  * GNU General Public License for more details.                               *
+  30:main.c        ****  *                                                                            *
+  31:main.c        ****  * You should have received a copy of the GNU General Public License          *
+  32:main.c        ****  * along with this program; if not, write to the Free Software                *
+  33:main.c        ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  34:main.c        ****  *                                                                            *
+  35:main.c        ****  *****************************************************************************/
+  36:main.c        **** 
+  37:main.c        **** #define VERSION "1.05 SKR"
+  38:main.c        **** 
+  39:main.c        **** __attribute__((used)) static const char * version = VERSION;
+  40:main.c        **** 
+  41:main.c        **** // AD 16 Nov 2020
+  42:main.c        **** //   added support for second sd card (on display port) connected to SPI 0
+  43:main.c        **** //   disabled DFU mode / pin
+  44:main.c        **** 
+  45:main.c        **** // A LOW level after reset at pin DFU_BTN is considered an external hardware 
+  46:main.c        **** // request to start the ISP command handler.
+  47:main.c        **** 
+  48:main.c        **** 
+  49:main.c        **** #include "usbhw.h"
+  50:main.c        **** #include "usbcore.h"
+  51:main.c        **** 
+  52:main.c        **** #include "uart.h"
+  53:main.c        **** 
+  54:main.c        **** #include "SDCard.h"
+  55:main.c        **** 
+  56:main.c        **** #include "gpio.h"
+  57:main.c        **** 
+  58:main.c        **** #include "sbl_iap.h"
+  59:main.c        **** #include "sbl_config.h"
+  60:main.c        **** 
+  61:main.c        **** #include "ff.h"
+  62:main.c        **** 
+  63:main.c        **** #include "dfu.h"
+  64:main.c        **** 
+  65:main.c        **** #include "min-printf.h"
+  66:main.c        **** 
+  67:main.c        **** #include "lpc17xx_wdt.h"
+  68:main.c        **** 
+  69:main.c        **** //---------------------------------
+  70:main.c        **** // pin definitions and defines
+  71:main.c        **** #include "config.h"
+  72:main.c        **** //--------------------------------
+  73:main.c        **** 
+  74:main.c        **** //#define printf(...) do {} while (0)
+  75:main.c        **** 
+  76:main.c        **** FATFS	fat;
+  77:main.c        **** FIL	file;
+  78:main.c        **** 
+  79:main.c        **** const char *firmware_file = "firmware.bin";
+  80:main.c        **** const char *firmware_old  = "firmware.cur";
+  81:main.c        **** 
+  82:main.c        **** #if ENABLED(LEDS)
+  83:main.c        **** void setleds(int leds)
+  84:main.c        **** {
+  85:main.c        **** 	GPIO_write(LED1, leds &  1);
+  86:main.c        **** 	GPIO_write(LED2, leds &  2);
+  87:main.c        **** 	GPIO_write(LED3, leds &  4);
+  88:main.c        **** 	GPIO_write(LED4, leds &  8);
+  89:main.c        **** 	GPIO_write(LED5, leds & 16);
+  90:main.c        **** }
+  91:main.c        **** #endif
+  92:main.c        **** 
+  93:main.c        **** #if ENABLED(DFU)
+  94:main.c        **** int dfu_btn_pressed(void)
+  95:main.c        **** {
+  96:main.c        **** 	return GPIO_get(DFU_BTN);
+  97:main.c        **** }
+  98:main.c        **** 
+  99:main.c        **** void start_dfu(void)
+ 100:main.c        **** {
+ 101:main.c        **** 	DFU_init();
+ 102:main.c        **** 	usb_init();
+ 103:main.c        **** 	usb_connect();
+ 104:main.c        **** 	while (DFU_complete() == 0)
+ 105:main.c        **** 		usb_task();
+ 106:main.c        **** 	usb_disconnect();
+ 107:main.c        **** }
+ 108:main.c        **** #else
+ 109:main.c        **** int dfu_btn_pressed(void)
+ 110:main.c        **** {
+ 111:main.c        **** 	return 1;
+ 112:main.c        **** }
+ 113:main.c        **** #endif
+ 114:main.c        **** 
+ 115:main.c        **** int check_sd_firmware(void)
+ 116:main.c        **** {
+ 117:main.c        **** 	int r;
+ 118:main.c        **** // 	DBGPRINTF("Check SD\n");
+ 119:main.c        **** 	f_mount(0, &fat);
+ 120:main.c        **** 	if ((r = f_open(&file, firmware_file, FA_READ)) == FR_OK)
+ 121:main.c        **** 	{
+ 122:main.c        ****  		DBGPRINTF("Flashing firmware...\n");
+ 123:main.c        **** 		uint8_t buf[512];
+ 124:main.c        **** 		unsigned int r = sizeof(buf);
+ 125:main.c        **** 		uint32_t address = USER_FLASH_START;
+ 126:main.c        **** 		while (r == sizeof(buf))
+ 127:main.c        **** 		{
+ 128:main.c        **** 			if (f_read(&file, buf, sizeof(buf), &r) != FR_OK)
+ 129:main.c        **** 			{
+ 130:main.c        **** 				f_close(&file);
+ 131:main.c        **** 				return 0;
+ 132:main.c        **** 			}
+ 133:main.c        **** #if ENABLED(LEDS)
+ 134:main.c        **** 			setleds((address - USER_FLASH_START) >> 15);
+ 135:main.c        **** #endif
+ 136:main.c        **** // 			printf(PFX "\t0x%lx\n", address);
+ 137:main.c        **** 
+ 138:main.c        **** 			write_flash((void *) address, (char *)buf, sizeof(buf));
+ 139:main.c        **** 			address += r;
+ 140:main.c        **** 		}
+ 141:main.c        **** 		f_close(&file);
+ 142:main.c        **** 		if (address > USER_FLASH_START)
+ 143:main.c        **** 		{
+ 144:main.c        **** 			DBGPRINTF("Success\n");
+ 145:main.c        **** 			r = f_unlink(firmware_old);
+ 146:main.c        **** 			r = f_rename(firmware_file, firmware_old);
+ 147:main.c        **** 			return 1;
+ 148:main.c        **** 		}
+ 149:main.c        **** 	} else {
+ 150:main.c        **** 		DBGPRINTF("%s not found\n", firmware_file);
+ 151:main.c        **** 	}
+ 152:main.c        **** 	return 0;
+ 153:main.c        **** }
+ 154:main.c        **** 
+ 155:main.c        **** // this seems to fix an issue with handoff after poweroff
+ 156:main.c        **** // found here http://knowledgebase.nxp.trimm.net/showthread.php?t=2869
+ 157:main.c        **** typedef void __attribute__((noreturn))(*exec)();
+ 158:main.c        **** 
+ 159:main.c        **** static void boot(uint32_t a)
+ 160:main.c        **** {
+ 161:main.c        **** 	uint32_t *start;
+ 162:main.c        **** 
+ 163:main.c        **** 	__set_MSP(*(uint32_t *)USER_FLASH_START);
+ 164:main.c        **** 	start = (uint32_t *)(USER_FLASH_START + 4);
+ 165:main.c        **** 	((exec)(*start))();
+ 166:main.c        **** }
+ 167:main.c        **** 
+ 168:main.c        **** static uint32_t delay_loop(uint32_t count)
+ 169:main.c        **** {
+  25              	 .loc 1 169 0
+  26              	 .cfi_startproc
+  27              	 
+  28              	 
+  29              	 
+  30              	.LVL0:
+ 170:main.c        **** 	volatile uint32_t j, del;
+ 171:main.c        **** 	for(j=0; j<count; ++j){
+  31              	 .loc 1 171 0
+  32 0000 0023     	 movs r3,#0
+ 169:main.c        **** 	volatile uint32_t j, del;
+  33              	 .loc 1 169 0
+  34 0002 82B0     	 sub sp,sp,#8
+  35              	 .cfi_def_cfa_offset 8
+  36              	.L4:
+  37              	 .loc 1 171 0 discriminator 3
+  38 0004 0093     	 str r3,[sp]
+  39 0006 009B     	 ldr r3,[sp]
+  40 0008 8342     	 cmp r3,r0
+  41 000a 02D3     	 bcc .L3
+ 172:main.c        **** 		del=j; // volatiles, so the compiler will not optimize the loop
+ 173:main.c        **** 	}
+ 174:main.c        **** 	return del;
+  42              	 .loc 1 174 0
+  43 000c 0198     	 ldr r0,[sp,#4]
+  44              	.LVL1:
+ 175:main.c        **** }
+  45              	 .loc 1 175 0
+  46 000e 02B0     	 add sp,sp,#8
+  47              	 .cfi_remember_state
+  48              	 .cfi_def_cfa_offset 0
+  49              	 
+  50 0010 7047     	 bx lr
+  51              	.LVL2:
+  52              	.L3:
+  53              	 .cfi_restore_state
+ 172:main.c        **** 		del=j; // volatiles, so the compiler will not optimize the loop
+  54              	 .loc 1 172 0 discriminator 3
+  55 0012 009B     	 ldr r3,[sp]
+  56 0014 0193     	 str r3,[sp,#4]
+ 171:main.c        **** 		del=j; // volatiles, so the compiler will not optimize the loop
+  57              	 .loc 1 171 0 discriminator 3
+  58 0016 009B     	 ldr r3,[sp]
+  59 0018 0133     	 adds r3,r3,#1
+  60 001a F3E7     	 b .L4
+  61              	 .cfi_endproc
+  62              	.LFE59:
+  64              	 .section .text.check_sd_firmware.part.1,"ax",%progbits
+  65              	 .align 1
+  66              	 .syntax unified
+  67              	 .thumb
+  68              	 .thumb_func
+  69              	 .fpu softvfp
+  71              	check_sd_firmware.part.1:
+  72              	.LFB70:
+ 115:main.c        **** {
+  73              	 .loc 1 115 0
+  74              	 .cfi_startproc
+  75              	 
+  76              	 
+  77 0000 2DE9F043 	 push {r4,r5,r6,r7,r8,r9,lr}
+  78              	 .cfi_def_cfa_offset 28
+  79              	 .cfi_offset 4,-28
+  80              	 .cfi_offset 5,-24
+  81              	 .cfi_offset 6,-20
+  82              	 .cfi_offset 7,-16
+  83              	 .cfi_offset 8,-12
+  84              	 .cfi_offset 9,-8
+  85              	 .cfi_offset 14,-4
+  86              	.LBB11:
+ 122:main.c        **** 		uint8_t buf[512];
+  87              	 .loc 1 122 0
+  88 0004 1D48     	 ldr r0,.L12
+  89              	.LBE11:
+ 115:main.c        **** {
+  90              	 .loc 1 115 0
+  91 0006 ADF5037D 	 sub sp,sp,#524
+  92              	 .cfi_def_cfa_offset 552
+  93              	.LBB12:
+ 122:main.c        **** 		uint8_t buf[512];
+  94              	 .loc 1 122 0
+  95 000a 1D4C     	 ldr r4,.L12+4
+  96 000c A047     	 blx r4
+  97              	.LVL3:
+ 124:main.c        **** 		uint32_t address = USER_FLASH_START;
+  98              	 .loc 1 124 0
+  99 000e 4FF40073 	 mov r3,#512
+ 125:main.c        **** 		while (r == sizeof(buf))
+ 100              	 .loc 1 125 0
+ 101 0012 4FF48045 	 mov r5,#16384
+ 128:main.c        **** 			{
+ 102              	 .loc 1 128 0
+ 103 0016 1B4F     	 ldr r7,.L12+8
+ 104 0018 DFF88480 	 ldr r8,.L12+36
+ 138:main.c        **** 			address += r;
+ 105              	 .loc 1 138 0
+ 106 001c DFF88490 	 ldr r9,.L12+40
+ 124:main.c        **** 		uint32_t address = USER_FLASH_START;
+ 107              	 .loc 1 124 0
+ 108 0020 0193     	 str r3,[sp,#4]
+ 109              	.LVL4:
+ 110              	.L6:
+ 126:main.c        **** 		{
+ 111              	 .loc 1 126 0
+ 112 0022 019E     	 ldr r6,[sp,#4]
+ 113 0024 B6F5007F 	 cmp r6,#512
+ 114 0028 16D0     	 beq .L9
+ 141:main.c        **** 		if (address > USER_FLASH_START)
+ 115              	 .loc 1 141 0
+ 116 002a 1648     	 ldr r0,.L12+8
+ 117 002c 164B     	 ldr r3,.L12+12
+ 118 002e 9847     	 blx r3
+ 119              	.LVL5:
+ 142:main.c        **** 		{
+ 120              	 .loc 1 142 0
+ 121 0030 B5F5804F 	 cmp r5,#16384
+ 122 0034 19D9     	 bls .L10
+ 144:main.c        **** 			r = f_unlink(firmware_old);
+ 123              	 .loc 1 144 0
+ 124 0036 1548     	 ldr r0,.L12+16
+ 125 0038 A047     	 blx r4
+ 126              	.LVL6:
+ 145:main.c        **** 			r = f_rename(firmware_file, firmware_old);
+ 127              	 .loc 1 145 0
+ 128 003a 154C     	 ldr r4,.L12+20
+ 129 003c 154B     	 ldr r3,.L12+24
+ 130 003e 2068     	 ldr r0,[r4]
+ 131 0040 9847     	 blx r3
+ 132              	.LVL7:
+ 146:main.c        **** 			return 1;
+ 133              	 .loc 1 146 0
+ 134 0042 154B     	 ldr r3,.L12+28
+ 145:main.c        **** 			r = f_rename(firmware_file, firmware_old);
+ 135              	 .loc 1 145 0
+ 136 0044 0190     	 str r0,[sp,#4]
+ 146:main.c        **** 			return 1;
+ 137              	 .loc 1 146 0
+ 138 0046 2168     	 ldr r1,[r4]
+ 139 0048 1868     	 ldr r0,[r3]
+ 140 004a 144B     	 ldr r3,.L12+32
+ 141 004c 9847     	 blx r3
+ 142              	.LVL8:
+ 147:main.c        **** 		}
+ 143              	 .loc 1 147 0
+ 144 004e 0120     	 movs r0,#1
+ 145              	.L5:
+ 146              	.LBE12:
+ 153:main.c        **** 
+ 147              	 .loc 1 153 0
+ 148 0050 0DF5037D 	 add sp,sp,#524
+ 149              	 .cfi_remember_state
+ 150              	 .cfi_def_cfa_offset 28
+ 151              	 
+ 152 0054 BDE8F083 	 pop {r4,r5,r6,r7,r8,r9,pc}
+ 153              	.LVL9:
+ 154              	.L9:
+ 155              	 .cfi_restore_state
+ 156              	.LBB13:
+ 128:main.c        **** 			{
+ 157              	 .loc 1 128 0
+ 158 0058 01AB     	 add r3,sp,#4
+ 159 005a 3246     	 mov r2,r6
+ 160 005c 02A9     	 add r1,sp,#8
+ 161 005e 3846     	 mov r0,r7
+ 162 0060 C047     	 blx r8
+ 163              	.LVL10:
+ 164 0062 20B1     	 cbz r0,.L7
+ 130:main.c        **** 				return 0;
+ 165              	 .loc 1 130 0
+ 166 0064 0748     	 ldr r0,.L12+8
+ 167 0066 084B     	 ldr r3,.L12+12
+ 168 0068 9847     	 blx r3
+ 169              	.LVL11:
+ 170              	.L10:
+ 171              	.LBE13:
+ 152:main.c        **** }
+ 172              	 .loc 1 152 0
+ 173 006a 0020     	 movs r0,#0
+ 174 006c F0E7     	 b .L5
+ 175              	.L7:
+ 176              	.LBB14:
+ 138:main.c        **** 			address += r;
+ 177              	 .loc 1 138 0
+ 178 006e 2846     	 mov r0,r5
+ 179 0070 3246     	 mov r2,r6
+ 180 0072 02A9     	 add r1,sp,#8
+ 181 0074 C847     	 blx r9
+ 182              	.LVL12:
+ 139:main.c        **** 		}
+ 183              	 .loc 1 139 0
+ 184 0076 019B     	 ldr r3,[sp,#4]
+ 185 0078 1D44     	 add r5,r5,r3
+ 186              	.LVL13:
+ 187 007a D2E7     	 b .L6
+ 188              	.L13:
+ 189              	 .align 2
+ 190              	.L12:
+ 191 007c 00000000 	 .word .LC0
+ 192 0080 00000000 	 .word printf
+ 193 0084 00000000 	 .word file
+ 194 0088 00000000 	 .word f_close
+ 195 008c 1C000000 	 .word .LC1
+ 196 0090 00000000 	 .word .LANCHOR0
+ 197 0094 00000000 	 .word f_unlink
+ 198 0098 00000000 	 .word .LANCHOR1
+ 199 009c 00000000 	 .word f_rename
+ 200 00a0 00000000 	 .word f_read
+ 201 00a4 00000000 	 .word write_flash
+ 202              	.LBE14:
+ 203              	 .cfi_endproc
+ 204              	.LFE70:
+ 206              	 .section .text.dfu_btn_pressed,"ax",%progbits
+ 207              	 .align 1
+ 208              	 .global dfu_btn_pressed
+ 209              	 .syntax unified
+ 210              	 .thumb
+ 211              	 .thumb_func
+ 212              	 .fpu softvfp
+ 214              	dfu_btn_pressed:
+ 215              	.LFB55:
+  95:main.c        **** 	return GPIO_get(DFU_BTN);
+ 216              	 .loc 1 95 0
+ 217              	 .cfi_startproc
+ 218              	 
+ 219              	 
+ 220 0000 08B5     	 push {r3,lr}
+ 221              	 .cfi_def_cfa_offset 8
+ 222              	 .cfi_offset 3,-8
+ 223              	 .cfi_offset 14,-4
+  96:main.c        **** }
+ 224              	 .loc 1 96 0
+ 225 0002 1020     	 movs r0,#16
+ 226 0004 014B     	 ldr r3,.L15
+ 227 0006 9847     	 blx r3
+ 228              	.LVL14:
+  97:main.c        **** 
+ 229              	 .loc 1 97 0
+ 230 0008 08BD     	 pop {r3,pc}
+ 231              	.L16:
+ 232 000a 00BF     	 .align 2
+ 233              	.L15:
+ 234 000c 00000000 	 .word GPIO_get
+ 235              	 .cfi_endproc
+ 236              	.LFE55:
+ 238              	 .section .text.start_dfu,"ax",%progbits
+ 239              	 .align 1
+ 240              	 .global start_dfu
+ 241              	 .syntax unified
+ 242              	 .thumb
+ 243              	 .thumb_func
+ 244              	 .fpu softvfp
+ 246              	start_dfu:
+ 247              	.LFB56:
+ 100:main.c        **** 	DFU_init();
+ 248              	 .loc 1 100 0
+ 249              	 .cfi_startproc
+ 250              	 
+ 251              	 
+ 252 0000 70B5     	 push {r4,r5,r6,lr}
+ 253              	 .cfi_def_cfa_offset 16
+ 254              	 .cfi_offset 4,-16
+ 255              	 .cfi_offset 5,-12
+ 256              	 .cfi_offset 6,-8
+ 257              	 .cfi_offset 14,-4
+ 101:main.c        **** 	usb_init();
+ 258              	 .loc 1 101 0
+ 259 0002 084B     	 ldr r3,.L20
+ 260 0004 9847     	 blx r3
+ 261              	.LVL15:
+ 102:main.c        **** 	usb_connect();
+ 262              	 .loc 1 102 0
+ 263 0006 084B     	 ldr r3,.L20+4
+ 264 0008 9847     	 blx r3
+ 265              	.LVL16:
+ 103:main.c        **** 	while (DFU_complete() == 0)
+ 266              	 .loc 1 103 0
+ 267 000a 084B     	 ldr r3,.L20+8
+ 268 000c 9847     	 blx r3
+ 269              	.LVL17:
+ 104:main.c        **** 		usb_task();
+ 270              	 .loc 1 104 0
+ 271 000e 084C     	 ldr r4,.L20+12
+ 105:main.c        **** 	usb_disconnect();
+ 272              	 .loc 1 105 0
+ 273 0010 084D     	 ldr r5,.L20+16
+ 274              	.L18:
+ 104:main.c        **** 		usb_task();
+ 275              	 .loc 1 104 0
+ 276 0012 A047     	 blx r4
+ 277              	.LVL18:
+ 278 0014 18B1     	 cbz r0,.L19
+ 106:main.c        **** }
+ 279              	 .loc 1 106 0
+ 280 0016 084B     	 ldr r3,.L20+20
+ 107:main.c        **** #else
+ 281              	 .loc 1 107 0
+ 282 0018 BDE87040 	 pop {r4,r5,r6,lr}
+ 283              	 .cfi_remember_state
+ 284              	 .cfi_restore 14
+ 285              	 .cfi_restore 6
+ 286              	 .cfi_restore 5
+ 287              	 .cfi_restore 4
+ 288              	 .cfi_def_cfa_offset 0
+ 106:main.c        **** }
+ 289              	 .loc 1 106 0
+ 290 001c 1847     	 bx r3
+ 291              	.LVL19:
+ 292              	.L19:
+ 293              	 .cfi_restore_state
+ 105:main.c        **** 	usb_disconnect();
+ 294              	 .loc 1 105 0
+ 295 001e A847     	 blx r5
+ 296              	.LVL20:
+ 297 0020 F7E7     	 b .L18
+ 298              	.L21:
+ 299 0022 00BF     	 .align 2
+ 300              	.L20:
+ 301 0024 00000000 	 .word DFU_init
+ 302 0028 00000000 	 .word usb_init
+ 303 002c 00000000 	 .word usb_connect
+ 304 0030 00000000 	 .word DFU_complete
+ 305 0034 00000000 	 .word usb_task
+ 306 0038 00000000 	 .word usb_disconnect
+ 307              	 .cfi_endproc
+ 308              	.LFE56:
+ 310              	 .section .text.check_sd_firmware,"ax",%progbits
+ 311              	 .align 1
+ 312              	 .global check_sd_firmware
+ 313              	 .syntax unified
+ 314              	 .thumb
+ 315              	 .thumb_func
+ 316              	 .fpu softvfp
+ 318              	check_sd_firmware:
+ 319              	.LFB57:
+ 116:main.c        **** 	int r;
+ 320              	 .loc 1 116 0
+ 321              	 .cfi_startproc
+ 322              	 
+ 323              	 
+ 324 0000 10B5     	 push {r4,lr}
+ 325              	 .cfi_def_cfa_offset 8
+ 326              	 .cfi_offset 4,-8
+ 327              	 .cfi_offset 14,-4
+ 120:main.c        **** 	{
+ 328              	 .loc 1 120 0
+ 329 0002 0A4C     	 ldr r4,.L24
+ 119:main.c        **** 	if ((r = f_open(&file, firmware_file, FA_READ)) == FR_OK)
+ 330              	 .loc 1 119 0
+ 331 0004 0A49     	 ldr r1,.L24+4
+ 332 0006 0B4B     	 ldr r3,.L24+8
+ 333 0008 0020     	 movs r0,#0
+ 334 000a 9847     	 blx r3
+ 335              	.LVL21:
+ 120:main.c        **** 	{
+ 336              	 .loc 1 120 0
+ 337 000c 0122     	 movs r2,#1
+ 338 000e 2168     	 ldr r1,[r4]
+ 339 0010 0948     	 ldr r0,.L24+12
+ 340 0012 0A4B     	 ldr r3,.L24+16
+ 341 0014 9847     	 blx r3
+ 342              	.LVL22:
+ 343 0016 18B9     	 cbnz r0,.L23
+ 153:main.c        **** 
+ 344              	 .loc 1 153 0 discriminator 1
+ 345 0018 BDE81040 	 pop {r4,lr}
+ 346              	 .cfi_remember_state
+ 347              	 .cfi_restore 14
+ 348              	 .cfi_restore 4
+ 349              	 .cfi_def_cfa_offset 0
+ 350 001c 084B     	 ldr r3,.L24+20
+ 351 001e 1847     	 bx r3
+ 352              	.LVL23:
+ 353              	.L23:
+ 354              	 .cfi_restore_state
+ 150:main.c        **** 	}
+ 355              	 .loc 1 150 0 discriminator 1
+ 356 0020 2168     	 ldr r1,[r4]
+ 357 0022 084B     	 ldr r3,.L24+24
+ 358 0024 0848     	 ldr r0,.L24+28
+ 359              	.LVL24:
+ 360 0026 9847     	 blx r3
+ 361              	.LVL25:
+ 153:main.c        **** 
+ 362              	 .loc 1 153 0 discriminator 1
+ 363 0028 0020     	 movs r0,#0
+ 364 002a 10BD     	 pop {r4,pc}
+ 365              	.L25:
+ 366              	 .align 2
+ 367              	.L24:
+ 368 002c 00000000 	 .word .LANCHOR1
+ 369 0030 00000000 	 .word fat
+ 370 0034 00000000 	 .word f_mount
+ 371 0038 00000000 	 .word file
+ 372 003c 00000000 	 .word f_open
+ 373 0040 00000000 	 .word check_sd_firmware.part.1
+ 374 0044 00000000 	 .word printf
+ 375 0048 00000000 	 .word .LC2
+ 376              	 .cfi_endproc
+ 377              	.LFE57:
+ 379              	 .section .text.startup.main,"ax",%progbits
+ 380              	 .align 1
+ 381              	 .global main
+ 382              	 .syntax unified
+ 383              	 .thumb
+ 384              	 .thumb_func
+ 385              	 .fpu softvfp
+ 387              	main:
+ 388              	.LFB61:
+ 176:main.c        **** 
+ 177:main.c        **** static void new_execute_user_code(void)
+ 178:main.c        **** {
+ 179:main.c        **** 	uint32_t addr=(uint32_t)USER_FLASH_START;
+ 180:main.c        **** 	// delay
+ 181:main.c        **** 	delay_loop(3000000);
+ 182:main.c        **** 	// relocate vector table
+ 183:main.c        **** 	SCB->VTOR = (addr & 0x1FFFFF80);
+ 184:main.c        **** 	// switch to RC generator
+ 185:main.c        **** 	LPC_SC->PLL0CON = 0x1; // disconnect PLL0
+ 186:main.c        **** 	LPC_SC->PLL0FEED = 0xAA;
+ 187:main.c        **** 	LPC_SC->PLL0FEED = 0x55;
+ 188:main.c        **** 	while (LPC_SC->PLL0STAT&(1<<25));
+ 189:main.c        **** 	LPC_SC->PLL0CON = 0x0;    // power down
+ 190:main.c        **** 	LPC_SC->PLL0FEED = 0xAA;
+ 191:main.c        **** 	LPC_SC->PLL0FEED = 0x55;
+ 192:main.c        **** 	while (LPC_SC->PLL0STAT&(1<<24));
+ 193:main.c        **** 	// disable PLL1
+ 194:main.c        **** 	LPC_SC->PLL1CON   = 0;
+ 195:main.c        **** 	LPC_SC->PLL1FEED  = 0xAA;
+ 196:main.c        **** 	LPC_SC->PLL1FEED  = 0x55;
+ 197:main.c        **** 	while (LPC_SC->PLL1STAT&(1<<9));
+ 198:main.c        **** 
+ 199:main.c        **** 	LPC_SC->FLASHCFG &= 0x0fff;  // This is the default flash read/write setting for IRC
+ 200:main.c        **** 	LPC_SC->FLASHCFG |= 0x5000;
+ 201:main.c        **** 	LPC_SC->CCLKCFG = 0x0;     //  Select the IRC as clk
+ 202:main.c        **** 	LPC_SC->CLKSRCSEL = 0x00;
+ 203:main.c        **** 	LPC_SC->SCS = 0x00;		    // not using XTAL anymore
+ 204:main.c        **** 	delay_loop(1000);
+ 205:main.c        **** 	// reset pipeline, sync bus and memory access
+ 206:main.c        **** 	__asm (
+ 207:main.c        **** 		   "dmb\n"
+ 208:main.c        **** 		   "dsb\n"
+ 209:main.c        **** 		   "isb\n"
+ 210:main.c        **** 		  );
+ 211:main.c        **** 	boot(addr);
+ 212:main.c        **** }
+ 213:main.c        **** 
+ 214:main.c        **** int main(void)
+ 215:main.c        **** {
+ 389              	 .loc 1 215 0
+ 390              	 .cfi_startproc
+ 391              	 
+ 392              	 
+ 393 0000 70B5     	 push {r4,r5,r6,lr}
+ 394              	 .cfi_def_cfa_offset 16
+ 395              	 .cfi_offset 4,-16
+ 396              	 .cfi_offset 5,-12
+ 397              	 .cfi_offset 6,-8
+ 398              	 .cfi_offset 14,-4
+ 216:main.c        **** 	int flashed;
+ 217:main.c        **** 	int dfu;
+ 218:main.c        **** 
+ 219:main.c        **** #ifdef BEEPER_PIN
+ 220:main.c        **** 	GPIO_output(BEEPER_PIN); GPIO_write(BEEPER_PIN,0);
+ 399              	 .loc 1 220 0
+ 400 0002 4820     	 movs r0,#72
+ 401 0004 504B     	 ldr r3,.L46
+ 402 0006 9847     	 blx r3
+ 403              	.LVL26:
+ 404 0008 0021     	 movs r1,#0
+ 405 000a 4820     	 movs r0,#72
+ 406 000c 4F4B     	 ldr r3,.L46+4
+ 407 000e 9847     	 blx r3
+ 408              	.LVL27:
+ 221:main.c        **** #endif
+ 222:main.c        **** 
+ 223:main.c        **** 	flashed=0;
+ 224:main.c        **** 	WDT_Feed();
+ 409              	 .loc 1 224 0
+ 410 0010 4F4B     	 ldr r3,.L46+8
+ 411 0012 9847     	 blx r3
+ 412              	.LVL28:
+ 225:main.c        **** #if ENABLED(DFU)
+ 226:main.c        **** 	GPIO_init(DFU_BTN); GPIO_input(DFU_BTN);  // GPIO_init enables pullup as well
+ 413              	 .loc 1 226 0
+ 414 0014 1020     	 movs r0,#16
+ 415 0016 4F4B     	 ldr r3,.L46+12
+ 416 0018 9847     	 blx r3
+ 417              	.LVL29:
+ 418 001a 1020     	 movs r0,#16
+ 419 001c 4E4B     	 ldr r3,.L46+16
+ 420 001e 9847     	 blx r3
+ 421              	.LVL30:
+ 227:main.c        **** #endif
+ 228:main.c        **** 
+ 229:main.c        **** #if ENABLED(LEDS)
+ 230:main.c        **** 	GPIO_init(LED1); GPIO_output(LED1);
+ 231:main.c        **** 	GPIO_init(LED2); GPIO_output(LED2);
+ 232:main.c        **** 	GPIO_init(LED3); GPIO_output(LED3);
+ 233:main.c        **** 	GPIO_init(LED4); GPIO_output(LED4);
+ 234:main.c        **** 	GPIO_init(LED5); GPIO_output(LED5);
+ 235:main.c        **** #endif
+ 236:main.c        **** 
+ 237:main.c        **** #if ENABLED(HEATER)
+ 238:main.c        **** 	// turn off heater outputs
+ 239:main.c        **** 	#error check/adjust pins for heater
+ 240:main.c        **** 	GPIO_init(P2_4); GPIO_output(P2_4); GPIO_write(P2_4, 0);
+ 241:main.c        **** 	GPIO_init(P2_5); GPIO_output(P2_5); GPIO_write(P2_5, 0);
+ 242:main.c        **** 	GPIO_init(P2_6); GPIO_output(P2_6); GPIO_write(P2_6, 0);
+ 243:main.c        **** 	GPIO_init(P2_7); GPIO_output(P2_7); GPIO_write(P2_7, 0);
+ 244:main.c        **** #endif
+ 245:main.c        **** 
+ 246:main.c        **** #if ENABLED(LEDS)
+ 247:main.c        **** 	setleds(31);
+ 248:main.c        **** #endif
+ 249:main.c        **** 
+ 250:main.c        **** 	UART_init(UART_RX, UART_TX, APPBAUD);
+ 422              	 .loc 1 250 0
+ 423 0020 4FF4E132 	 mov r2,#115200
+ 424 0024 0221     	 movs r1,#2
+ 425 0026 0320     	 movs r0,#3
+ 426 0028 4C4B     	 ldr r3,.L46+20
+ 427 002a 9847     	 blx r3
+ 428              	.LVL31:
+ 251:main.c        **** 
+ 252:main.c        **** 	// give SD card time to wake up
+ 253:main.c        **** 	// AD: the card in the TFT35 needs more time
+ 254:main.c        **** 	//for (volatile int i = (1UL<<19); i; i--);
+ 255:main.c        **** 	DBGPRINTF("%s DFU:%d\n", version, DFU);
+ 429              	 .loc 1 255 0
+ 430 002c 4C4B     	 ldr r3,.L46+24
+ 431 002e 0122     	 movs r2,#1
+ 432 0030 1968     	 ldr r1,[r3]
+ 433 0032 4C48     	 ldr r0,.L46+28
+ 434 0034 4C4C     	 ldr r4,.L46+32
+ 435 0036 A047     	 blx r4
+ 436              	.LVL32:
+ 256:main.c        **** 
+ 257:main.c        **** 	// check if dfu button pressed to avoid checking SD card(s)
+ 258:main.c        **** 	dfu = (dfu_btn_pressed() == 0);
+ 437              	 .loc 1 258 0
+ 438 0038 4C4B     	 ldr r3,.L46+36
+ 439 003a 9847     	 blx r3
+ 440              	.LVL33:
+ 259:main.c        **** 
+ 260:main.c        **** 	if (! dfu) delay_loop(5000000);
+ 441              	 .loc 1 260 0
+ 442 003c 0546     	 mov r5,r0
+ 443 003e 10B1     	 cbz r0,.L27
+ 444              	 .loc 1 260 0 is_stmt 0 discriminator 1
+ 445 0040 4B48     	 ldr r0,.L46+40
+ 446              	.LVL34:
+ 447 0042 4C4B     	 ldr r3,.L46+44
+ 448 0044 9847     	 blx r3
+ 449              	.LVL35:
+ 450              	.L27:
+ 261:main.c        **** 
+ 262:main.c        **** // check onboard sd card
+ 263:main.c        **** // P0_9: MOSI1 P0_8: MISO1 P0_7: SCK1 P0_6: SSEL1
+ 264:main.c        **** 	SDCard_init(P0_9, P0_8, P0_7, P0_6);
+ 451              	 .loc 1 264 0 is_stmt 1
+ 452 0046 0623     	 movs r3,#6
+ 453 0048 0722     	 movs r2,#7
+ 454 004a 0821     	 movs r1,#8
+ 455 004c 0920     	 movs r0,#9
+ 456 004e 4A4E     	 ldr r6,.L46+48
+ 457 0050 B047     	 blx r6
+ 458              	.LVL36:
+ 265:main.c        **** 	if (SDCard_disk_initialize() == 0)
+ 459              	 .loc 1 265 0
+ 460 0052 4A4B     	 ldr r3,.L46+52
+ 461 0054 9847     	 blx r3
+ 462              	.LVL37:
+ 463 0056 0028     	 cmp r0,#0
+ 464 0058 65D1     	 bne .L28
+ 266:main.c        **** 		flashed = check_sd_firmware();
+ 465              	 .loc 1 266 0
+ 466 005a 494B     	 ldr r3,.L46+56
+ 467 005c 9847     	 blx r3
+ 468              	.LVL38:
+ 469              	.L29:
+ 267:main.c        **** 	else DBGPRINTF("no sdcard\n");
+ 268:main.c        **** 
+ 269:main.c        **** #if ENABLED(SD_DISPLAYBOARD)
+ 270:main.c        **** // check sd card on display board
+ 271:main.c        **** // P0_18: MOSI0 P0_17: MISO0 P0_15: SCK0 P0_16: SSEL0
+ 272:main.c        **** 	if (! dfu) {		// do not check SD cards if dfu button pressed
+ 273:main.c        **** 		if (!flashed) {
+ 274:main.c        **** 			SDCard_init(P0_18, P0_17, P0_15, P0_16);
+ 275:main.c        ****         		if (SDCard_disk_initialize() == 0)
+ 276:main.c        ****                 		flashed = check_sd_firmware();
+ 277:main.c        **** 			else {
+ 278:main.c        **** 				DBGPRINTF("no sdcard on display board\n");
+ 279:main.c        **** 			}
+ 280:main.c        **** 		}
+ 281:main.c        **** 	}
+ 282:main.c        **** #endif  // SD_DISPLAYBOARD
+ 283:main.c        **** 
+ 284:main.c        **** #if ENABLED(DFU)
+ 285:main.c        **** 	if (dfu)
+ 470              	 .loc 1 285 0
+ 471 005e 002D     	 cmp r5,#0
+ 472 0060 64D1     	 bne .L30
+ 286:main.c        **** 	{
+ 287:main.c        **** 		DBGPRINTF("ISP button pressed");
+ 473              	 .loc 1 287 0 discriminator 1
+ 474 0062 4848     	 ldr r0,.L46+60
+ 475              	.L45:
+ 288:main.c        **** 	}
+ 289:main.c        **** 	else if (WDT_ReadTimeOutFlag()) {
+ 290:main.c        **** 		WDT_ClrTimeOutFlag();
+ 291:main.c        **** 		DBGPRINTF("WATCHDOG reset");
+ 292:main.c        **** 		dfu++;
+ 293:main.c        **** 	} else if (*(uint32_t *)USER_FLASH_START == 0xFFFFFFFF) {
+ 294:main.c        ****         	DBGPRINTF("User flash empty");
+ 476              	 .loc 1 294 0 discriminator 1
+ 477 0064 A047     	 blx r4
+ 478              	.LVL39:
+ 295:main.c        ****         	dfu++;
+ 296:main.c        **** 	}
+ 297:main.c        **** 
+ 298:main.c        **** 	if (dfu) {
+ 299:main.c        **** 		DBGPRINTF_NOPFX(", entering DFU mode\n");
+ 479              	 .loc 1 299 0 discriminator 1
+ 480 0066 4848     	 ldr r0,.L46+64
+ 481 0068 A047     	 blx r4
+ 482              	.LVL40:
+ 300:main.c        **** 		start_dfu();
+ 483              	 .loc 1 300 0 discriminator 1
+ 484 006a 484B     	 ldr r3,.L46+68
+ 485 006c 9847     	 blx r3
+ 486              	.LVL41:
+ 487              	.L33:
+ 301:main.c        **** 	}
+ 302:main.c        **** #endif
+ 303:main.c        **** 
+ 304:main.c        **** #ifdef WATCHDOG
+ 305:main.c        **** 	WDT_Init(WDT_CLKSRC_IRC, WDT_MODE_RESET);
+ 306:main.c        **** 	WDT_Start(1<<22);
+ 307:main.c        **** #endif
+ 308:main.c        **** 
+ 309:main.c        **** 	// grab user code reset vector
+ 310:main.c        **** #if ENABLED(DEBUG_MESSAGES)
+ 311:main.c        **** 	DBGPRINTF("Jumping to 0x%x\n", (unsigned int)USER_FLASH_START+4);
+ 488              	 .loc 1 311 0 discriminator 1
+ 489 006e 44F20401 	 movw r1,#16388
+ 490 0072 4748     	 ldr r0,.L46+72
+ 491 0074 A047     	 blx r4
+ 492              	.LVL42:
+ 312:main.c        **** #endif
+ 313:main.c        **** 
+ 314:main.c        **** 	while (UART_busy());
+ 493              	 .loc 1 314 0 discriminator 1
+ 494 0076 474C     	 ldr r4,.L46+76
+ 495              	.L34:
+ 496 0078 A047     	 blx r4
+ 497              	.LVL43:
+ 498 007a 0028     	 cmp r0,#0
+ 499 007c FCD1     	 bne .L34
+ 315:main.c        **** 	UART_deinit();
+ 500              	 .loc 1 315 0
+ 501 007e 464B     	 ldr r3,.L46+80
+ 502 0080 9847     	 blx r3
+ 503              	.LVL44:
+ 504              	.LBB21:
+ 505              	.LBB22:
+ 181:main.c        **** 	// relocate vector table
+ 506              	 .loc 1 181 0
+ 507 0082 4648     	 ldr r0,.L46+84
+ 508 0084 3B49     	 ldr r1,.L46+44
+ 509 0086 8847     	 blx r1
+ 510              	.LVL45:
+ 183:main.c        **** 	// switch to RC generator
+ 511              	 .loc 1 183 0
+ 512 0088 4FF48042 	 mov r2,#16384
+ 513 008c 444B     	 ldr r3,.L46+88
+ 514 008e 9A60     	 str r2,[r3,#8]
+ 185:main.c        **** 	LPC_SC->PLL0FEED = 0xAA;
+ 515              	 .loc 1 185 0
+ 516 0090 0122     	 movs r2,#1
+ 517 0092 444B     	 ldr r3,.L46+92
+ 518 0094 C3F88020 	 str r2,[r3,#128]
+ 186:main.c        **** 	LPC_SC->PLL0FEED = 0x55;
+ 519              	 .loc 1 186 0
+ 520 0098 AA22     	 movs r2,#170
+ 521 009a C3F88C20 	 str r2,[r3,#140]
+ 187:main.c        **** 	while (LPC_SC->PLL0STAT&(1<<25));
+ 522              	 .loc 1 187 0
+ 523 009e 5522     	 movs r2,#85
+ 524 00a0 C3F88C20 	 str r2,[r3,#140]
+ 525              	.L35:
+ 188:main.c        **** 	LPC_SC->PLL0CON = 0x0;    // power down
+ 526              	 .loc 1 188 0
+ 527 00a4 D3F88820 	 ldr r2,[r3,#136]
+ 528 00a8 12F00072 	 ands r2,r2,#33554432
+ 529 00ac FAD1     	 bne .L35
+ 189:main.c        **** 	LPC_SC->PLL0FEED = 0xAA;
+ 530              	 .loc 1 189 0
+ 531 00ae C3F88020 	 str r2,[r3,#128]
+ 190:main.c        **** 	LPC_SC->PLL0FEED = 0x55;
+ 532              	 .loc 1 190 0
+ 533 00b2 AA22     	 movs r2,#170
+ 534 00b4 C3F88C20 	 str r2,[r3,#140]
+ 191:main.c        **** 	while (LPC_SC->PLL0STAT&(1<<24));
+ 535              	 .loc 1 191 0
+ 536 00b8 5522     	 movs r2,#85
+ 537 00ba C3F88C20 	 str r2,[r3,#140]
+ 192:main.c        **** 	// disable PLL1
+ 538              	 .loc 1 192 0
+ 539 00be 394A     	 ldr r2,.L46+92
+ 540 00c0 1346     	 mov r3,r2
+ 541              	.L36:
+ 542 00c2 D2F88800 	 ldr r0,[r2,#136]
+ 543 00c6 10F08070 	 ands r0,r0,#16777216
+ 544 00ca FAD1     	 bne .L36
+ 194:main.c        **** 	LPC_SC->PLL1FEED  = 0xAA;
+ 545              	 .loc 1 194 0
+ 546 00cc C2F8A000 	 str r0,[r2,#160]
+ 195:main.c        **** 	LPC_SC->PLL1FEED  = 0x55;
+ 547              	 .loc 1 195 0
+ 548 00d0 AA20     	 movs r0,#170
+ 549 00d2 C2F8AC00 	 str r0,[r2,#172]
+ 196:main.c        **** 	while (LPC_SC->PLL1STAT&(1<<9));
+ 550              	 .loc 1 196 0
+ 551 00d6 5520     	 movs r0,#85
+ 552 00d8 C2F8AC00 	 str r0,[r2,#172]
+ 553              	.L37:
+ 197:main.c        **** 
+ 554              	 .loc 1 197 0
+ 555 00dc D3F8A820 	 ldr r2,[r3,#168]
+ 556 00e0 12F40072 	 ands r2,r2,#512
+ 557 00e4 FAD1     	 bne .L37
+ 199:main.c        **** 	LPC_SC->FLASHCFG |= 0x5000;
+ 558              	 .loc 1 199 0
+ 559 00e6 1868     	 ldr r0,[r3]
+ 560 00e8 C0F30B00 	 ubfx r0,r0,#0,#12
+ 561 00ec 1860     	 str r0,[r3]
+ 200:main.c        **** 	LPC_SC->CCLKCFG = 0x0;     //  Select the IRC as clk
+ 562              	 .loc 1 200 0
+ 563 00ee 1868     	 ldr r0,[r3]
+ 564 00f0 40F4A040 	 orr r0,r0,#20480
+ 565 00f4 1860     	 str r0,[r3]
+ 201:main.c        **** 	LPC_SC->CLKSRCSEL = 0x00;
+ 566              	 .loc 1 201 0
+ 567 00f6 C3F80421 	 str r2,[r3,#260]
+ 204:main.c        **** 	// reset pipeline, sync bus and memory access
+ 568              	 .loc 1 204 0
+ 569 00fa 4FF47A70 	 mov r0,#1000
+ 202:main.c        **** 	LPC_SC->SCS = 0x00;		    // not using XTAL anymore
+ 570              	 .loc 1 202 0
+ 571 00fe C3F80C21 	 str r2,[r3,#268]
+ 203:main.c        **** 	delay_loop(1000);
+ 572              	 .loc 1 203 0
+ 573 0102 C3F8A021 	 str r2,[r3,#416]
+ 204:main.c        **** 	// reset pipeline, sync bus and memory access
+ 574              	 .loc 1 204 0
+ 575 0106 8847     	 blx r1
+ 576              	.LVL46:
+ 206:main.c        **** 		   "dmb\n"
+ 577              	 .loc 1 206 0
+ 578              	 .syntax unified
+ 579              	
+ 580 0108 BFF35F8F 	 dmb
+ 581 010c BFF34F8F 	dsb
+ 582 0110 BFF36F8F 	isb
+ 583              	
+ 584              	
+ 585              	.LVL47:
+ 586              	 .thumb
+ 587              	 .syntax unified
+ 588              	.LBB23:
+ 589              	.LBB24:
+ 163:main.c        **** 	start = (uint32_t *)(USER_FLASH_START + 4);
+ 590              	 .loc 1 163 0
+ 591 0114 4FF48043 	 mov r3,#16384
+ 592              	.LVL48:
+ 593              	.LBB25:
+ 594              	.LBB26:
+ 595              	 .file 2 "CMSISv2p00_LPC17xx/inc/core_cmFunc.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @file     core_cmFunc.h
+   3:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @brief    CMSIS Cortex-M Core Function Access Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M 
+  12:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * processor based microcontrollers.  This file can be freely distributed 
+  13:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * within development tools that are supporting such ARM based processors. 
+  14:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  24:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #ifndef __CORE_CMFUNC_H__
+  25:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __CORE_CMFUNC_H__
+  26:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ###########################  Core Function Access  ########################### */
+  28:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \ingroup  CMSIS_Core_FunctionInterface   
+  29:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+  30:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   @{
+  31:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  32:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  33:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined ( __CC_ARM   ) /*------------------ RealView Compiler ----------------*/
+  34:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ARM armcc specific functions */
+  35:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  36:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __enable_irq();     */
+  37:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __disable_irq();    */
+  38:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  39:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Control Register
+  40:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  41:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the Control Register.
+  42:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  43:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Control Register value
+  44:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  45:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  46:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_CONTROL(void);
+  47:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  48:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_CONTROL(void)
+  49:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  50:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  51:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regControl);
+  52:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  53:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  54:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  56:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Control Register
+  57:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  58:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function writes the given value to the Control Register.
+  59:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  60:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+  61:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  62:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  63:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_CONTROL(uint32_t control);
+  64:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  65:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_CONTROL(uint32_t control)
+  66:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  67:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  68:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regControl = control;
+  69:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  70:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  71:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  72:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  73:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+  74:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  75:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+  76:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+  78:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  79:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  80:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_IPSR(void);
+  81:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  82:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_IPSR(void)
+  83:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  84:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regIPSR          __ASM("ipsr");
+  85:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regIPSR);
+  86:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  87:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  88:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  89:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  90:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+  91:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  92:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+  93:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  94:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+  95:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  96:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  97:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_APSR(void);
+  98:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  99:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_APSR(void)
+ 100:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 101:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regAPSR          __ASM("apsr");
+ 102:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regAPSR);
+ 103:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 104:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 105:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 106:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 107:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 108:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 109:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 110:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 111:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 112:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 113:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 114:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_xPSR(void);
+ 115:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 116:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_xPSR(void)
+ 117:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 118:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regXPSR          __ASM("xpsr");
+ 119:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regXPSR);
+ 120:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 121:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 122:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 123:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 124:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 125:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 126:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 127:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 128:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 129:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 130:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 131:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PSP(void);
+ 132:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 133:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PSP(void)
+ 134:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 135:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 136:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regProcessStackPointer);
+ 137:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 138:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 139:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 140:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 142:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 143:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 144:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 145:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 146:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 147:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 148:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PSP(uint32_t topOfProcStack);
+ 149:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 150:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PSP(uint32_t topOfProcStack)
+ 151:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 152:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 153:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regProcessStackPointer = topOfProcStack;
+ 154:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 155:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 156:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 157:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 158:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 159:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 160:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 161:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 162:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 163:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 164:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 165:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_MSP(void);
+ 166:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 167:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_MSP(void)
+ 168:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 169:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 170:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regMainStackPointer);
+ 171:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 172:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 173:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 174:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 175:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 176:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 177:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 178:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 179:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 180:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 181:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 182:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_MSP(uint32_t topOfMainStack);
+ 183:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 184:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_MSP(uint32_t topOfMainStack)
+ 185:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 186:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 187:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regMainStackPointer = topOfMainStack;
+ 188:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 189:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 190:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 191:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 192:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Priority Mask
+ 193:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 194:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current state of the priority mask bit from the Priority Mask Registe
+ 195:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 196:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Priority Mask value
+ 197:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 198:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 199:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PRIMASK(void);
+ 200:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 201:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PRIMASK(void)
+ 202:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 203:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 204:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regPriMask);
+ 205:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 206:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 207:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 208:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 209:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Priority Mask
+ 210:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 211:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Priority Mask Register.
+ 212:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 213:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    priMask  Priority Mask
+ 214:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 215:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 216:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PRIMASK(uint32_t priMask);
+ 217:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 218:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PRIMASK(uint32_t priMask)
+ 219:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 220:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 221:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regPriMask = (priMask);
+ 222:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 223:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 224:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 225:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 226:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 227:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 228:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 229:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 230:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 231:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 232:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 233:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_fault_irq                __enable_fiq
+ 234:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 235:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 236:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 237:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 238:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 239:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 240:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 241:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_fault_irq               __disable_fiq
+ 242:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 243:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 244:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Base Priority
+ 245:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 246:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Base Priority register.
+ 247:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 248:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Base Priority register value
+ 249:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 250:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 251:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_BASEPRI(void);
+ 252:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 253:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t  __get_BASEPRI(void)
+ 254:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 255:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 256:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regBasePri);
+ 257:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 258:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 259:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 260:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 261:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Base Priority
+ 262:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 263:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Base Priority register.
+ 264:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 265:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    basePri  Base Priority value to set
+ 266:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 267:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 268:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_BASEPRI(uint32_t basePri);
+ 269:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 270:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_BASEPRI(uint32_t basePri)
+ 271:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 272:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 273:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regBasePri = (basePri & 0xff);
+ 274:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 275:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 276:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 277:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 278:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Fault Mask
+ 279:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Fault Mask register.
+ 281:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 282:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Fault Mask register value
+ 283:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 284:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 285:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_FAULTMASK(void);
+ 286:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 287:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FAULTMASK(void)
+ 288:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 289:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 290:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regFaultMask);
+ 291:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 292:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 293:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 294:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 295:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Fault Mask
+ 296:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 297:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Fault Mask register.
+ 298:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 299:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    faultMask  Fault Mask value to set
+ 300:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 301:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 302:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_FAULTMASK(uint32_t faultMask);
+ 303:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 304:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FAULTMASK(uint32_t faultMask)
+ 305:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 306:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 307:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regFaultMask = (faultMask & 1);
+ 308:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 309:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 310:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 311:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 312:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 313:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 314:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 315:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 316:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 317:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 319:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 320:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 321:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 322:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FPSCR(void)
+ 323:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 324:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 325:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 326:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regfpscr);
+ 327:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 328:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****    return(0);
+ 329:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 330:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 331:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 332:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 333:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 334:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 335:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 336:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 337:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 338:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 339:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FPSCR(uint32_t fpscr)
+ 340:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 341:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 342:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 343:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regfpscr = (fpscr);
+ 344:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 345:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 346:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 347:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 348:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 349:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 350:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  #elif (defined (__ICCARM__)) /*---------------- ICC Compiler ---------------------*/
+ 351:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* IAR iccarm specific functions */
+ 352:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined (__ICCARM__)
+ 354:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   #include <intrinsics.h>                     /* IAR Intrinsics   */
+ 355:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 356:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 357:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_suppress=Pe940
+ 358:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 359:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 360:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 361:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 362:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 363:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 364:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_irq                              __enable_interrupt
+ 365:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 367:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 368:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 369:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 370:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 371:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 372:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_irq                             __disable_interrupt
+ 373:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 374:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_CONTROL( void ); (see intrinsic.h) */
+ 376:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_CONTROL( unsigned long ); (see intrinsic.h) */
+ 377:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 378:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 379:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+ 380:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 381:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+ 382:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 383:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+ 384:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 385:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_IPSR(void)
+ 386:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 387:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, ipsr");
+ 388:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 389:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 390:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 391:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+ 392:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 394:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 395:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+ 396:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 397:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_APSR(void)
+ 398:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 399:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, apsr");
+ 400:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 401:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 402:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 403:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 404:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 405:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 406:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 407:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 408:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 409:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_xPSR(void)
+ 410:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 411:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psr");           // assembler does not know "xpsr"
+ 412:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 413:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 414:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 415:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 416:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 417:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 418:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 420:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 421:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_PSP(void)
+ 422:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 423:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psp");
+ 424:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 425:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 426:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 427:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 428:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 429:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 430:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 431:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 432:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 433:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_PSP(uint32_t topOfProcStack)
+ 434:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 435:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr psp, r0");
+ 436:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 437:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 438:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 439:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 440:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 441:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 442:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 443:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 444:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 445:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_MSP(void)
+ 446:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 447:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, msp");
+ 448:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 449:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 450:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 451:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 452:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 453:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 454:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 455:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 456:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 457:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_MSP(uint32_t topOfMainStack)
+ 458:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 459:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr msp, r0");
+ 460:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 461:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 462:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 463:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_PRIMASK( void ); (see intrinsic.h) */
+ 464:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_PRIMASK( unsigned long ); (see intrinsic.h) */
+ 465:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 466:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 467:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 468:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 469:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 470:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 471:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 472:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 473:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 474:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __enable_fault_irq(void)
+ 475:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 476:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsie f");
+ 477:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 478:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 479:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 480:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 481:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 482:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 483:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 484:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 485:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __disable_fault_irq(void)
+ 486:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 487:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsid f");
+ 488:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 489:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 491:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_BASEPRI( void );   (see intrinsic.h) */
+ 492:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_BASEPRI( unsigned long );   (see intrinsic.h) */
+ 493:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_FAULTMASK( void ); (see intrinsic.h) */
+ 494:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_FAULTMASK(unsigned long);   (see intrinsic.h) */
+ 495:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 496:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 497:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 498:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 499:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 500:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 501:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 502:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 503:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 504:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 505:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 506:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 507:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_FPSCR(void)
+ 508:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 509:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 510:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmrs r0, fpscr"); 
+ 511:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 512:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(0);
+ 513:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 514:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 515:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 516:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 517:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 518:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 519:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 520:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 521:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 522:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 523:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_FPSCR(uint32_t fpscr)
+ 524:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 525:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 526:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmsr fpscr, r0");
+ 527:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 528:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 529:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 530:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 531:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 532:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_default=Pe940
+ 533:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 534:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 535:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 536:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* GNU gcc specific functions */
+ 537:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 538:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 539:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 540:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 541:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 542:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 543:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __enable_irq(void)
+ 544:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsie i");
+ 546:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 547:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 548:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 549:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 550:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 551:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 552:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 553:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 554:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __disable_irq(void)
+ 555:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 556:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsid i");
+ 557:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 558:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 559:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 560:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Control Register
+ 561:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 562:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the Control Register.
+ 563:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 564:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Control Register value
+ 565:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 566:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_CONTROL(void)
+ 567:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 568:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 569:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 570:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 571:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 572:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 573:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 574:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 575:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Control Register
+ 576:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 577:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function writes the given value to the Control Register.
+ 578:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 579:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+ 580:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 581:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __set_CONTROL(uint32_t control)
+ 582:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 583:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) );
+ 584:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 585:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 586:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 587:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+ 588:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 589:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+ 590:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 591:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+ 592:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 593:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_IPSR(void)
+ 594:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 595:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 596:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 597:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 598:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 599:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 600:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 601:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 602:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+ 603:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 604:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 605:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 606:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+ 607:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 608:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_APSR(void)
+ 609:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 610:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 611:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 612:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 613:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 614:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 615:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 616:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 617:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 618:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 619:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 620:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 621:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 622:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 623:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_xPSR(void)
+ 624:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 625:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 626:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 627:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 628:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 629:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 630:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 631:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 632:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 633:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 634:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 635:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 636:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 637:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 638:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_PSP(void)
+ 639:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 640:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t result;
+ 641:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 642:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, psp\n"  : "=r" (result) );
+ 643:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 644:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 645:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 646:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 647:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 648:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 649:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 650:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 651:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 652:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 653:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __set_PSP(uint32_t topOfProcStack)
+ 654:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 655:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) );
+ 656:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 657:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 658:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 659:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 660:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 661:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 662:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 663:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 664:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 665:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_MSP(void)
+ 666:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 667:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t result;
+ 668:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 669:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, msp\n" : "=r" (result) );
+ 670:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 671:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 672:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 673:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 674:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 675:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 676:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 677:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 678:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 679:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 680:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __set_MSP(uint32_t topOfMainStack)
+ 681:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 682:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MSR msp, %0\n" : : "r" (topOfMainStack) );
+ 596              	 .loc 2 682 0
+ 597 0118 1B68     	 ldr r3,[r3]
+ 598              	.LVL49:
+ 599              	 .syntax unified
+ 600              	
+ 601 011a 83F30888 	 MSR msp,r3
+ 602              	
+ 603              	
+ 604              	.LVL50:
+ 605              	 .thumb
+ 606              	 .syntax unified
+ 607              	.LBE26:
+ 608              	.LBE25:
+ 165:main.c        **** }
+ 609              	 .loc 1 165 0
+ 610 011e 44F20403 	 movw r3,#16388
+ 611 0122 1B68     	 ldr r3,[r3]
+ 612 0124 9847     	 blx r3
+ 613              	.LVL51:
+ 614              	.L28:
+ 615              	.LBE24:
+ 616              	.LBE23:
+ 617              	.LBE22:
+ 618              	.LBE21:
+ 267:main.c        **** 
+ 619              	 .loc 1 267 0 discriminator 1
+ 620 0126 2048     	 ldr r0,.L46+96
+ 621 0128 A047     	 blx r4
+ 622              	.LVL52:
+ 623 012a 98E7     	 b .L29
+ 624              	.LVL53:
+ 625              	.L30:
+ 289:main.c        **** 		WDT_ClrTimeOutFlag();
+ 626              	 .loc 1 289 0
+ 627 012c 1F4B     	 ldr r3,.L46+100
+ 628 012e 9847     	 blx r3
+ 629              	.LVL54:
+ 630 0130 18B1     	 cbz r0,.L32
+ 290:main.c        **** 		DBGPRINTF("WATCHDOG reset");
+ 631              	 .loc 1 290 0
+ 632 0132 1F4B     	 ldr r3,.L46+104
+ 633 0134 9847     	 blx r3
+ 634              	.LVL55:
+ 291:main.c        **** 		dfu++;
+ 635              	 .loc 1 291 0
+ 636 0136 1F48     	 ldr r0,.L46+108
+ 637 0138 94E7     	 b .L45
+ 638              	.L32:
+ 293:main.c        ****         	DBGPRINTF("User flash empty");
+ 639              	 .loc 1 293 0
+ 640 013a 4FF48043 	 mov r3,#16384
+ 641 013e 1B68     	 ldr r3,[r3]
+ 642 0140 0133     	 adds r3,r3,#1
+ 643 0142 94D1     	 bne .L33
+ 294:main.c        ****         	dfu++;
+ 644              	 .loc 1 294 0 discriminator 1
+ 645 0144 1C48     	 ldr r0,.L46+112
+ 646 0146 8DE7     	 b .L45
+ 647              	.L47:
+ 648              	 .align 2
+ 649              	.L46:
+ 650 0148 00000000 	 .word GPIO_output
+ 651 014c 00000000 	 .word GPIO_write
+ 652 0150 00000000 	 .word WDT_Feed
+ 653 0154 00000000 	 .word GPIO_init
+ 654 0158 00000000 	 .word GPIO_input
+ 655 015c 00000000 	 .word UART_init
+ 656 0160 00000000 	 .word .LANCHOR2
+ 657 0164 00000000 	 .word .LC3
+ 658 0168 00000000 	 .word printf
+ 659 016c 00000000 	 .word dfu_btn_pressed
+ 660 0170 404B4C00 	 .word 5000000
+ 661 0174 00000000 	 .word delay_loop
+ 662 0178 00000000 	 .word SDCard_init
+ 663 017c 00000000 	 .word SDCard_disk_initialize
+ 664 0180 00000000 	 .word check_sd_firmware
+ 665 0184 22000000 	 .word .LC5
+ 666 0188 67000000 	 .word .LC8
+ 667 018c 00000000 	 .word start_dfu
+ 668 0190 7C000000 	 .word .LC9
+ 669 0194 00000000 	 .word UART_busy
+ 670 0198 00000000 	 .word UART_deinit
+ 671 019c C0C62D00 	 .word 3000000
+ 672 01a0 00ED00E0 	 .word -536810240
+ 673 01a4 00C00F40 	 .word 1074774016
+ 674 01a8 11000000 	 .word .LC4
+ 675 01ac 00000000 	 .word WDT_ReadTimeOutFlag
+ 676 01b0 00000000 	 .word WDT_ClrTimeOutFlag
+ 677 01b4 3B000000 	 .word .LC6
+ 678 01b8 50000000 	 .word .LC7
+ 679              	 .cfi_endproc
+ 680              	.LFE61:
+ 682              	 .section .text.get_fattime,"ax",%progbits
+ 683              	 .align 1
+ 684              	 .global get_fattime
+ 685              	 .syntax unified
+ 686              	 .thumb
+ 687              	 .thumb_func
+ 688              	 .fpu softvfp
+ 690              	get_fattime:
+ 691              	.LFB62:
+ 316:main.c        **** 
+ 317:main.c        **** 	new_execute_user_code();
+ 318:main.c        **** 
+ 319:main.c        **** #if ENABLED(DEBUG_MESSAGES)
+ 320:main.c        ****     	UART_init(UART_RX, UART_TX, APPBAUD);
+ 321:main.c        **** 	printf(PFX "This should never happen\n");
+ 322:main.c        **** 	while (UART_busy());
+ 323:main.c        **** #endif
+ 324:main.c        **** 
+ 325:main.c        **** 	delay_loop(9000000);
+ 326:main.c        **** 	NVIC_SystemReset();
+ 327:main.c        **** }
+ 328:main.c        **** 
+ 329:main.c        **** 
+ 330:main.c        **** DWORD get_fattime(void)
+ 331:main.c        **** {
+ 692              	 .loc 1 331 0
+ 693              	 .cfi_startproc
+ 694              	 
+ 695              	 
+ 696              	 
+ 332:main.c        **** #define	aYEAR	2020
+ 333:main.c        **** #define aMONTH	11
+ 334:main.c        **** #define aDAY	20
+ 335:main.c        **** #define aHOUR	12
+ 336:main.c        **** #define aMINUTE	42
+ 337:main.c        **** #define aSECOND	42
+ 338:main.c        **** 	return	((aYEAR  & 127) << 25) |
+ 339:main.c        **** 		((aMONTH &  15) << 21) |
+ 340:main.c        **** 		((aDAY   &  31) << 16) |
+ 341:main.c        **** 		((aHOUR  &  31) << 11) |
+ 342:main.c        **** 		((aMINUTE & 63) <<  5) |
+ 343:main.c        **** 		((aSECOND & 63) <<  0);
+ 344:main.c        **** }
+ 697              	 .loc 1 344 0
+ 698 0000 0048     	 ldr r0,.L49
+ 699 0002 7047     	 bx lr
+ 700              	.L50:
+ 701              	 .align 2
+ 702              	.L49:
+ 703 0004 6A6574C9 	 .word -915118742
+ 704              	 .cfi_endproc
+ 705              	.LFE62:
+ 707              	 .section .text._write,"ax",%progbits
+ 708              	 .align 1
+ 709              	 .global _write
+ 710              	 .syntax unified
+ 711              	 .thumb
+ 712              	 .thumb_func
+ 713              	 .fpu softvfp
+ 715              	_write:
+ 716              	.LFB63:
+ 345:main.c        **** 
+ 346:main.c        **** int _write(int fd, const char *buf, int buflen)
+ 347:main.c        **** {
+ 717              	 .loc 1 347 0
+ 718              	 .cfi_startproc
+ 719              	 
+ 720              	 
+ 721              	.LVL56:
+ 348:main.c        **** 	if (fd < 3)
+ 722              	 .loc 1 348 0
+ 723 0000 0228     	 cmp r0,#2
+ 347:main.c        **** 	if (fd < 3)
+ 724              	 .loc 1 347 0
+ 725 0002 70B5     	 push {r4,r5,r6,lr}
+ 726              	 .cfi_def_cfa_offset 16
+ 727              	 .cfi_offset 4,-16
+ 728              	 .cfi_offset 5,-12
+ 729              	 .cfi_offset 6,-8
+ 730              	 .cfi_offset 14,-4
+ 347:main.c        **** 	if (fd < 3)
+ 731              	 .loc 1 347 0
+ 732 0004 0D46     	 mov r5,r1
+ 733 0006 1446     	 mov r4,r2
+ 734              	 .loc 1 348 0
+ 735 0008 09DC     	 bgt .L52
+ 349:main.c        **** 	{
+ 350:main.c        **** 		while (UART_cansend() < buflen);
+ 736              	 .loc 1 350 0 discriminator 1
+ 737 000a 064E     	 ldr r6,.L56
+ 738              	.LVL57:
+ 739              	.L54:
+ 740 000c B047     	 blx r6
+ 741              	.LVL58:
+ 742 000e A042     	 cmp r0,r4
+ 743 0010 FCDB     	 blt .L54
+ 351:main.c        **** 		return UART_send((const uint8_t *)buf, buflen);
+ 744              	 .loc 1 351 0
+ 745 0012 2146     	 mov r1,r4
+ 746 0014 2846     	 mov r0,r5
+ 352:main.c        **** 	}
+ 353:main.c        **** 	return buflen;
+ 354:main.c        **** }
+ 747              	 .loc 1 354 0
+ 748 0016 BDE87040 	 pop {r4,r5,r6,lr}
+ 749              	 .cfi_remember_state
+ 750              	 .cfi_restore 14
+ 751              	 .cfi_restore 6
+ 752              	 .cfi_restore 5
+ 753              	 .cfi_restore 4
+ 754              	 .cfi_def_cfa_offset 0
+ 755              	.LVL59:
+ 351:main.c        **** 		return UART_send((const uint8_t *)buf, buflen);
+ 756              	 .loc 1 351 0
+ 757 001a 034B     	 ldr r3,.L56+4
+ 758 001c 1847     	 bx r3
+ 759              	.LVL60:
+ 760              	.L52:
+ 761              	 .cfi_restore_state
+ 762              	 .loc 1 354 0
+ 763 001e 1046     	 mov r0,r2
+ 764              	.LVL61:
+ 765 0020 70BD     	 pop {r4,r5,r6,pc}
+ 766              	.L57:
+ 767 0022 00BF     	 .align 2
+ 768              	.L56:
+ 769 0024 00000000 	 .word UART_cansend
+ 770 0028 00000000 	 .word UART_send
+ 771              	 .cfi_endproc
+ 772              	.LFE63:
+ 774              	 .section .text.NMI_Handler,"ax",%progbits
+ 775              	 .align 1
+ 776              	 .global NMI_Handler
+ 777              	 .syntax unified
+ 778              	 .thumb
+ 779              	 .thumb_func
+ 780              	 .fpu softvfp
+ 782              	NMI_Handler:
+ 783              	.LFB64:
+ 355:main.c        **** 
+ 356:main.c        **** void NMI_Handler() {
+ 784              	 .loc 1 356 0
+ 785              	 .cfi_startproc
+ 786              	 
+ 787              	 
+ 788              	 
+ 789 0000 08B5     	 push {r3,lr}
+ 790              	 .cfi_def_cfa_offset 8
+ 791              	 .cfi_offset 3,-8
+ 792              	 .cfi_offset 14,-4
+ 357:main.c        **** #if ENABLED(DEBUG_MESSAGES)
+ 358:main.c        ****  	DBGPRINTF("NMI\n");
+ 793              	 .loc 1 358 0
+ 794 0002 0248     	 ldr r0,.L60
+ 795 0004 024B     	 ldr r3,.L60+4
+ 796 0006 9847     	 blx r3
+ 797              	.LVL62:
+ 798              	.L59:
+ 799 0008 FEE7     	 b .L59
+ 800              	.L61:
+ 801 000a 00BF     	 .align 2
+ 802              	.L60:
+ 803 000c 00000000 	 .word .LC10
+ 804 0010 00000000 	 .word printf
+ 805              	 .cfi_endproc
+ 806              	.LFE64:
+ 808              	 .section .text.HardFault_Handler,"ax",%progbits
+ 809              	 .align 1
+ 810              	 .global HardFault_Handler
+ 811              	 .syntax unified
+ 812              	 .thumb
+ 813              	 .thumb_func
+ 814              	 .fpu softvfp
+ 816              	HardFault_Handler:
+ 817              	.LFB65:
+ 359:main.c        **** #endif
+ 360:main.c        **** 	for (;;);
+ 361:main.c        **** }
+ 362:main.c        **** void HardFault_Handler() {
+ 818              	 .loc 1 362 0
+ 819              	 .cfi_startproc
+ 820              	 
+ 821              	 
+ 822              	 
+ 823 0000 08B5     	 push {r3,lr}
+ 824              	 .cfi_def_cfa_offset 8
+ 825              	 .cfi_offset 3,-8
+ 826              	 .cfi_offset 14,-4
+ 363:main.c        **** #if ENABLED(DEBUG_MESSAGES)
+ 364:main.c        **** 	DBGPRINTF("HardFault\n");
+ 827              	 .loc 1 364 0
+ 828 0002 0248     	 ldr r0,.L64
+ 829 0004 024B     	 ldr r3,.L64+4
+ 830 0006 9847     	 blx r3
+ 831              	.LVL63:
+ 832              	.L63:
+ 833 0008 FEE7     	 b .L63
+ 834              	.L65:
+ 835 000a 00BF     	 .align 2
+ 836              	.L64:
+ 837 000c 00000000 	 .word .LC11
+ 838 0010 00000000 	 .word printf
+ 839              	 .cfi_endproc
+ 840              	.LFE65:
+ 842              	 .section .text.MemManage_Handler,"ax",%progbits
+ 843              	 .align 1
+ 844              	 .global MemManage_Handler
+ 845              	 .syntax unified
+ 846              	 .thumb
+ 847              	 .thumb_func
+ 848              	 .fpu softvfp
+ 850              	MemManage_Handler:
+ 851              	.LFB66:
+ 365:main.c        **** #endif
+ 366:main.c        **** 	for (;;);
+ 367:main.c        **** }
+ 368:main.c        **** void MemManage_Handler() {
+ 852              	 .loc 1 368 0
+ 853              	 .cfi_startproc
+ 854              	 
+ 855              	 
+ 856              	 
+ 857 0000 08B5     	 push {r3,lr}
+ 858              	 .cfi_def_cfa_offset 8
+ 859              	 .cfi_offset 3,-8
+ 860              	 .cfi_offset 14,-4
+ 369:main.c        **** #if ENABLED(DEBUG_MESSAGES)
+ 370:main.c        ****  	DBGPRINTF("MemManage\n");
+ 861              	 .loc 1 370 0
+ 862 0002 0248     	 ldr r0,.L68
+ 863 0004 024B     	 ldr r3,.L68+4
+ 864 0006 9847     	 blx r3
+ 865              	.LVL64:
+ 866              	.L67:
+ 867 0008 FEE7     	 b .L67
+ 868              	.L69:
+ 869 000a 00BF     	 .align 2
+ 870              	.L68:
+ 871 000c 00000000 	 .word .LC12
+ 872 0010 00000000 	 .word printf
+ 873              	 .cfi_endproc
+ 874              	.LFE66:
+ 876              	 .section .text.BusFault_Handler,"ax",%progbits
+ 877              	 .align 1
+ 878              	 .global BusFault_Handler
+ 879              	 .syntax unified
+ 880              	 .thumb
+ 881              	 .thumb_func
+ 882              	 .fpu softvfp
+ 884              	BusFault_Handler:
+ 885              	.LFB67:
+ 371:main.c        **** #endif
+ 372:main.c        **** 	for (;;);
+ 373:main.c        **** }
+ 374:main.c        **** void BusFault_Handler() {
+ 886              	 .loc 1 374 0
+ 887              	 .cfi_startproc
+ 888              	 
+ 889              	 
+ 890              	 
+ 891 0000 08B5     	 push {r3,lr}
+ 892              	 .cfi_def_cfa_offset 8
+ 893              	 .cfi_offset 3,-8
+ 894              	 .cfi_offset 14,-4
+ 375:main.c        **** #if ENABLED(DEBUG_MESSAGES)
+ 376:main.c        ****  	DBGPRINTF("BusFault\n");
+ 895              	 .loc 1 376 0
+ 896 0002 0248     	 ldr r0,.L72
+ 897 0004 024B     	 ldr r3,.L72+4
+ 898 0006 9847     	 blx r3
+ 899              	.LVL65:
+ 900              	.L71:
+ 901 0008 FEE7     	 b .L71
+ 902              	.L73:
+ 903 000a 00BF     	 .align 2
+ 904              	.L72:
+ 905 000c 00000000 	 .word .LC13
+ 906 0010 00000000 	 .word printf
+ 907              	 .cfi_endproc
+ 908              	.LFE67:
+ 910              	 .section .text.UsageFault_Handler,"ax",%progbits
+ 911              	 .align 1
+ 912              	 .global UsageFault_Handler
+ 913              	 .syntax unified
+ 914              	 .thumb
+ 915              	 .thumb_func
+ 916              	 .fpu softvfp
+ 918              	UsageFault_Handler:
+ 919              	.LFB68:
+ 377:main.c        **** #endif
+ 378:main.c        **** 	for (;;);
+ 379:main.c        **** }
+ 380:main.c        **** void UsageFault_Handler() {
+ 920              	 .loc 1 380 0
+ 921              	 .cfi_startproc
+ 922              	 
+ 923              	 
+ 924              	 
+ 925 0000 08B5     	 push {r3,lr}
+ 926              	 .cfi_def_cfa_offset 8
+ 927              	 .cfi_offset 3,-8
+ 928              	 .cfi_offset 14,-4
+ 381:main.c        **** 	DBGPRINTF("UsageFault\n");
+ 929              	 .loc 1 381 0
+ 930 0002 0248     	 ldr r0,.L76
+ 931 0004 024B     	 ldr r3,.L76+4
+ 932 0006 9847     	 blx r3
+ 933              	.LVL66:
+ 934              	.L75:
+ 935 0008 FEE7     	 b .L75
+ 936              	.L77:
+ 937 000a 00BF     	 .align 2
+ 938              	.L76:
+ 939 000c 00000000 	 .word .LC14
+ 940 0010 00000000 	 .word printf
+ 941              	 .cfi_endproc
+ 942              	.LFE68:
+ 944              	 .global firmware_old
+ 945              	 .global firmware_file
+ 946              	 .comm file,36,1
+ 947              	 .comm fat,558,1
+ 948              	 .section .data.firmware_file,"aw",%progbits
+ 949              	 .align 2
+ 950              	 .set .LANCHOR1,.+0
+ 953              	firmware_file:
+ 954 0000 0D000000 	 .word .LC16
+ 955              	 .section .data.firmware_old,"aw",%progbits
+ 956              	 .align 2
+ 957              	 .set .LANCHOR0,.+0
+ 960              	firmware_old:
+ 961 0000 00000000 	 .word .LC15
+ 962              	 .section .data.version,"aw",%progbits
+ 963              	 .align 2
+ 964              	 .set .LANCHOR2,.+0
+ 967              	version:
+ 968 0000 1A000000 	 .word .LC17
+ 969              	 .section .rodata.BusFault_Handler.str1.1,"aMS",%progbits,1
+ 970              	.LC13:
+ 971 0000 426F6F74 	 .ascii "Boot: BusFault\012\000"
+ 971      3A204275 
+ 971      73466175 
+ 971      6C740A00 
+ 972              	 .section .rodata.HardFault_Handler.str1.1,"aMS",%progbits,1
+ 973              	.LC11:
+ 974 0000 426F6F74 	 .ascii "Boot: HardFault\012\000"
+ 974      3A204861 
+ 974      72644661 
+ 974      756C740A 
+ 974      00
+ 975              	 .section .rodata.MemManage_Handler.str1.1,"aMS",%progbits,1
+ 976              	.LC12:
+ 977 0000 426F6F74 	 .ascii "Boot: MemManage\012\000"
+ 977      3A204D65 
+ 977      6D4D616E 
+ 977      6167650A 
+ 977      00
+ 978              	 .section .rodata.NMI_Handler.str1.1,"aMS",%progbits,1
+ 979              	.LC10:
+ 980 0000 426F6F74 	 .ascii "Boot: NMI\012\000"
+ 980      3A204E4D 
+ 980      490A00
+ 981              	 .section .rodata.UsageFault_Handler.str1.1,"aMS",%progbits,1
+ 982              	.LC14:
+ 983 0000 426F6F74 	 .ascii "Boot: UsageFault\012\000"
+ 983      3A205573 
+ 983      61676546 
+ 983      61756C74 
+ 983      0A00
+ 984              	 .section .rodata.check_sd_firmware.part.1.str1.1,"aMS",%progbits,1
+ 985              	.LC0:
+ 986 0000 426F6F74 	 .ascii "Boot: Flashing firmware...\012\000"
+ 986      3A20466C 
+ 986      61736869 
+ 986      6E672066 
+ 986      69726D77 
+ 987              	.LC1:
+ 988 001c 426F6F74 	 .ascii "Boot: Success\012\000"
+ 988      3A205375 
+ 988      63636573 
+ 988      730A00
+ 989              	 .section .rodata.check_sd_firmware.str1.1,"aMS",%progbits,1
+ 990              	.LC2:
+ 991 0000 426F6F74 	 .ascii "Boot: %s not found\012\000"
+ 991      3A202573 
+ 991      206E6F74 
+ 991      20666F75 
+ 991      6E640A00 
+ 992              	 .section .rodata.main.str1.1,"aMS",%progbits,1
+ 993              	.LC3:
+ 994 0000 426F6F74 	 .ascii "Boot: %s DFU:%d\012\000"
+ 994      3A202573 
+ 994      20444655 
+ 994      3A25640A 
+ 994      00
+ 995              	.LC4:
+ 996 0011 426F6F74 	 .ascii "Boot: no sdcard\012\000"
+ 996      3A206E6F 
+ 996      20736463 
+ 996      6172640A 
+ 996      00
+ 997              	.LC5:
+ 998 0022 426F6F74 	 .ascii "Boot: ISP button pressed\000"
+ 998      3A204953 
+ 998      50206275 
+ 998      74746F6E 
+ 998      20707265 
+ 999              	.LC6:
+ 1000 003b 426F6F74 	 .ascii "Boot: WATCHDOG reset\000"
+ 1000      3A205741 
+ 1000      54434844 
+ 1000      4F472072 
+ 1000      65736574 
+ 1001              	.LC7:
+ 1002 0050 426F6F74 	 .ascii "Boot: User flash empty\000"
+ 1002      3A205573 
+ 1002      65722066 
+ 1002      6C617368 
+ 1002      20656D70 
+ 1003              	.LC8:
+ 1004 0067 2C20656E 	 .ascii ", entering DFU mode\012\000"
+ 1004      74657269 
+ 1004      6E672044 
+ 1004      4655206D 
+ 1004      6F64650A 
+ 1005              	.LC9:
+ 1006 007c 426F6F74 	 .ascii "Boot: Jumping to 0x%x\012\000"
+ 1006      3A204A75 
+ 1006      6D70696E 
+ 1006      6720746F 
+ 1006      20307825 
+ 1007              	 .section .rodata.str1.1,"aMS",%progbits,1
+ 1008              	.LC15:
+ 1009 0000 6669726D 	 .ascii "firmware.cur\000"
+ 1009      77617265 
+ 1009      2E637572 
+ 1009      00
+ 1010              	.LC16:
+ 1011 000d 6669726D 	 .ascii "firmware.bin\000"
+ 1011      77617265 
+ 1011      2E62696E 
+ 1011      00
+ 1012              	.LC17:
+ 1013 001a 312E3035 	 .ascii "1.05 SKR\000"
+ 1013      20534B52 
+ 1013      00
+ 1014              	 .text
+ 1015              	.Letext0:
+ 1016              	 .file 3 "/usr/include/newlib/machine/_default_types.h"
+ 1017              	 .file 4 "/usr/include/newlib/sys/_stdint.h"
+ 1018              	 .file 5 "usbhw.h"
+ 1019              	 .file 6 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 1020              	 .file 7 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 1021              	 .file 8 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 1022              	 .file 9 "spi.h"
+ 1023              	 .file 10 "sbl_iap.h"
+ 1024              	 .file 11 "fatfs/integer.h"
+ 1025              	 .file 12 "fatfs/ff.h"
+ 1026              	 .file 13 "pins.h"
+ 1027              	 .file 14 "min-printf.h"
+ 1028              	 .file 15 "uart.h"
+ 1029              	 .file 16 "gpio.h"
+ 1030              	 .file 17 "LPC17xxLib/inc/lpc17xx_wdt.h"
+ 1031              	 .file 18 "SDCard.h"
+ 1032              	 .file 19 "dfu.h"
+ 1033              	 .file 20 "CMSISv2p00_LPC17xx/inc/core_cmInstr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 main.c
+    {standard input}:16     .text.delay_loop:0000000000000000 $t
+    {standard input}:22     .text.delay_loop:0000000000000000 delay_loop
+    {standard input}:65     .text.check_sd_firmware.part.1:0000000000000000 $t
+    {standard input}:71     .text.check_sd_firmware.part.1:0000000000000000 check_sd_firmware.part.1
+    {standard input}:191    .text.check_sd_firmware.part.1:000000000000007c $d
+                            *COM*:0000000000000024 file
+    {standard input}:207    .text.dfu_btn_pressed:0000000000000000 $t
+    {standard input}:214    .text.dfu_btn_pressed:0000000000000000 dfu_btn_pressed
+    {standard input}:234    .text.dfu_btn_pressed:000000000000000c $d
+    {standard input}:239    .text.start_dfu:0000000000000000 $t
+    {standard input}:246    .text.start_dfu:0000000000000000 start_dfu
+    {standard input}:301    .text.start_dfu:0000000000000024 $d
+    {standard input}:311    .text.check_sd_firmware:0000000000000000 $t
+    {standard input}:318    .text.check_sd_firmware:0000000000000000 check_sd_firmware
+    {standard input}:368    .text.check_sd_firmware:000000000000002c $d
+                            *COM*:000000000000022e fat
+    {standard input}:380    .text.startup.main:0000000000000000 $t
+    {standard input}:387    .text.startup.main:0000000000000000 main
+    {standard input}:650    .text.startup.main:0000000000000148 $d
+    {standard input}:683    .text.get_fattime:0000000000000000 $t
+    {standard input}:690    .text.get_fattime:0000000000000000 get_fattime
+    {standard input}:703    .text.get_fattime:0000000000000004 $d
+    {standard input}:708    .text._write:0000000000000000 $t
+    {standard input}:715    .text._write:0000000000000000 _write
+    {standard input}:769    .text._write:0000000000000024 $d
+    {standard input}:775    .text.NMI_Handler:0000000000000000 $t
+    {standard input}:782    .text.NMI_Handler:0000000000000000 NMI_Handler
+    {standard input}:803    .text.NMI_Handler:000000000000000c $d
+    {standard input}:809    .text.HardFault_Handler:0000000000000000 $t
+    {standard input}:816    .text.HardFault_Handler:0000000000000000 HardFault_Handler
+    {standard input}:837    .text.HardFault_Handler:000000000000000c $d
+    {standard input}:843    .text.MemManage_Handler:0000000000000000 $t
+    {standard input}:850    .text.MemManage_Handler:0000000000000000 MemManage_Handler
+    {standard input}:871    .text.MemManage_Handler:000000000000000c $d
+    {standard input}:877    .text.BusFault_Handler:0000000000000000 $t
+    {standard input}:884    .text.BusFault_Handler:0000000000000000 BusFault_Handler
+    {standard input}:905    .text.BusFault_Handler:000000000000000c $d
+    {standard input}:911    .text.UsageFault_Handler:0000000000000000 $t
+    {standard input}:918    .text.UsageFault_Handler:0000000000000000 UsageFault_Handler
+    {standard input}:939    .text.UsageFault_Handler:000000000000000c $d
+    {standard input}:960    .data.firmware_old:0000000000000000 firmware_old
+    {standard input}:953    .data.firmware_file:0000000000000000 firmware_file
+    {standard input}:949    .data.firmware_file:0000000000000000 $d
+    {standard input}:956    .data.firmware_old:0000000000000000 $d
+    {standard input}:963    .data.version:0000000000000000 $d
+    {standard input}:967    .data.version:0000000000000000 version
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+printf
+f_close
+f_unlink
+f_rename
+f_read
+write_flash
+GPIO_get
+DFU_init
+usb_init
+usb_connect
+DFU_complete
+usb_task
+usb_disconnect
+f_mount
+f_open
+GPIO_output
+GPIO_write
+WDT_Feed
+GPIO_init
+GPIO_input
+UART_init
+SDCard_init
+SDCard_disk_initialize
+UART_busy
+UART_deinit
+WDT_ReadTimeOutFlag
+WDT_ClrTimeOutFlag
+UART_cansend
+UART_send

@@ -1,0 +1,4 @@
+#!/bin/sh
+# test for openocd, start and telnet to localhost 4444
+CFG=lpc17xx-stlink-v2.cfg
+openocd -c "telnet_port 4444" -f "$CFG" 

@@ -1,0 +1,860 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_adc.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.ADC_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global ADC_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	ADC_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_adc.c"
+   1:LPC17xxLib/src/lpc17xx_adc.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_adc.c **** 
+   3:LPC17xxLib/src/lpc17xx_adc.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_adc.c **** * $Id$		lpc17xx_adc.c				2010-06-18
+   5:LPC17xxLib/src/lpc17xx_adc.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_adc.c **** * @file		lpc17xx_adc.c
+   7:LPC17xxLib/src/lpc17xx_adc.c **** * @brief	Contains all functions support for ADC firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_adc.c **** * @version	3.1
+   9:LPC17xxLib/src/lpc17xx_adc.c **** * @date		26. July. 2011
+  10:LPC17xxLib/src/lpc17xx_adc.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_adc.c **** *
+  12:LPC17xxLib/src/lpc17xx_adc.c **** * Copyright(C) 2011, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_adc.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_adc.c **** *
+  15:LPC17xxLib/src/lpc17xx_adc.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_adc.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_adc.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_adc.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_adc.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_adc.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_adc.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_adc.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_adc.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_adc.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_adc.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_adc.c **** 
+  28:LPC17xxLib/src/lpc17xx_adc.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_adc.c **** /** @addtogroup ADC
+  30:LPC17xxLib/src/lpc17xx_adc.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_adc.c ****  */
+  32:LPC17xxLib/src/lpc17xx_adc.c **** 
+  33:LPC17xxLib/src/lpc17xx_adc.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_adc.c **** #include "lpc17xx_adc.h"
+  35:LPC17xxLib/src/lpc17xx_adc.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_adc.c **** 
+  37:LPC17xxLib/src/lpc17xx_adc.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  38:LPC17xxLib/src/lpc17xx_adc.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  39:LPC17xxLib/src/lpc17xx_adc.c ****  * otherwise the default FW library configuration file must be included instead
+  40:LPC17xxLib/src/lpc17xx_adc.c ****  */
+  41:LPC17xxLib/src/lpc17xx_adc.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  42:LPC17xxLib/src/lpc17xx_adc.c **** #include "lpc17xx_libcfg.h"
+  43:LPC17xxLib/src/lpc17xx_adc.c **** #else
+  44:LPC17xxLib/src/lpc17xx_adc.c **** #include "lpc17xx_libcfg_default.h"
+  45:LPC17xxLib/src/lpc17xx_adc.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  46:LPC17xxLib/src/lpc17xx_adc.c **** 
+  47:LPC17xxLib/src/lpc17xx_adc.c **** 
+  48:LPC17xxLib/src/lpc17xx_adc.c **** #ifdef _ADC
+  49:LPC17xxLib/src/lpc17xx_adc.c **** 
+  50:LPC17xxLib/src/lpc17xx_adc.c **** /* Public Functions ----------------------------------------------------------- */
+  51:LPC17xxLib/src/lpc17xx_adc.c **** /** @addtogroup ADC_Public_Functions
+  52:LPC17xxLib/src/lpc17xx_adc.c ****  * @{
+  53:LPC17xxLib/src/lpc17xx_adc.c ****  */
+  54:LPC17xxLib/src/lpc17xx_adc.c **** 
+  55:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+  56:LPC17xxLib/src/lpc17xx_adc.c ****  * @brief 		Initial for ADC
+  57:LPC17xxLib/src/lpc17xx_adc.c ****  * 					+ Set bit PCADC
+  58:LPC17xxLib/src/lpc17xx_adc.c ****  * 					+ Set clock for ADC
+  59:LPC17xxLib/src/lpc17xx_adc.c ****  * 					+ Set Clock Frequency
+  60:LPC17xxLib/src/lpc17xx_adc.c ****  * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+  61:LPC17xxLib/src/lpc17xx_adc.c ****  * @param[in]	rate ADC conversion rate, should be <=200KHz
+  62:LPC17xxLib/src/lpc17xx_adc.c ****  * @return 		None
+  63:LPC17xxLib/src/lpc17xx_adc.c ****  **********************************************************************/
+  64:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_Init(LPC_ADC_TypeDef *ADCx, uint32_t rate)
+  65:LPC17xxLib/src/lpc17xx_adc.c **** {
+  26              	 .loc 1 65 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  31 0000 38B5     	 push {r3,r4,r5,lr}
+  32              	 .cfi_def_cfa_offset 16
+  33              	 .cfi_offset 3,-16
+  34              	 .cfi_offset 4,-12
+  35              	 .cfi_offset 5,-8
+  36              	 .cfi_offset 14,-4
+  37              	 .loc 1 65 0
+  38 0002 0446     	 mov r4,r0
+  39 0004 0D46     	 mov r5,r1
+  66:LPC17xxLib/src/lpc17xx_adc.c **** 	uint32_t ADCPClk, temp, tmp;
+  67:LPC17xxLib/src/lpc17xx_adc.c **** 
+  68:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+  69:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_RATE(rate));
+  70:LPC17xxLib/src/lpc17xx_adc.c **** 
+  71:LPC17xxLib/src/lpc17xx_adc.c **** 	// Turn on power and clock
+  72:LPC17xxLib/src/lpc17xx_adc.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCAD, ENABLE);
+  40              	 .loc 1 72 0
+  41 0006 4FF48050 	 mov r0,#4096
+  42              	.LVL1:
+  43 000a 0121     	 movs r1,#1
+  44              	.LVL2:
+  45 000c 0D4B     	 ldr r3,.L2
+  46 000e 9847     	 blx r3
+  47              	.LVL3:
+  73:LPC17xxLib/src/lpc17xx_adc.c **** 
+  74:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR = 0;
+  48              	 .loc 1 74 0
+  49 0010 2378     	 ldrb r3,[r4]
+  50 0012 0023     	 movs r3,#0
+  51 0014 2370     	 strb r3,[r4]
+  52 0016 6278     	 ldrb r2,[r4,#1]
+  53 0018 6370     	 strb r3,[r4,#1]
+  54 001a A278     	 ldrb r2,[r4,#2]
+  55 001c A370     	 strb r3,[r4,#2]
+  56 001e E278     	 ldrb r2,[r4,#3]
+  75:LPC17xxLib/src/lpc17xx_adc.c **** 
+  76:LPC17xxLib/src/lpc17xx_adc.c **** 	//Enable PDN bit
+  77:LPC17xxLib/src/lpc17xx_adc.c **** 	tmp = ADC_CR_PDN;
+  78:LPC17xxLib/src/lpc17xx_adc.c **** 	// Set clock frequency
+  79:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCPClk = CLKPWR_GetPCLK(CLKPWR_PCLKSEL_ADC);
+  57              	 .loc 1 79 0
+  58 0020 1820     	 movs r0,#24
+  74:LPC17xxLib/src/lpc17xx_adc.c **** 
+  59              	 .loc 1 74 0
+  60 0022 E370     	 strb r3,[r4,#3]
+  61              	.LVL4:
+  62              	 .loc 1 79 0
+  63 0024 084B     	 ldr r3,.L2+4
+  64 0026 9847     	 blx r3
+  65              	.LVL5:
+  80:LPC17xxLib/src/lpc17xx_adc.c **** 	/* The APB clock (PCLK_ADC0) is divided by (CLKDIV+1) to produce the clock for
+  81:LPC17xxLib/src/lpc17xx_adc.c **** 	 * A/D converter, which should be less than or equal to 13MHz.
+  82:LPC17xxLib/src/lpc17xx_adc.c **** 	 * A fully conversion requires 65 of these clocks.
+  83:LPC17xxLib/src/lpc17xx_adc.c **** 	 * ADC clock = PCLK_ADC0 / (CLKDIV + 1);
+  84:LPC17xxLib/src/lpc17xx_adc.c **** 	 * ADC rate = ADC clock / 65;
+  85:LPC17xxLib/src/lpc17xx_adc.c **** 	 */
+  86:LPC17xxLib/src/lpc17xx_adc.c **** 	temp = rate * 65;
+  66              	 .loc 1 86 0
+  67 0028 05EB8515 	 add r5,r5,r5,lsl#6
+  68              	.LVL6:
+  87:LPC17xxLib/src/lpc17xx_adc.c **** 	temp = (ADCPClk * 2 + temp)/(2 * temp) - 1; //get the round value by fomular: (2*A + B)/(2*B)
+  69              	 .loc 1 87 0
+  70 002c 05EB4003 	 add r3,r5,r0,lsl#1
+  71 0030 6D00     	 lsls r5,r5,#1
+  72              	.LVL7:
+  73 0032 B3FBF5F3 	 udiv r3,r3,r5
+  74              	.LVL8:
+  75 0036 013B     	 subs r3,r3,#1
+  76              	.LVL9:
+  88:LPC17xxLib/src/lpc17xx_adc.c **** 	tmp |=  ADC_CR_CLKDIV(temp);
+  77              	 .loc 1 88 0
+  78 0038 1B02     	 lsls r3,r3,#8
+  79              	.LVL10:
+  80 003a 43F40013 	 orr r3,r3,#2097152
+  81              	.LVL11:
+  89:LPC17xxLib/src/lpc17xx_adc.c **** 
+  90:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR = tmp;
+  82              	 .loc 1 90 0
+  83 003e 2360     	 str r3,[r4]
+  84 0040 38BD     	 pop {r3,r4,r5,pc}
+  85              	.LVL12:
+  86              	.L3:
+  87 0042 00BF     	 .align 2
+  88              	.L2:
+  89 0044 00000000 	 .word CLKPWR_ConfigPPWR
+  90 0048 00000000 	 .word CLKPWR_GetPCLK
+  91              	 .cfi_endproc
+  92              	.LFE55:
+  94              	 .section .text.ADC_DeInit,"ax",%progbits
+  95              	 .align 1
+  96              	 .global ADC_DeInit
+  97              	 .syntax unified
+  98              	 .thumb
+  99              	 .thumb_func
+ 100              	 .fpu softvfp
+ 102              	ADC_DeInit:
+ 103              	.LFB56:
+  91:LPC17xxLib/src/lpc17xx_adc.c **** }
+  92:LPC17xxLib/src/lpc17xx_adc.c **** 
+  93:LPC17xxLib/src/lpc17xx_adc.c **** 
+  94:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+  95:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Close ADC
+  96:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+  97:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+  98:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+  99:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_DeInit(LPC_ADC_TypeDef *ADCx)
+ 100:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 104              	 .loc 1 100 0
+ 105              	 .cfi_startproc
+ 106              	 
+ 107              	 
+ 108              	 
+ 109              	.LVL13:
+ 101:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 102:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 103:LPC17xxLib/src/lpc17xx_adc.c **** 	// Clear PDN bit
+ 104:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR &= ~ADC_CR_PDN;
+ 110              	 .loc 1 104 0
+ 111 0000 0368     	 ldr r3,[r0]
+ 105:LPC17xxLib/src/lpc17xx_adc.c **** 	// Turn on power and clock
+ 106:LPC17xxLib/src/lpc17xx_adc.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCAD, DISABLE);
+ 112              	 .loc 1 106 0
+ 113 0002 0021     	 movs r1,#0
+ 104:LPC17xxLib/src/lpc17xx_adc.c **** 	// Turn on power and clock
+ 114              	 .loc 1 104 0
+ 115 0004 23F40013 	 bic r3,r3,#2097152
+ 116 0008 0360     	 str r3,[r0]
+ 117              	 .loc 1 106 0
+ 118 000a 4FF48050 	 mov r0,#4096
+ 119              	.LVL14:
+ 120 000e 014B     	 ldr r3,.L5
+ 121 0010 1847     	 bx r3
+ 122              	.LVL15:
+ 123              	.L6:
+ 124 0012 00BF     	 .align 2
+ 125              	.L5:
+ 126 0014 00000000 	 .word CLKPWR_ConfigPPWR
+ 127              	 .cfi_endproc
+ 128              	.LFE56:
+ 130              	 .section .text.ADC_GetData,"ax",%progbits
+ 131              	 .align 1
+ 132              	 .global ADC_GetData
+ 133              	 .syntax unified
+ 134              	 .thumb
+ 135              	 .thumb_func
+ 136              	 .fpu softvfp
+ 138              	ADC_GetData:
+ 139              	.LFB57:
+ 107:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 108:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 109:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 110:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 111:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Get Result conversion from A/D data register
+ 112:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	channel number which want to read back the result
+ 113:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		Result of conversion
+ 114:LPC17xxLib/src/lpc17xx_adc.c **** *********************************************************************/
+ 115:LPC17xxLib/src/lpc17xx_adc.c **** uint32_t ADC_GetData(uint32_t channel)
+ 116:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 140              	 .loc 1 116 0
+ 141              	 .cfi_startproc
+ 142              	 
+ 143              	 
+ 144              	 
+ 145              	.LVL16:
+ 117:LPC17xxLib/src/lpc17xx_adc.c **** 	uint32_t adc_value;
+ 118:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 119:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(channel));
+ 120:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 121:LPC17xxLib/src/lpc17xx_adc.c **** 	adc_value = *(uint32_t *)((&LPC_ADC->ADDR0) + channel);
+ 146              	 .loc 1 121 0
+ 147 0000 024B     	 ldr r3,.L8
+ 122:LPC17xxLib/src/lpc17xx_adc.c **** 	return ADC_GDR_RESULT(adc_value);
+ 148              	 .loc 1 122 0
+ 149 0002 53F82000 	 ldr r0,[r3,r0,lsl#2]
+ 150              	.LVL17:
+ 123:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 151              	 .loc 1 123 0
+ 152 0006 C0F30B10 	 ubfx r0,r0,#4,#12
+ 153 000a 7047     	 bx lr
+ 154              	.L9:
+ 155              	 .align 2
+ 156              	.L8:
+ 157 000c 10400340 	 .word 1073954832
+ 158              	 .cfi_endproc
+ 159              	.LFE57:
+ 161              	 .section .text.ADC_StartCmd,"ax",%progbits
+ 162              	 .align 1
+ 163              	 .global ADC_StartCmd
+ 164              	 .syntax unified
+ 165              	 .thumb
+ 166              	 .thumb_func
+ 167              	 .fpu softvfp
+ 169              	ADC_StartCmd:
+ 170              	.LFB58:
+ 124:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 125:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 126:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Set start mode for ADC
+ 127:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 128:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	start_mode Start mode choose one of modes in
+ 129:LPC17xxLib/src/lpc17xx_adc.c **** * 				'ADC_START_OPT' enumeration type definition, should be:
+ 130:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_START_CONTINUOUS
+ 131:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_START_NOW
+ 132:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_START_ON_EINT0
+ 133:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_START_ON_CAP01
+ 134:LPC17xxLib/src/lpc17xx_adc.c **** *				- ADC_START_ON_MAT01
+ 135:LPC17xxLib/src/lpc17xx_adc.c **** *				- ADC_START_ON_MAT03
+ 136:LPC17xxLib/src/lpc17xx_adc.c **** *				- ADC_START_ON_MAT10
+ 137:LPC17xxLib/src/lpc17xx_adc.c **** *				- ADC_START_ON_MAT11
+ 138:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+ 139:LPC17xxLib/src/lpc17xx_adc.c **** *********************************************************************/
+ 140:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_StartCmd(LPC_ADC_TypeDef *ADCx, uint8_t start_mode)
+ 141:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 171              	 .loc 1 141 0
+ 172              	 .cfi_startproc
+ 173              	 
+ 174              	 
+ 175              	 
+ 176              	.LVL18:
+ 142:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 143:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_START_OPT(start_mode));
+ 144:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 145:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR &= ~ADC_CR_START_MASK;
+ 177              	 .loc 1 145 0
+ 178 0000 0368     	 ldr r3,[r0]
+ 179 0002 23F0E063 	 bic r3,r3,#117440512
+ 180 0006 0360     	 str r3,[r0]
+ 146:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR |=ADC_CR_START_MODE_SEL((uint32_t)start_mode);
+ 181              	 .loc 1 146 0
+ 182 0008 0368     	 ldr r3,[r0]
+ 183 000a 43EA0161 	 orr r1,r3,r1,lsl#24
+ 184              	.LVL19:
+ 185 000e 0160     	 str r1,[r0]
+ 186 0010 7047     	 bx lr
+ 187              	 .cfi_endproc
+ 188              	.LFE58:
+ 190              	 .section .text.ADC_BurstCmd,"ax",%progbits
+ 191              	 .align 1
+ 192              	 .global ADC_BurstCmd
+ 193              	 .syntax unified
+ 194              	 .thumb
+ 195              	 .thumb_func
+ 196              	 .fpu softvfp
+ 198              	ADC_BurstCmd:
+ 199              	.LFB59:
+ 147:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 148:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 149:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 150:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 151:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		ADC Burst mode setting
+ 152:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 153:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	NewState
+ 154:LPC17xxLib/src/lpc17xx_adc.c **** * 				-	1: Set Burst mode
+ 155:LPC17xxLib/src/lpc17xx_adc.c **** * 				-	0: reset Burst mode
+ 156:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+ 157:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 158:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_BurstCmd(LPC_ADC_TypeDef *ADCx, FunctionalState NewState)
+ 159:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 200              	 .loc 1 159 0
+ 201              	 .cfi_startproc
+ 202              	 
+ 203              	 
+ 204              	 
+ 205              	.LVL20:
+ 160:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 161:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 162:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR &= ~ADC_CR_BURST;
+ 206              	 .loc 1 162 0
+ 207 0000 0368     	 ldr r3,[r0]
+ 208 0002 23F48033 	 bic r3,r3,#65536
+ 209 0006 0360     	 str r3,[r0]
+ 163:LPC17xxLib/src/lpc17xx_adc.c **** 	if (NewState){
+ 210              	 .loc 1 163 0
+ 211 0008 19B1     	 cbz r1,.L11
+ 164:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_BURST;
+ 212              	 .loc 1 164 0
+ 213 000a 0368     	 ldr r3,[r0]
+ 214 000c 43F48033 	 orr r3,r3,#65536
+ 215 0010 0360     	 str r3,[r0]
+ 216              	.L11:
+ 217 0012 7047     	 bx lr
+ 218              	 .cfi_endproc
+ 219              	.LFE59:
+ 221              	 .section .text.ADC_PowerdownCmd,"ax",%progbits
+ 222              	 .align 1
+ 223              	 .global ADC_PowerdownCmd
+ 224              	 .syntax unified
+ 225              	 .thumb
+ 226              	 .thumb_func
+ 227              	 .fpu softvfp
+ 229              	ADC_PowerdownCmd:
+ 230              	.LFB60:
+ 165:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 166:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 167:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 168:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 169:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Set AD conversion in power mode
+ 170:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 171:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	NewState
+ 172:LPC17xxLib/src/lpc17xx_adc.c **** * 				-	1: AD converter is optional
+ 173:LPC17xxLib/src/lpc17xx_adc.c **** * 				-	0: AD Converter is in power down mode
+ 174:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+ 175:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 176:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_PowerdownCmd(LPC_ADC_TypeDef *ADCx, FunctionalState NewState)
+ 177:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 231              	 .loc 1 177 0
+ 232              	 .cfi_startproc
+ 233              	 
+ 234              	 
+ 235              	 
+ 236              	.LVL21:
+ 178:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 179:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 180:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR &= ~ADC_CR_PDN;
+ 237              	 .loc 1 180 0
+ 238 0000 0368     	 ldr r3,[r0]
+ 239 0002 23F40013 	 bic r3,r3,#2097152
+ 240 0006 0360     	 str r3,[r0]
+ 181:LPC17xxLib/src/lpc17xx_adc.c **** 	if (NewState){
+ 241              	 .loc 1 181 0
+ 242 0008 19B1     	 cbz r1,.L16
+ 182:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_PDN;
+ 243              	 .loc 1 182 0
+ 244 000a 0368     	 ldr r3,[r0]
+ 245 000c 43F40013 	 orr r3,r3,#2097152
+ 246 0010 0360     	 str r3,[r0]
+ 247              	.L16:
+ 248 0012 7047     	 bx lr
+ 249              	 .cfi_endproc
+ 250              	.LFE60:
+ 252              	 .section .text.ADC_EdgeStartConfig,"ax",%progbits
+ 253              	 .align 1
+ 254              	 .global ADC_EdgeStartConfig
+ 255              	 .syntax unified
+ 256              	 .thumb
+ 257              	 .thumb_func
+ 258              	 .fpu softvfp
+ 260              	ADC_EdgeStartConfig:
+ 261              	.LFB61:
+ 183:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 184:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 185:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 186:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 187:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Set Edge start configuration
+ 188:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 189:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	EdgeOption is ADC_START_ON_RISING and ADC_START_ON_FALLING
+ 190:LPC17xxLib/src/lpc17xx_adc.c **** * 					0:ADC_START_ON_RISING
+ 191:LPC17xxLib/src/lpc17xx_adc.c **** * 					1:ADC_START_ON_FALLING
+ 192:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+ 193:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 194:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_EdgeStartConfig(LPC_ADC_TypeDef *ADCx, uint8_t EdgeOption)
+ 195:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 262              	 .loc 1 195 0
+ 263              	 .cfi_startproc
+ 264              	 
+ 265              	 
+ 266              	 
+ 267              	.LVL22:
+ 196:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 197:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_START_ON_EDGE_OPT(EdgeOption));
+ 198:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 199:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADCR &= ~ADC_CR_EDGE;
+ 268              	 .loc 1 199 0
+ 269 0000 0368     	 ldr r3,[r0]
+ 270 0002 23F00063 	 bic r3,r3,#134217728
+ 271 0006 0360     	 str r3,[r0]
+ 200:LPC17xxLib/src/lpc17xx_adc.c **** 	if (EdgeOption){
+ 272              	 .loc 1 200 0
+ 273 0008 19B1     	 cbz r1,.L21
+ 201:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_EDGE;
+ 274              	 .loc 1 201 0
+ 275 000a 0368     	 ldr r3,[r0]
+ 276 000c 43F00063 	 orr r3,r3,#134217728
+ 277 0010 0360     	 str r3,[r0]
+ 278              	.L21:
+ 279 0012 7047     	 bx lr
+ 280              	 .cfi_endproc
+ 281              	.LFE61:
+ 283              	 .section .text.ADC_IntConfig,"ax",%progbits
+ 284              	 .align 1
+ 285              	 .global ADC_IntConfig
+ 286              	 .syntax unified
+ 287              	 .thumb
+ 288              	 .thumb_func
+ 289              	 .fpu softvfp
+ 291              	ADC_IntConfig:
+ 292              	.LFB62:
+ 202:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 203:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 204:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 205:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 206:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		ADC interrupt configuration
+ 207:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 208:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	IntType: type of interrupt, should be:
+ 209:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_ADINTEN0: Interrupt channel 0
+ 210:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_ADINTEN1: Interrupt channel 1
+ 211:LPC17xxLib/src/lpc17xx_adc.c **** * 				...
+ 212:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_ADINTEN7: Interrupt channel 7
+ 213:LPC17xxLib/src/lpc17xx_adc.c **** * 				- ADC_ADGINTEN: Individual channel/global flag done generate an interrupt
+ 214:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	NewState:
+ 215:LPC17xxLib/src/lpc17xx_adc.c **** * 					- SET : enable ADC interrupt
+ 216:LPC17xxLib/src/lpc17xx_adc.c **** * 					- RESET: disable ADC interrupt
+ 217:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+ 218:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 219:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_IntConfig (LPC_ADC_TypeDef *ADCx, ADC_TYPE_INT_OPT IntType, FunctionalState NewState)
+ 220:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 293              	 .loc 1 220 0
+ 294              	 .cfi_startproc
+ 295              	 
+ 296              	 
+ 297              	.LVL23:
+ 221:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 222:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_TYPE_INT_OPT(IntType));
+ 223:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 224:LPC17xxLib/src/lpc17xx_adc.c **** 	ADCx->ADINTEN &= ~ADC_INTEN_CH(IntType);
+ 298              	 .loc 1 224 0
+ 299 0000 0123     	 movs r3,#1
+ 220:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 300              	 .loc 1 220 0
+ 301 0002 10B5     	 push {r4,lr}
+ 302              	 .cfi_def_cfa_offset 8
+ 303              	 .cfi_offset 4,-8
+ 304              	 .cfi_offset 14,-4
+ 305              	 .loc 1 224 0
+ 306 0004 C468     	 ldr r4,[r0,#12]
+ 307 0006 03FA01F1 	 lsl r1,r3,r1
+ 308              	.LVL24:
+ 309 000a 24EA0104 	 bic r4,r4,r1
+ 310 000e C460     	 str r4,[r0,#12]
+ 225:LPC17xxLib/src/lpc17xx_adc.c **** 	if (NewState){
+ 311              	 .loc 1 225 0
+ 312 0010 12B1     	 cbz r2,.L26
+ 226:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADINTEN |= ADC_INTEN_CH(IntType);
+ 313              	 .loc 1 226 0
+ 314 0012 C368     	 ldr r3,[r0,#12]
+ 315 0014 1943     	 orrs r1,r1,r3
+ 316 0016 C160     	 str r1,[r0,#12]
+ 317              	.L26:
+ 318 0018 10BD     	 pop {r4,pc}
+ 319              	 .cfi_endproc
+ 320              	.LFE62:
+ 322              	 .section .text.ADC_ChannelCmd,"ax",%progbits
+ 323              	 .align 1
+ 324              	 .global ADC_ChannelCmd
+ 325              	 .syntax unified
+ 326              	 .thumb
+ 327              	 .thumb_func
+ 328              	 .fpu softvfp
+ 330              	ADC_ChannelCmd:
+ 331              	.LFB63:
+ 227:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 228:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 229:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 230:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 231:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Enable/Disable ADC channel number
+ 232:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 233:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	Channel channel number
+ 234:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	NewState Enable or Disable
+ 235:LPC17xxLib/src/lpc17xx_adc.c **** *
+ 236:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		None
+ 237:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 238:LPC17xxLib/src/lpc17xx_adc.c **** void ADC_ChannelCmd (LPC_ADC_TypeDef *ADCx, uint8_t Channel, FunctionalState NewState)
+ 239:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 332              	 .loc 1 239 0
+ 333              	 .cfi_startproc
+ 334              	 
+ 335              	 
+ 336              	 
+ 337              	.LVL25:
+ 240:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 241:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(Channel));
+ 242:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 243:LPC17xxLib/src/lpc17xx_adc.c **** 	if (NewState == ENABLE) {
+ 338              	 .loc 1 243 0
+ 339 0000 012A     	 cmp r2,#1
+ 244:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_CH_SEL(Channel);
+ 245:LPC17xxLib/src/lpc17xx_adc.c **** 	} else {
+ 246:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR &= ~ADC_CR_CH_SEL(Channel);
+ 340              	 .loc 1 246 0
+ 341 0002 15BF     	 itete ne
+ 342 0004 0123     	 movne r3,#1
+ 244:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_CH_SEL(Channel);
+ 343              	 .loc 1 244 0
+ 344 0006 0368     	 ldreq r3,[r0]
+ 345              	 .loc 1 246 0
+ 346 0008 0268     	 ldrne r2,[r0]
+ 347              	.LVL26:
+ 244:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_CH_SEL(Channel);
+ 348              	 .loc 1 244 0
+ 349 000a 8A40     	 lsleq r2,r2,r1
+ 350              	 .loc 1 246 0
+ 351 000c 16BF     	 itet ne
+ 352 000e 03FA01F1 	 lslne r1,r3,r1
+ 353              	.LVL27:
+ 244:LPC17xxLib/src/lpc17xx_adc.c **** 		ADCx->ADCR |= ADC_CR_CH_SEL(Channel);
+ 354              	 .loc 1 244 0
+ 355 0012 1A43     	 orreq r2,r2,r3
+ 356              	 .loc 1 246 0
+ 357 0014 8A43     	 bicne r2,r2,r1
+ 358 0016 0260     	 str r2,[r0]
+ 359 0018 7047     	 bx lr
+ 360              	 .cfi_endproc
+ 361              	.LFE63:
+ 363              	 .section .text.ADC_ChannelGetData,"ax",%progbits
+ 364              	 .align 1
+ 365              	 .global ADC_ChannelGetData
+ 366              	 .syntax unified
+ 367              	 .thumb
+ 368              	 .thumb_func
+ 369              	 .fpu softvfp
+ 371              	ADC_ChannelGetData:
+ 372              	.LFB64:
+ 247:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 248:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 249:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 250:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 251:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Get ADC result
+ 252:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 253:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	channel: channel number, should be 0...7
+ 254:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		Data conversion
+ 255:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 256:LPC17xxLib/src/lpc17xx_adc.c **** uint16_t ADC_ChannelGetData(LPC_ADC_TypeDef *ADCx, uint8_t channel)
+ 257:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 373              	 .loc 1 257 0
+ 374              	 .cfi_startproc
+ 375              	 
+ 376              	 
+ 377              	 
+ 378              	.LVL28:
+ 258:LPC17xxLib/src/lpc17xx_adc.c **** 	uint32_t adc_value;
+ 259:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 260:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 261:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(channel));
+ 262:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 263:LPC17xxLib/src/lpc17xx_adc.c **** 	adc_value = *(uint32_t *) ((&ADCx->ADDR0) + channel);
+ 379              	 .loc 1 263 0
+ 380 0000 00EB8101 	 add r1,r0,r1,lsl#2
+ 381              	.LVL29:
+ 264:LPC17xxLib/src/lpc17xx_adc.c **** 	return ADC_DR_RESULT(adc_value);
+ 382              	 .loc 1 264 0
+ 383 0004 0869     	 ldr r0,[r1,#16]
+ 384              	.LVL30:
+ 265:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 385              	 .loc 1 265 0
+ 386 0006 C0F30B10 	 ubfx r0,r0,#4,#12
+ 387 000a 7047     	 bx lr
+ 388              	 .cfi_endproc
+ 389              	.LFE64:
+ 391              	 .section .text.ADC_ChannelGetStatus,"ax",%progbits
+ 392              	 .align 1
+ 393              	 .global ADC_ChannelGetStatus
+ 394              	 .syntax unified
+ 395              	 .thumb
+ 396              	 .thumb_func
+ 397              	 .fpu softvfp
+ 399              	ADC_ChannelGetStatus:
+ 400              	.LFB65:
+ 266:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 267:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 268:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Get ADC Chanel status from ADC data register
+ 269:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 270:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	channel: channel number, should be 0..7
+ 271:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]  	StatusType
+ 272:LPC17xxLib/src/lpc17xx_adc.c **** *              		 	0:Burst status
+ 273:LPC17xxLib/src/lpc17xx_adc.c **** *               		1:Done 	status
+ 274:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		SET / RESET
+ 275:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 276:LPC17xxLib/src/lpc17xx_adc.c **** FlagStatus ADC_ChannelGetStatus(LPC_ADC_TypeDef *ADCx, uint8_t channel, uint32_t StatusType)
+ 277:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 401              	 .loc 1 277 0
+ 402              	 .cfi_startproc
+ 403              	 
+ 404              	 
+ 405              	 
+ 406              	.LVL31:
+ 278:LPC17xxLib/src/lpc17xx_adc.c **** 	uint32_t temp;
+ 279:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 280:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 281:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_CHANNEL_SELECTION(channel));
+ 282:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_DATA_STATUS(StatusType));
+ 283:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 284:LPC17xxLib/src/lpc17xx_adc.c **** 	temp =  *(uint32_t *) ((&ADCx->ADDR0) + channel);
+ 407              	 .loc 1 284 0
+ 408 0000 00EB8101 	 add r1,r0,r1,lsl#2
+ 409              	.LVL32:
+ 410 0004 0869     	 ldr r0,[r1,#16]
+ 411              	.LVL33:
+ 285:LPC17xxLib/src/lpc17xx_adc.c **** 	if (StatusType) {
+ 412              	 .loc 1 285 0
+ 413 0006 2AB1     	 cbz r2,.L37
+ 286:LPC17xxLib/src/lpc17xx_adc.c **** 		temp &= ADC_DR_DONE_FLAG;
+ 414              	 .loc 1 286 0
+ 415 0008 00F00040 	 and r0,r0,#-2147483648
+ 416              	.LVL34:
+ 417              	.L38:
+ 287:LPC17xxLib/src/lpc17xx_adc.c **** 	}else{
+ 288:LPC17xxLib/src/lpc17xx_adc.c **** 		temp &= ADC_DR_OVERRUN_FLAG;
+ 289:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 290:LPC17xxLib/src/lpc17xx_adc.c **** 	if (temp) {
+ 291:LPC17xxLib/src/lpc17xx_adc.c **** 		return SET;
+ 292:LPC17xxLib/src/lpc17xx_adc.c **** 	} else {
+ 293:LPC17xxLib/src/lpc17xx_adc.c **** 		return RESET;
+ 294:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 295:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 296:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 418              	 .loc 1 296 0
+ 419 000c 0030     	 adds r0,r0,#0
+ 420 000e 18BF     	 it ne
+ 421 0010 0120     	 movne r0,#1
+ 422              	.LVL35:
+ 423 0012 7047     	 bx lr
+ 424              	.LVL36:
+ 425              	.L37:
+ 288:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 426              	 .loc 1 288 0
+ 427 0014 00F08040 	 and r0,r0,#1073741824
+ 428              	.LVL37:
+ 429 0018 F8E7     	 b .L38
+ 430              	 .cfi_endproc
+ 431              	.LFE65:
+ 433              	 .section .text.ADC_GlobalGetData,"ax",%progbits
+ 434              	 .align 1
+ 435              	 .global ADC_GlobalGetData
+ 436              	 .syntax unified
+ 437              	 .thumb
+ 438              	 .thumb_func
+ 439              	 .fpu softvfp
+ 441              	ADC_GlobalGetData:
+ 442              	.LFB66:
+ 297:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 298:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 299:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Get ADC Data from AD Global register
+ 300:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 301:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		Result of conversion
+ 302:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 303:LPC17xxLib/src/lpc17xx_adc.c **** uint32_t ADC_GlobalGetData(LPC_ADC_TypeDef *ADCx)
+ 304:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 443              	 .loc 1 304 0
+ 444              	 .cfi_startproc
+ 445              	 
+ 446              	 
+ 447              	 
+ 448              	.LVL38:
+ 305:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 306:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 307:LPC17xxLib/src/lpc17xx_adc.c **** 	return ((uint32_t)(ADCx->ADGDR));
+ 449              	 .loc 1 307 0
+ 450 0000 4068     	 ldr r0,[r0,#4]
+ 451              	.LVL39:
+ 308:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 452              	 .loc 1 308 0
+ 453 0002 7047     	 bx lr
+ 454              	 .cfi_endproc
+ 455              	.LFE66:
+ 457              	 .section .text.ADC_GlobalGetStatus,"ax",%progbits
+ 458              	 .align 1
+ 459              	 .global ADC_GlobalGetStatus
+ 460              	 .syntax unified
+ 461              	 .thumb
+ 462              	 .thumb_func
+ 463              	 .fpu softvfp
+ 465              	ADC_GlobalGetStatus:
+ 466              	.LFB67:
+ 309:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 310:LPC17xxLib/src/lpc17xx_adc.c **** /*********************************************************************//**
+ 311:LPC17xxLib/src/lpc17xx_adc.c **** * @brief 		Get ADC Chanel status from AD global data register
+ 312:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]	ADCx pointer to LPC_ADC_TypeDef, should be: LPC_ADC
+ 313:LPC17xxLib/src/lpc17xx_adc.c **** * @param[in]  	StatusType
+ 314:LPC17xxLib/src/lpc17xx_adc.c **** *              		 	0:Burst status
+ 315:LPC17xxLib/src/lpc17xx_adc.c **** *               		1:Done 	status
+ 316:LPC17xxLib/src/lpc17xx_adc.c **** * @return 		SET / RESET
+ 317:LPC17xxLib/src/lpc17xx_adc.c **** **********************************************************************/
+ 318:LPC17xxLib/src/lpc17xx_adc.c **** FlagStatus	ADC_GlobalGetStatus(LPC_ADC_TypeDef *ADCx, uint32_t StatusType)
+ 319:LPC17xxLib/src/lpc17xx_adc.c **** {
+ 467              	 .loc 1 319 0
+ 468              	 .cfi_startproc
+ 469              	 
+ 470              	 
+ 471              	 
+ 472              	.LVL40:
+ 320:LPC17xxLib/src/lpc17xx_adc.c **** 	uint32_t temp;
+ 321:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 322:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADCx(ADCx));
+ 323:LPC17xxLib/src/lpc17xx_adc.c **** 	CHECK_PARAM(PARAM_ADC_DATA_STATUS(StatusType));
+ 324:LPC17xxLib/src/lpc17xx_adc.c **** 
+ 325:LPC17xxLib/src/lpc17xx_adc.c **** 	temp =  ADCx->ADGDR;
+ 473              	 .loc 1 325 0
+ 474 0000 4068     	 ldr r0,[r0,#4]
+ 475              	.LVL41:
+ 326:LPC17xxLib/src/lpc17xx_adc.c **** 	if (StatusType){
+ 476              	 .loc 1 326 0
+ 477 0002 29B1     	 cbz r1,.L41
+ 327:LPC17xxLib/src/lpc17xx_adc.c **** 		temp &= ADC_DR_DONE_FLAG;
+ 478              	 .loc 1 327 0
+ 479 0004 00F00040 	 and r0,r0,#-2147483648
+ 480              	.LVL42:
+ 481              	.L42:
+ 328:LPC17xxLib/src/lpc17xx_adc.c **** 	}else{
+ 329:LPC17xxLib/src/lpc17xx_adc.c **** 		temp &= ADC_DR_OVERRUN_FLAG;
+ 330:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 331:LPC17xxLib/src/lpc17xx_adc.c **** 	if (temp){
+ 332:LPC17xxLib/src/lpc17xx_adc.c **** 		return SET;
+ 333:LPC17xxLib/src/lpc17xx_adc.c **** 	}else{
+ 334:LPC17xxLib/src/lpc17xx_adc.c **** 		return RESET;
+ 335:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 336:LPC17xxLib/src/lpc17xx_adc.c **** }
+ 482              	 .loc 1 336 0
+ 483 0008 0030     	 adds r0,r0,#0
+ 484 000a 18BF     	 it ne
+ 485 000c 0120     	 movne r0,#1
+ 486              	.LVL43:
+ 487 000e 7047     	 bx lr
+ 488              	.LVL44:
+ 489              	.L41:
+ 329:LPC17xxLib/src/lpc17xx_adc.c **** 	}
+ 490              	 .loc 1 329 0
+ 491 0010 00F08040 	 and r0,r0,#1073741824
+ 492              	.LVL45:
+ 493 0014 F8E7     	 b .L42
+ 494              	 .cfi_endproc
+ 495              	.LFE67:
+ 497              	 .text
+ 498              	.Letext0:
+ 499              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 500              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 501              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 502              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 503              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 504              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 505              	 .file 8 "LPC17xxLib/inc/lpc17xx_adc.h"
+ 506              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_adc.c
+    {standard input}:16     .text.ADC_Init:0000000000000000 $t
+    {standard input}:23     .text.ADC_Init:0000000000000000 ADC_Init
+    {standard input}:89     .text.ADC_Init:0000000000000044 $d
+    {standard input}:95     .text.ADC_DeInit:0000000000000000 $t
+    {standard input}:102    .text.ADC_DeInit:0000000000000000 ADC_DeInit
+    {standard input}:126    .text.ADC_DeInit:0000000000000014 $d
+    {standard input}:131    .text.ADC_GetData:0000000000000000 $t
+    {standard input}:138    .text.ADC_GetData:0000000000000000 ADC_GetData
+    {standard input}:157    .text.ADC_GetData:000000000000000c $d
+    {standard input}:162    .text.ADC_StartCmd:0000000000000000 $t
+    {standard input}:169    .text.ADC_StartCmd:0000000000000000 ADC_StartCmd
+    {standard input}:191    .text.ADC_BurstCmd:0000000000000000 $t
+    {standard input}:198    .text.ADC_BurstCmd:0000000000000000 ADC_BurstCmd
+    {standard input}:222    .text.ADC_PowerdownCmd:0000000000000000 $t
+    {standard input}:229    .text.ADC_PowerdownCmd:0000000000000000 ADC_PowerdownCmd
+    {standard input}:253    .text.ADC_EdgeStartConfig:0000000000000000 $t
+    {standard input}:260    .text.ADC_EdgeStartConfig:0000000000000000 ADC_EdgeStartConfig
+    {standard input}:284    .text.ADC_IntConfig:0000000000000000 $t
+    {standard input}:291    .text.ADC_IntConfig:0000000000000000 ADC_IntConfig
+    {standard input}:323    .text.ADC_ChannelCmd:0000000000000000 $t
+    {standard input}:330    .text.ADC_ChannelCmd:0000000000000000 ADC_ChannelCmd
+    {standard input}:364    .text.ADC_ChannelGetData:0000000000000000 $t
+    {standard input}:371    .text.ADC_ChannelGetData:0000000000000000 ADC_ChannelGetData
+    {standard input}:392    .text.ADC_ChannelGetStatus:0000000000000000 $t
+    {standard input}:399    .text.ADC_ChannelGetStatus:0000000000000000 ADC_ChannelGetStatus
+    {standard input}:434    .text.ADC_GlobalGetData:0000000000000000 $t
+    {standard input}:441    .text.ADC_GlobalGetData:0000000000000000 ADC_GlobalGetData
+    {standard input}:458    .text.ADC_GlobalGetStatus:0000000000000000 $t
+    {standard input}:465    .text.ADC_GlobalGetStatus:0000000000000000 ADC_GlobalGetStatus
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR
+CLKPWR_GetPCLK

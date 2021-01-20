@@ -1,0 +1,1603 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_pwm.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.PWM_GetIntStatus,"ax",%progbits
+  16              	 .align 1
+  17              	 .global PWM_GetIntStatus
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	PWM_GetIntStatus:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_pwm.c"
+   1:LPC17xxLib/src/lpc17xx_pwm.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_pwm.c **** 
+   3:LPC17xxLib/src/lpc17xx_pwm.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_pwm.c **** * $Id$		lpc17xx_pwm.c				2011-03-31
+   5:LPC17xxLib/src/lpc17xx_pwm.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_pwm.c **** * @file		lpc17xx_pwm.c
+   7:LPC17xxLib/src/lpc17xx_pwm.c **** * @brief	Contains all functions support for PWM firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_pwm.c **** * @version	2.1
+   9:LPC17xxLib/src/lpc17xx_pwm.c **** * @date		31. Mar. 2011
+  10:LPC17xxLib/src/lpc17xx_pwm.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_pwm.c **** *
+  12:LPC17xxLib/src/lpc17xx_pwm.c **** * Copyright(C) 2011, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_pwm.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_pwm.c **** *
+  15:LPC17xxLib/src/lpc17xx_pwm.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_pwm.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_pwm.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_pwm.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_pwm.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_pwm.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_pwm.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_pwm.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_pwm.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_pwm.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_pwm.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_pwm.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  28:LPC17xxLib/src/lpc17xx_pwm.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_pwm.c **** /** @addtogroup PWM
+  30:LPC17xxLib/src/lpc17xx_pwm.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_pwm.c ****  */
+  32:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  33:LPC17xxLib/src/lpc17xx_pwm.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_pwm.c **** #include "lpc17xx_pwm.h"
+  35:LPC17xxLib/src/lpc17xx_pwm.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  37:LPC17xxLib/src/lpc17xx_pwm.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  38:LPC17xxLib/src/lpc17xx_pwm.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  39:LPC17xxLib/src/lpc17xx_pwm.c ****  * otherwise the default FW library configuration file must be included instead
+  40:LPC17xxLib/src/lpc17xx_pwm.c ****  */
+  41:LPC17xxLib/src/lpc17xx_pwm.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  42:LPC17xxLib/src/lpc17xx_pwm.c **** #include "lpc17xx_libcfg.h"
+  43:LPC17xxLib/src/lpc17xx_pwm.c **** #else
+  44:LPC17xxLib/src/lpc17xx_pwm.c **** #include "lpc17xx_libcfg_default.h"
+  45:LPC17xxLib/src/lpc17xx_pwm.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  46:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  47:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  48:LPC17xxLib/src/lpc17xx_pwm.c **** #ifdef _PWM
+  49:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  50:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  51:LPC17xxLib/src/lpc17xx_pwm.c **** /* Public Functions ----------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_pwm.c **** /** @addtogroup PWM_Public_Functions
+  53:LPC17xxLib/src/lpc17xx_pwm.c ****  * @{
+  54:LPC17xxLib/src/lpc17xx_pwm.c ****  */
+  55:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  56:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  57:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+  58:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Check whether specified interrupt flag in PWM is set or not
+  59:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx: PWM peripheral, should be LPC_PWM1
+  60:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	IntFlag: PWM interrupt flag, should be:
+  61:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR0: Interrupt flag for PWM match channel 0
+  62:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR1: Interrupt flag for PWM match channel 1
+  63:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR2: Interrupt flag for PWM match channel 2
+  64:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR3: Interrupt flag for PWM match channel 3
+  65:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR4: Interrupt flag for PWM match channel 4
+  66:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR5: Interrupt flag for PWM match channel 5
+  67:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR6: Interrupt flag for PWM match channel 6
+  68:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_CAP0: Interrupt flag for capture input 0
+  69:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_CAP1: Interrupt flag for capture input 1
+  70:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		New State of PWM interrupt flag (SET or RESET)
+  71:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+  72:LPC17xxLib/src/lpc17xx_pwm.c **** IntStatus PWM_GetIntStatus(LPC_PWM_TypeDef *PWMx, uint32_t IntFlag)
+  73:LPC17xxLib/src/lpc17xx_pwm.c **** {
+  26              	 .loc 1 73 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+  74:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+  75:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_INTSTAT(IntFlag));
+  76:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  77:LPC17xxLib/src/lpc17xx_pwm.c **** 	return ((PWMx->IR & IntFlag) ? SET : RESET);
+  32              	 .loc 1 77 0
+  33 0000 0368     	 ldr r3,[r0]
+  34 0002 0B42     	 tst r3,r1
+  78:LPC17xxLib/src/lpc17xx_pwm.c **** }
+  35              	 .loc 1 78 0
+  36 0004 14BF     	 ite ne
+  37 0006 0120     	 movne r0,#1
+  38              	.LVL1:
+  39 0008 0020     	 moveq r0,#0
+  40 000a 7047     	 bx lr
+  41              	 .cfi_endproc
+  42              	.LFE55:
+  44              	 .section .text.PWM_ClearIntPending,"ax",%progbits
+  45              	 .align 1
+  46              	 .global PWM_ClearIntPending
+  47              	 .syntax unified
+  48              	 .thumb
+  49              	 .thumb_func
+  50              	 .fpu softvfp
+  52              	PWM_ClearIntPending:
+  53              	.LFB56:
+  79:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  80:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  81:LPC17xxLib/src/lpc17xx_pwm.c **** 
+  82:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+  83:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Clear specified PWM Interrupt pending
+  84:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx: PWM peripheral, should be LPC_PWM1
+  85:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	IntFlag: PWM interrupt flag, should be:
+  86:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR0: Interrupt flag for PWM match channel 0
+  87:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR1: Interrupt flag for PWM match channel 1
+  88:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR2: Interrupt flag for PWM match channel 2
+  89:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR3: Interrupt flag for PWM match channel 3
+  90:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR4: Interrupt flag for PWM match channel 4
+  91:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR5: Interrupt flag for PWM match channel 5
+  92:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_MR6: Interrupt flag for PWM match channel 6
+  93:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_CAP0: Interrupt flag for capture input 0
+  94:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_INTSTAT_CAP1: Interrupt flag for capture input 1
+  95:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+  96:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+  97:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ClearIntPending(LPC_PWM_TypeDef *PWMx, uint32_t IntFlag)
+  98:LPC17xxLib/src/lpc17xx_pwm.c **** {
+  54              	 .loc 1 98 0
+  55              	 .cfi_startproc
+  56              	 
+  57              	 
+  58              	 
+  59              	.LVL2:
+  99:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 100:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_INTSTAT(IntFlag));
+ 101:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->IR = IntFlag;
+  60              	 .loc 1 101 0
+  61 0000 0160     	 str r1,[r0]
+  62 0002 7047     	 bx lr
+  63              	 .cfi_endproc
+  64              	.LFE56:
+  66              	 .section .text.PWM_ConfigStructInit,"ax",%progbits
+  67              	 .align 1
+  68              	 .global PWM_ConfigStructInit
+  69              	 .syntax unified
+  70              	 .thumb
+  71              	 .thumb_func
+  72              	 .fpu softvfp
+  74              	PWM_ConfigStructInit:
+  75              	.LFB57:
+ 102:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 103:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 104:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 105:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 106:LPC17xxLib/src/lpc17xx_pwm.c **** /*****************************************************************************//**
+ 107:LPC17xxLib/src/lpc17xx_pwm.c **** * @brief		Fills each PWM_InitStruct member with its default value:
+ 108:LPC17xxLib/src/lpc17xx_pwm.c **** * 				- If PWMCounterMode = PWM_MODE_TIMER:
+ 109:LPC17xxLib/src/lpc17xx_pwm.c **** * 					+ PrescaleOption = PWM_TIMER_PRESCALE_USVAL
+ 110:LPC17xxLib/src/lpc17xx_pwm.c **** * 					+ PrescaleValue = 1
+ 111:LPC17xxLib/src/lpc17xx_pwm.c **** * 				- If PWMCounterMode = PWM_MODE_COUNTER:
+ 112:LPC17xxLib/src/lpc17xx_pwm.c **** * 					+ CountInputSelect = PWM_COUNTER_PCAP1_0
+ 113:LPC17xxLib/src/lpc17xx_pwm.c **** * 					+ CounterOption = PWM_COUNTER_RISING
+ 114:LPC17xxLib/src/lpc17xx_pwm.c **** * @param[in]	PWMTimerCounterMode Timer or Counter mode, should be:
+ 115:LPC17xxLib/src/lpc17xx_pwm.c **** * 				- PWM_MODE_TIMER: Counter of PWM peripheral is in Timer mode
+ 116:LPC17xxLib/src/lpc17xx_pwm.c **** * 				- PWM_MODE_COUNTER: Counter of PWM peripheral is in Counter mode
+ 117:LPC17xxLib/src/lpc17xx_pwm.c **** * @param[in]	PWM_InitStruct Pointer to structure (PWM_TIMERCFG_Type or
+ 118:LPC17xxLib/src/lpc17xx_pwm.c **** * 				 PWM_COUNTERCFG_Type) which will be initialized.
+ 119:LPC17xxLib/src/lpc17xx_pwm.c **** * @return		None
+ 120:LPC17xxLib/src/lpc17xx_pwm.c **** * Note: PWM_InitStruct pointer will be assigned to corresponding structure
+ 121:LPC17xxLib/src/lpc17xx_pwm.c **** * 		(PWM_TIMERCFG_Type or PWM_COUNTERCFG_Type) due to PWMTimerCounterMode.
+ 122:LPC17xxLib/src/lpc17xx_pwm.c **** *******************************************************************************/
+ 123:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ConfigStructInit(uint8_t PWMTimerCounterMode, void *PWM_InitStruct)
+ 124:LPC17xxLib/src/lpc17xx_pwm.c **** {
+  76              	 .loc 1 124 0
+  77              	 .cfi_startproc
+  78              	 
+  79              	 
+  80              	 
+  81              	.LVL3:
+ 125:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWM_TIMERCFG_Type *pTimeCfg;
+ 126:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWM_COUNTERCFG_Type *pCounterCfg;
+ 127:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_TC_MODE(PWMTimerCounterMode));
+ 128:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 129:LPC17xxLib/src/lpc17xx_pwm.c **** 	pTimeCfg = (PWM_TIMERCFG_Type *) PWM_InitStruct;
+ 130:LPC17xxLib/src/lpc17xx_pwm.c **** 	pCounterCfg = (PWM_COUNTERCFG_Type *) PWM_InitStruct;
+ 131:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 132:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWMTimerCounterMode == PWM_MODE_TIMER )
+  82              	 .loc 1 132 0
+  83 0000 30B9     	 cbnz r0,.L4
+ 133:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 134:LPC17xxLib/src/lpc17xx_pwm.c **** 		pTimeCfg->PrescaleOption = PWM_TIMER_PRESCALE_USVAL;
+  84              	 .loc 1 134 0
+  85 0002 0123     	 movs r3,#1
+ 135:LPC17xxLib/src/lpc17xx_pwm.c **** 		pTimeCfg->PrescaleValue = 1;
+  86              	 .loc 1 135 0
+  87 0004 4871     	 strb r0,[r1,#5]
+ 134:LPC17xxLib/src/lpc17xx_pwm.c **** 		pTimeCfg->PrescaleValue = 1;
+  88              	 .loc 1 134 0
+  89 0006 0B70     	 strb r3,[r1]
+  90              	 .loc 1 135 0
+  91 0008 0B71     	 strb r3,[r1,#4]
+  92 000a 8871     	 strb r0,[r1,#6]
+  93 000c C871     	 strb r0,[r1,#7]
+  94 000e 7047     	 bx lr
+  95              	.L4:
+ 136:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 137:LPC17xxLib/src/lpc17xx_pwm.c **** 	else if (PWMTimerCounterMode == PWM_MODE_COUNTER)
+  96              	 .loc 1 137 0
+  97 0010 0128     	 cmp r0,#1
+ 138:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 139:LPC17xxLib/src/lpc17xx_pwm.c **** 		pCounterCfg->CountInputSelect = PWM_COUNTER_PCAP1_0;
+  98              	 .loc 1 139 0
+  99 0012 02BF     	 ittt eq
+ 100 0014 0023     	 moveq r3,#0
+ 140:LPC17xxLib/src/lpc17xx_pwm.c **** 		pCounterCfg->CounterOption = PWM_COUNTER_RISING;
+ 101              	 .loc 1 140 0
+ 102 0016 0870     	 strbeq r0,[r1]
+ 139:LPC17xxLib/src/lpc17xx_pwm.c **** 		pCounterCfg->CounterOption = PWM_COUNTER_RISING;
+ 103              	 .loc 1 139 0
+ 104 0018 4B70     	 strbeq r3,[r1,#1]
+ 105 001a 7047     	 bx lr
+ 106              	 .cfi_endproc
+ 107              	.LFE57:
+ 109              	 .global __aeabi_uldivmod
+ 110              	 .section .text.PWM_Init,"ax",%progbits
+ 111              	 .align 1
+ 112              	 .global PWM_Init
+ 113              	 .syntax unified
+ 114              	 .thumb
+ 115              	 .thumb_func
+ 116              	 .fpu softvfp
+ 118              	PWM_Init:
+ 119              	.LFB58:
+ 141:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 142:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 143:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 144:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 145:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 146:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Initializes the PWMx peripheral corresponding to the specified
+ 147:LPC17xxLib/src/lpc17xx_pwm.c ****  *               parameters in the PWM_ConfigStruct.
+ 148:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx PWM peripheral, should be LPC_PWM1
+ 149:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMTimerCounterMode Timer or Counter mode, should be:
+ 150:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_MODE_TIMER: Counter of PWM peripheral is in Timer mode
+ 151:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_MODE_COUNTER: Counter of PWM peripheral is in Counter mode
+ 152:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWM_ConfigStruct Pointer to structure (PWM_TIMERCFG_Type or
+ 153:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				 PWM_COUNTERCFG_Type) which will be initialized.
+ 154:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 155:LPC17xxLib/src/lpc17xx_pwm.c ****  * Note: PWM_ConfigStruct pointer will be assigned to corresponding structure
+ 156:LPC17xxLib/src/lpc17xx_pwm.c ****  * 		(PWM_TIMERCFG_Type or PWM_COUNTERCFG_Type) due to PWMTimerCounterMode.
+ 157:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 158:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_Init(LPC_PWM_TypeDef *PWMx, uint32_t PWMTimerCounterMode, void *PWM_ConfigStruct)
+ 159:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 120              	 .loc 1 159 0
+ 121              	 .cfi_startproc
+ 122              	 
+ 123              	 
+ 124              	.LVL4:
+ 125 0000 70B5     	 push {r4,r5,r6,lr}
+ 126              	 .cfi_def_cfa_offset 16
+ 127              	 .cfi_offset 4,-16
+ 128              	 .cfi_offset 5,-12
+ 129              	 .cfi_offset 6,-8
+ 130              	 .cfi_offset 14,-4
+ 131              	 .loc 1 159 0
+ 132 0002 0446     	 mov r4,r0
+ 160:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWM_TIMERCFG_Type *pTimeCfg;
+ 161:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWM_COUNTERCFG_Type *pCounterCfg;
+ 162:LPC17xxLib/src/lpc17xx_pwm.c **** 	uint64_t clkdlycnt;
+ 163:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 164:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 165:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_TC_MODE(PWMTimerCounterMode));
+ 166:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 167:LPC17xxLib/src/lpc17xx_pwm.c **** 	pTimeCfg = (PWM_TIMERCFG_Type *)PWM_ConfigStruct;
+ 168:LPC17xxLib/src/lpc17xx_pwm.c **** 	pCounterCfg = (PWM_COUNTERCFG_Type *)PWM_ConfigStruct;
+ 169:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 170:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 171:LPC17xxLib/src/lpc17xx_pwm.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCPWM1, ENABLE);
+ 133              	 .loc 1 171 0
+ 134 0004 424B     	 ldr r3,.L10
+ 135 0006 4020     	 movs r0,#64
+ 136              	.LVL5:
+ 159:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWM_TIMERCFG_Type *pTimeCfg;
+ 137              	 .loc 1 159 0
+ 138 0008 0E46     	 mov r6,r1
+ 139              	.LVL6:
+ 140              	 .loc 1 171 0
+ 141 000a 0121     	 movs r1,#1
+ 142              	.LVL7:
+ 159:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWM_TIMERCFG_Type *pTimeCfg;
+ 143              	 .loc 1 159 0
+ 144 000c 1546     	 mov r5,r2
+ 145              	 .loc 1 171 0
+ 146 000e 9847     	 blx r3
+ 147              	.LVL8:
+ 172:LPC17xxLib/src/lpc17xx_pwm.c **** 	CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_PWM1, CLKPWR_PCLKSEL_CCLK_DIV_4);
+ 148              	 .loc 1 172 0
+ 149 0010 0021     	 movs r1,#0
+ 150 0012 0C20     	 movs r0,#12
+ 151 0014 3F4B     	 ldr r3,.L10+4
+ 152 0016 9847     	 blx r3
+ 153              	.LVL9:
+ 173:LPC17xxLib/src/lpc17xx_pwm.c **** 	// Get peripheral clock of PWM1
+ 174:LPC17xxLib/src/lpc17xx_pwm.c **** 	clkdlycnt = (uint64_t) CLKPWR_GetPCLK (CLKPWR_PCLKSEL_PWM1);
+ 154              	 .loc 1 174 0
+ 155 0018 3F4B     	 ldr r3,.L10+8
+ 156 001a 0C20     	 movs r0,#12
+ 157 001c 9847     	 blx r3
+ 158              	.LVL10:
+ 175:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 176:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 177:LPC17xxLib/src/lpc17xx_pwm.c **** 	// Clear all interrupts pending
+ 178:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->IR = 0xFF & PWM_IR_BITMASK;
+ 159              	 .loc 1 178 0
+ 160 001e 3F22     	 movs r2,#63
+ 161 0020 2378     	 ldrb r3,[r4]
+ 162 0022 0023     	 movs r3,#0
+ 163 0024 2270     	 strb r2,[r4]
+ 164 0026 6278     	 ldrb r2,[r4,#1]
+ 165 0028 6370     	 strb r3,[r4,#1]
+ 166 002a A278     	 ldrb r2,[r4,#2]
+ 167 002c A370     	 strb r3,[r4,#2]
+ 168 002e E278     	 ldrb r2,[r4,#3]
+ 169 0030 E370     	 strb r3,[r4,#3]
+ 179:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->TCR = 0x00;
+ 170              	 .loc 1 179 0
+ 171 0032 2279     	 ldrb r2,[r4,#4]
+ 172 0034 2371     	 strb r3,[r4,#4]
+ 173 0036 6279     	 ldrb r2,[r4,#5]
+ 174 0038 6371     	 strb r3,[r4,#5]
+ 175 003a A279     	 ldrb r2,[r4,#6]
+ 176 003c A371     	 strb r3,[r4,#6]
+ 177 003e E279     	 ldrb r2,[r4,#7]
+ 178 0040 E371     	 strb r3,[r4,#7]
+ 180:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->CTCR = 0x00;
+ 179              	 .loc 1 180 0
+ 180 0042 94F87020 	 ldrb r2,[r4,#112]
+ 181 0046 84F87030 	 strb r3,[r4,#112]
+ 182 004a 94F87120 	 ldrb r2,[r4,#113]
+ 183 004e 84F87130 	 strb r3,[r4,#113]
+ 184 0052 94F87220 	 ldrb r2,[r4,#114]
+ 185 0056 84F87230 	 strb r3,[r4,#114]
+ 186 005a 94F87320 	 ldrb r2,[r4,#115]
+ 187 005e 84F87330 	 strb r3,[r4,#115]
+ 181:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->MCR = 0x00;
+ 188              	 .loc 1 181 0
+ 189 0062 227D     	 ldrb r2,[r4,#20]
+ 190 0064 2375     	 strb r3,[r4,#20]
+ 191 0066 627D     	 ldrb r2,[r4,#21]
+ 192 0068 6375     	 strb r3,[r4,#21]
+ 193 006a A27D     	 ldrb r2,[r4,#22]
+ 194 006c A375     	 strb r3,[r4,#22]
+ 195 006e E27D     	 ldrb r2,[r4,#23]
+ 196 0070 E375     	 strb r3,[r4,#23]
+ 182:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->CCR = 0x00;
+ 197              	 .loc 1 182 0
+ 198 0072 94F82820 	 ldrb r2,[r4,#40]
+ 199 0076 84F82830 	 strb r3,[r4,#40]
+ 200 007a 94F82920 	 ldrb r2,[r4,#41]
+ 201 007e 84F82930 	 strb r3,[r4,#41]
+ 202 0082 94F82A20 	 ldrb r2,[r4,#42]
+ 203 0086 84F82A30 	 strb r3,[r4,#42]
+ 204 008a 94F82B20 	 ldrb r2,[r4,#43]
+ 205 008e 84F82B30 	 strb r3,[r4,#43]
+ 183:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->PCR = 0x00;
+ 206              	 .loc 1 183 0
+ 207 0092 94F84C20 	 ldrb r2,[r4,#76]
+ 208 0096 84F84C30 	 strb r3,[r4,#76]
+ 209 009a 94F84D20 	 ldrb r2,[r4,#77]
+ 210 009e 84F84D30 	 strb r3,[r4,#77]
+ 211 00a2 94F84E20 	 ldrb r2,[r4,#78]
+ 212 00a6 84F84E30 	 strb r3,[r4,#78]
+ 213 00aa 94F84F20 	 ldrb r2,[r4,#79]
+ 214 00ae 84F84F30 	 strb r3,[r4,#79]
+ 184:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->LER = 0x00;
+ 215              	 .loc 1 184 0
+ 216 00b2 94F85020 	 ldrb r2,[r4,#80]
+ 217 00b6 84F85030 	 strb r3,[r4,#80]
+ 218 00ba 94F85120 	 ldrb r2,[r4,#81]
+ 219 00be 84F85130 	 strb r3,[r4,#81]
+ 220 00c2 94F85220 	 ldrb r2,[r4,#82]
+ 221 00c6 84F85230 	 strb r3,[r4,#82]
+ 222 00ca 94F85320 	 ldrb r2,[r4,#83]
+ 223 00ce 84F85330 	 strb r3,[r4,#83]
+ 185:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 186:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWMTimerCounterMode == PWM_MODE_TIMER)
+ 224              	 .loc 1 186 0
+ 225 00d2 76B9     	 cbnz r6,.L7
+ 187:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 188:LPC17xxLib/src/lpc17xx_pwm.c **** 		CHECK_PARAM(PARAM_PWM_TIMER_PRESCALE(pTimeCfg->PrescaleOption));
+ 189:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 190:LPC17xxLib/src/lpc17xx_pwm.c **** 		/* Absolute prescale value */
+ 191:LPC17xxLib/src/lpc17xx_pwm.c **** 		if (pTimeCfg->PrescaleOption == PWM_TIMER_PRESCALE_TICKVAL)
+ 226              	 .loc 1 191 0
+ 227 00d4 2B78     	 ldrb r3,[r5]
+ 228 00d6 6968     	 ldr r1,[r5,#4]
+ 229 00d8 13B9     	 cbnz r3,.L8
+ 192:LPC17xxLib/src/lpc17xx_pwm.c **** 		{
+ 193:LPC17xxLib/src/lpc17xx_pwm.c **** 			PWMx->PR   = pTimeCfg->PrescaleValue - 1;
+ 230              	 .loc 1 193 0
+ 231 00da 0139     	 subs r1,r1,#1
+ 232 00dc E160     	 str r1,[r4,#12]
+ 233 00de 70BD     	 pop {r4,r5,r6,pc}
+ 234              	.LVL11:
+ 235              	.L8:
+ 194:LPC17xxLib/src/lpc17xx_pwm.c **** 		}
+ 195:LPC17xxLib/src/lpc17xx_pwm.c **** 		/* uSecond prescale value */
+ 196:LPC17xxLib/src/lpc17xx_pwm.c **** 		else
+ 197:LPC17xxLib/src/lpc17xx_pwm.c **** 		{
+ 198:LPC17xxLib/src/lpc17xx_pwm.c **** 			clkdlycnt = (clkdlycnt * pTimeCfg->PrescaleValue) / 1000000;
+ 236              	 .loc 1 198 0
+ 237 00e0 0E4A     	 ldr r2,.L10+12
+ 238 00e2 0023     	 movs r3,#0
+ 239 00e4 A1FB0001 	 umull r0,r1,r1,r0
+ 240              	.LVL12:
+ 241 00e8 0D4D     	 ldr r5,.L10+16
+ 242              	.LVL13:
+ 243 00ea A847     	 blx r5
+ 244              	.LVL14:
+ 199:LPC17xxLib/src/lpc17xx_pwm.c **** 			PWMx->PR = ((uint32_t) clkdlycnt) - 1;
+ 245              	 .loc 1 199 0
+ 246 00ec 0138     	 subs r0,r0,#1
+ 247 00ee E060     	 str r0,[r4,#12]
+ 248 00f0 70BD     	 pop {r4,r5,r6,pc}
+ 249              	.LVL15:
+ 250              	.L7:
+ 200:LPC17xxLib/src/lpc17xx_pwm.c **** 		}
+ 201:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 202:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 203:LPC17xxLib/src/lpc17xx_pwm.c **** 	else if (PWMTimerCounterMode == PWM_MODE_COUNTER)
+ 251              	 .loc 1 203 0
+ 252 00f2 012E     	 cmp r6,#1
+ 253 00f4 0AD1     	 bne .L6
+ 204:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 205:LPC17xxLib/src/lpc17xx_pwm.c **** 		CHECK_PARAM(PARAM_PWM_COUNTER_INPUTSEL(pCounterCfg->CountInputSelect));
+ 206:LPC17xxLib/src/lpc17xx_pwm.c **** 		CHECK_PARAM(PARAM_PWM_COUNTER_EDGE(pCounterCfg->CounterOption));
+ 207:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 208:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CTCR |= (PWM_CTCR_MODE((uint32_t)pCounterCfg->CounterOption)) \
+ 209:LPC17xxLib/src/lpc17xx_pwm.c **** 						| (PWM_CTCR_SELECT_INPUT((uint32_t)pCounterCfg->CountInputSelect));
+ 254              	 .loc 1 209 0
+ 255 00f6 6B78     	 ldrb r3,[r5,#1]
+ 208:LPC17xxLib/src/lpc17xx_pwm.c **** 						| (PWM_CTCR_SELECT_INPUT((uint32_t)pCounterCfg->CountInputSelect));
+ 256              	 .loc 1 208 0
+ 257 00f8 2A78     	 ldrb r2,[r5]
+ 258 00fa 216F     	 ldr r1,[r4,#112]
+ 259              	 .loc 1 209 0
+ 260 00fc 9B00     	 lsls r3,r3,#2
+ 208:LPC17xxLib/src/lpc17xx_pwm.c **** 						| (PWM_CTCR_SELECT_INPUT((uint32_t)pCounterCfg->CountInputSelect));
+ 261              	 .loc 1 208 0
+ 262 00fe 02F00302 	 and r2,r2,#3
+ 263              	 .loc 1 209 0
+ 264 0102 03F00C03 	 and r3,r3,#12
+ 208:LPC17xxLib/src/lpc17xx_pwm.c **** 						| (PWM_CTCR_SELECT_INPUT((uint32_t)pCounterCfg->CountInputSelect));
+ 265              	 .loc 1 208 0
+ 266 0106 0A43     	 orrs r2,r2,r1
+ 267 0108 1343     	 orrs r3,r3,r2
+ 268 010a 2367     	 str r3,[r4,#112]
+ 269              	.L6:
+ 270 010c 70BD     	 pop {r4,r5,r6,pc}
+ 271              	.LVL16:
+ 272              	.L11:
+ 273 010e 00BF     	 .align 2
+ 274              	.L10:
+ 275 0110 00000000 	 .word CLKPWR_ConfigPPWR
+ 276 0114 00000000 	 .word CLKPWR_SetPCLKDiv
+ 277 0118 00000000 	 .word CLKPWR_GetPCLK
+ 278 011c 40420F00 	 .word 1000000
+ 279 0120 00000000 	 .word __aeabi_uldivmod
+ 280              	 .cfi_endproc
+ 281              	.LFE58:
+ 283              	 .section .text.PWM_DeInit,"ax",%progbits
+ 284              	 .align 1
+ 285              	 .global PWM_DeInit
+ 286              	 .syntax unified
+ 287              	 .thumb
+ 288              	 .thumb_func
+ 289              	 .fpu softvfp
+ 291              	PWM_DeInit:
+ 292              	.LFB59:
+ 210:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 211:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 212:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 213:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 214:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief		De-initializes the PWM peripheral registers to their
+ 215:LPC17xxLib/src/lpc17xx_pwm.c **** *                  default reset values.
+ 216:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 217:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 218:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 219:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_DeInit (LPC_PWM_TypeDef *PWMx)
+ 220:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 293              	 .loc 1 220 0
+ 294              	 .cfi_startproc
+ 295              	 
+ 296              	 
+ 297              	 
+ 298              	.LVL17:
+ 221:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 222:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 223:LPC17xxLib/src/lpc17xx_pwm.c **** 	// Disable PWM control (timer, counter and PWM)
+ 224:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->TCR = 0x00;
+ 299              	 .loc 1 224 0
+ 300 0000 0021     	 movs r1,#0
+ 301 0002 0379     	 ldrb r3,[r0,#4]
+ 302 0004 0171     	 strb r1,[r0,#4]
+ 303 0006 4379     	 ldrb r3,[r0,#5]
+ 304 0008 4171     	 strb r1,[r0,#5]
+ 305 000a 8379     	 ldrb r3,[r0,#6]
+ 306 000c 8171     	 strb r1,[r0,#6]
+ 307 000e C379     	 ldrb r3,[r0,#7]
+ 308 0010 C171     	 strb r1,[r0,#7]
+ 225:LPC17xxLib/src/lpc17xx_pwm.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCPWM1, DISABLE);
+ 309              	 .loc 1 225 0
+ 310 0012 014B     	 ldr r3,.L13
+ 311 0014 4020     	 movs r0,#64
+ 312              	.LVL18:
+ 313 0016 1847     	 bx r3
+ 314              	.LVL19:
+ 315              	.L14:
+ 316              	 .align 2
+ 317              	.L13:
+ 318 0018 00000000 	 .word CLKPWR_ConfigPPWR
+ 319              	 .cfi_endproc
+ 320              	.LFE59:
+ 322              	 .section .text.PWM_Cmd,"ax",%progbits
+ 323              	 .align 1
+ 324              	 .global PWM_Cmd
+ 325              	 .syntax unified
+ 326              	 .thumb
+ 327              	 .thumb_func
+ 328              	 .fpu softvfp
+ 330              	PWM_Cmd:
+ 331              	.LFB60:
+ 226:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 227:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 228:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 229:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 230:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 231:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief	 	Enable/Disable PWM peripheral
+ 232:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 233:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	NewState	New State of this function, should be:
+ 234:LPC17xxLib/src/lpc17xx_pwm.c ****  * 							- ENABLE: Enable PWM peripheral
+ 235:LPC17xxLib/src/lpc17xx_pwm.c ****  * 							- DISABLE: Disable PWM peripheral
+ 236:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 237:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 238:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_Cmd(LPC_PWM_TypeDef *PWMx, FunctionalState NewState)
+ 239:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 332              	 .loc 1 239 0
+ 333              	 .cfi_startproc
+ 334              	 
+ 335              	 
+ 336              	 
+ 337              	.LVL20:
+ 240:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 241:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 242:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 243:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (NewState == ENABLE)
+ 244:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 245:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR	|=  PWM_TCR_PWM_ENABLE;
+ 338              	 .loc 1 245 0
+ 339 0000 4368     	 ldr r3,[r0,#4]
+ 243:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 340              	 .loc 1 243 0
+ 341 0002 0129     	 cmp r1,#1
+ 342              	 .loc 1 245 0
+ 343 0004 0CBF     	 ite eq
+ 344 0006 43F00803 	 orreq r3,r3,#8
+ 246:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 247:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 248:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 249:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR &= (~PWM_TCR_PWM_ENABLE) & PWM_TCR_BITMASK;
+ 345              	 .loc 1 249 0
+ 346 000a 03F00303 	 andne r3,r3,#3
+ 347 000e 4360     	 str r3,[r0,#4]
+ 348 0010 7047     	 bx lr
+ 349              	 .cfi_endproc
+ 350              	.LFE60:
+ 352              	 .section .text.PWM_CounterCmd,"ax",%progbits
+ 353              	 .align 1
+ 354              	 .global PWM_CounterCmd
+ 355              	 .syntax unified
+ 356              	 .thumb
+ 357              	 .thumb_func
+ 358              	 .fpu softvfp
+ 360              	PWM_CounterCmd:
+ 361              	.LFB61:
+ 250:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 251:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 252:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 253:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 254:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 255:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Enable/Disable Counter in PWM peripheral
+ 256:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 257:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	NewState New State of this function, should be:
+ 258:LPC17xxLib/src/lpc17xx_pwm.c ****  * 							- ENABLE: Enable Counter in PWM peripheral
+ 259:LPC17xxLib/src/lpc17xx_pwm.c ****  * 							- DISABLE: Disable Counter in PWM peripheral
+ 260:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 261:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 262:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_CounterCmd(LPC_PWM_TypeDef *PWMx, FunctionalState NewState)
+ 263:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 362              	 .loc 1 263 0
+ 363              	 .cfi_startproc
+ 364              	 
+ 365              	 
+ 366              	 
+ 367              	.LVL21:
+ 264:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 265:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 266:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (NewState == ENABLE)
+ 267:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 268:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR	|=  PWM_TCR_COUNTER_ENABLE;
+ 368              	 .loc 1 268 0
+ 369 0000 4368     	 ldr r3,[r0,#4]
+ 266:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 370              	 .loc 1 266 0
+ 371 0002 0129     	 cmp r1,#1
+ 372              	 .loc 1 268 0
+ 373 0004 0CBF     	 ite eq
+ 374 0006 43F00103 	 orreq r3,r3,#1
+ 269:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 270:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 271:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 272:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR &= (~PWM_TCR_COUNTER_ENABLE) & PWM_TCR_BITMASK;
+ 375              	 .loc 1 272 0
+ 376 000a 03F00A03 	 andne r3,r3,#10
+ 377 000e 4360     	 str r3,[r0,#4]
+ 378 0010 7047     	 bx lr
+ 379              	 .cfi_endproc
+ 380              	.LFE61:
+ 382              	 .section .text.PWM_ResetCounter,"ax",%progbits
+ 383              	 .align 1
+ 384              	 .global PWM_ResetCounter
+ 385              	 .syntax unified
+ 386              	 .thumb
+ 387              	 .thumb_func
+ 388              	 .fpu softvfp
+ 390              	PWM_ResetCounter:
+ 391              	.LFB62:
+ 273:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 274:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 275:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 276:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 277:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 278:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Reset Counter in PWM peripheral
+ 279:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 280:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 281:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 282:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ResetCounter(LPC_PWM_TypeDef *PWMx)
+ 283:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 392              	 .loc 1 283 0
+ 393              	 .cfi_startproc
+ 394              	 
+ 395              	 
+ 396              	 
+ 397              	.LVL22:
+ 284:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 285:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->TCR |= PWM_TCR_COUNTER_RESET;
+ 398              	 .loc 1 285 0
+ 399 0000 4368     	 ldr r3,[r0,#4]
+ 400 0002 43F00203 	 orr r3,r3,#2
+ 401 0006 4360     	 str r3,[r0,#4]
+ 286:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->TCR &= (~PWM_TCR_COUNTER_RESET) & PWM_TCR_BITMASK;
+ 402              	 .loc 1 286 0
+ 403 0008 4368     	 ldr r3,[r0,#4]
+ 404 000a 03F00903 	 and r3,r3,#9
+ 405 000e 4360     	 str r3,[r0,#4]
+ 406 0010 7047     	 bx lr
+ 407              	 .cfi_endproc
+ 408              	.LFE62:
+ 410              	 .section .text.PWM_ConfigMatch,"ax",%progbits
+ 411              	 .align 1
+ 412              	 .global PWM_ConfigMatch
+ 413              	 .syntax unified
+ 414              	 .thumb
+ 415              	 .thumb_func
+ 416              	 .fpu softvfp
+ 418              	PWM_ConfigMatch:
+ 419              	.LFB63:
+ 287:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 288:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 289:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 290:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 291:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Configures match for PWM peripheral
+ 292:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 293:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]   PWM_MatchConfigStruct	Pointer to a PWM_MATCHCFG_Type structure
+ 294:LPC17xxLib/src/lpc17xx_pwm.c **** *                    that contains the configuration information for the
+ 295:LPC17xxLib/src/lpc17xx_pwm.c **** *                    specified PWM match function.
+ 296:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 297:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 298:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ConfigMatch(LPC_PWM_TypeDef *PWMx, PWM_MATCHCFG_Type *PWM_MatchConfigStruct)
+ 299:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 420              	 .loc 1 299 0
+ 421              	 .cfi_startproc
+ 422              	 
+ 423              	 
+ 424              	.LVL23:
+ 425 0000 30B5     	 push {r4,r5,lr}
+ 426              	 .cfi_def_cfa_offset 12
+ 427              	 .cfi_offset 4,-12
+ 428              	 .cfi_offset 5,-8
+ 429              	 .cfi_offset 14,-4
+ 300:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 301:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM1_MATCH_CHANNEL(PWM_MatchConfigStruct->MatchChannel));
+ 302:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(PWM_MatchConfigStruct->IntOnMatch));
+ 303:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(PWM_MatchConfigStruct->ResetOnMatch));
+ 304:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(PWM_MatchConfigStruct->StopOnMatch));
+ 305:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 306:LPC17xxLib/src/lpc17xx_pwm.c **** 	//interrupt on MRn
+ 307:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWM_MatchConfigStruct->IntOnMatch == ENABLE)
+ 430              	 .loc 1 307 0
+ 431 0002 4A78     	 ldrb r2,[r1,#1]
+ 432 0004 0B78     	 ldrb r3,[r1]
+ 433 0006 012A     	 cmp r2,#1
+ 434 0008 32D1     	 bne .L25
+ 308:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 309:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MCR |= PWM_MCR_INT_ON_MATCH(PWM_MatchConfigStruct->MatchChannel);
+ 435              	 .loc 1 309 0
+ 436 000a 5C00     	 lsls r4,r3,#1
+ 437 000c 04F00E04 	 and r4,r4,#14
+ 438 0010 03F00703 	 and r3,r3,#7
+ 439 0014 4569     	 ldr r5,[r0,#20]
+ 440 0016 2344     	 add r3,r3,r4
+ 441 0018 9A40     	 lsls r2,r2,r3
+ 442 001a 2A43     	 orrs r2,r2,r5
+ 443 001c 4261     	 str r2,[r0,#20]
+ 444              	.L26:
+ 310:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 311:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 312:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 313:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MCR &= (~PWM_MCR_INT_ON_MATCH(PWM_MatchConfigStruct->MatchChannel)) \
+ 314:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_MCR_BITMASK;
+ 315:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 316:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 317:LPC17xxLib/src/lpc17xx_pwm.c **** 	//reset on MRn
+ 318:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWM_MatchConfigStruct->ResetOnMatch == ENABLE)
+ 445              	 .loc 1 318 0
+ 446 001e CC78     	 ldrb r4,[r1,#3]
+ 447 0020 0B78     	 ldrb r3,[r1]
+ 448 0022 012C     	 cmp r4,#1
+ 449 0024 33D1     	 bne .L27
+ 319:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 320:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MCR |= PWM_MCR_RESET_ON_MATCH(PWM_MatchConfigStruct->MatchChannel);
+ 450              	 .loc 1 320 0
+ 451 0026 5A00     	 lsls r2,r3,#1
+ 452 0028 02F00E02 	 and r2,r2,#14
+ 453 002c 03F00703 	 and r3,r3,#7
+ 454 0030 1344     	 add r3,r3,r2
+ 455 0032 4569     	 ldr r5,[r0,#20]
+ 456 0034 0133     	 adds r3,r3,#1
+ 457 0036 04FA03F3 	 lsl r3,r4,r3
+ 458 003a 2B43     	 orrs r3,r3,r5
+ 459              	.L31:
+ 321:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 322:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 323:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 324:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MCR &= (~PWM_MCR_RESET_ON_MATCH(PWM_MatchConfigStruct->MatchChannel)) \
+ 460              	 .loc 1 324 0
+ 461 003c 4361     	 str r3,[r0,#20]
+ 462 003e 0B78     	 ldrb r3,[r1]
+ 325:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_MCR_BITMASK;
+ 326:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 327:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 328:LPC17xxLib/src/lpc17xx_pwm.c **** 	//stop on MRn
+ 329:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWM_MatchConfigStruct->StopOnMatch == ENABLE)
+ 463              	 .loc 1 329 0
+ 464 0040 8C78     	 ldrb r4,[r1,#2]
+ 330:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 331:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MCR |= PWM_MCR_STOP_ON_MATCH(PWM_MatchConfigStruct->MatchChannel);
+ 465              	 .loc 1 331 0
+ 466 0042 5A00     	 lsls r2,r3,#1
+ 329:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 467              	 .loc 1 329 0
+ 468 0044 012C     	 cmp r4,#1
+ 469              	 .loc 1 331 0
+ 470 0046 02F00E02 	 and r2,r2,#14
+ 471 004a 03F00703 	 and r3,r3,#7
+ 472 004e 1344     	 add r3,r3,r2
+ 332:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 333:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 334:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 335:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MCR &= (~PWM_MCR_STOP_ON_MATCH(PWM_MatchConfigStruct->MatchChannel)) \
+ 473              	 .loc 1 335 0
+ 474 0050 18BF     	 it ne
+ 475 0052 0122     	 movne r2,#1
+ 331:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 476              	 .loc 1 331 0
+ 477 0054 4169     	 ldr r1,[r0,#20]
+ 478              	.LVL24:
+ 479 0056 03F10203 	 add r3,r3,#2
+ 480 005a 0DBF     	 iteet eq
+ 481 005c 04FA03F3 	 lsleq r3,r4,r3
+ 482              	 .loc 1 335 0
+ 483 0060 9A40     	 lslne r2,r2,r3
+ 484 0062 C1F31403 	 ubfxne r3,r1,#0,#21
+ 331:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 485              	 .loc 1 331 0
+ 486 0066 0B43     	 orreq r3,r3,r1
+ 487              	 .loc 1 335 0
+ 488 0068 18BF     	 it ne
+ 489 006a 9343     	 bicne r3,r3,r2
+ 490 006c 4361     	 str r3,[r0,#20]
+ 491 006e 30BD     	 pop {r4,r5,pc}
+ 492              	.LVL25:
+ 493              	.L25:
+ 313:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_MCR_BITMASK;
+ 494              	 .loc 1 313 0
+ 495 0070 5C00     	 lsls r4,r3,#1
+ 496 0072 04F00E04 	 and r4,r4,#14
+ 497 0076 03F00703 	 and r3,r3,#7
+ 498 007a 2344     	 add r3,r3,r4
+ 499 007c 0124     	 movs r4,#1
+ 500 007e 4269     	 ldr r2,[r0,#20]
+ 501 0080 9C40     	 lsls r4,r4,r3
+ 502 0082 C2F31403 	 ubfx r3,r2,#0,#21
+ 503 0086 23EA0403 	 bic r3,r3,r4
+ 504 008a 4361     	 str r3,[r0,#20]
+ 505 008c C7E7     	 b .L26
+ 506              	.L27:
+ 324:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_MCR_BITMASK;
+ 507              	 .loc 1 324 0
+ 508 008e 5A00     	 lsls r2,r3,#1
+ 509 0090 02F00E02 	 and r2,r2,#14
+ 510 0094 03F00703 	 and r3,r3,#7
+ 511 0098 1344     	 add r3,r3,r2
+ 512 009a 0122     	 movs r2,#1
+ 513 009c 4469     	 ldr r4,[r0,#20]
+ 514 009e 0133     	 adds r3,r3,#1
+ 515 00a0 9A40     	 lsls r2,r2,r3
+ 516 00a2 C4F31403 	 ubfx r3,r4,#0,#21
+ 517 00a6 23EA0203 	 bic r3,r3,r2
+ 518 00aa C7E7     	 b .L31
+ 519              	 .cfi_endproc
+ 520              	.LFE63:
+ 522              	 .section .text.PWM_ConfigCapture,"ax",%progbits
+ 523              	 .align 1
+ 524              	 .global PWM_ConfigCapture
+ 525              	 .syntax unified
+ 526              	 .thumb
+ 527              	 .thumb_func
+ 528              	 .fpu softvfp
+ 530              	PWM_ConfigCapture:
+ 531              	.LFB64:
+ 336:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_MCR_BITMASK;
+ 337:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 338:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 339:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 340:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 341:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 342:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Configures capture input for PWM peripheral
+ 343:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 344:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]   PWM_CaptureConfigStruct	Pointer to a PWM_CAPTURECFG_Type structure
+ 345:LPC17xxLib/src/lpc17xx_pwm.c **** *                    that contains the configuration information for the
+ 346:LPC17xxLib/src/lpc17xx_pwm.c **** *                    specified PWM capture input function.
+ 347:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 348:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 349:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ConfigCapture(LPC_PWM_TypeDef *PWMx, PWM_CAPTURECFG_Type *PWM_CaptureConfigStruct)
+ 350:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 532              	 .loc 1 350 0
+ 533              	 .cfi_startproc
+ 534              	 
+ 535              	 
+ 536              	.LVL26:
+ 537 0000 30B5     	 push {r4,r5,lr}
+ 538              	 .cfi_def_cfa_offset 12
+ 539              	 .cfi_offset 4,-12
+ 540              	 .cfi_offset 5,-8
+ 541              	 .cfi_offset 14,-4
+ 351:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 352:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM1_CAPTURE_CHANNEL(PWM_CaptureConfigStruct->CaptureChannel));
+ 353:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(PWM_CaptureConfigStruct->FallingEdge));
+ 354:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(PWM_CaptureConfigStruct->IntOnCaption));
+ 355:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(PWM_CaptureConfigStruct->RisingEdge));
+ 356:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 357:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWM_CaptureConfigStruct->RisingEdge == ENABLE)
+ 542              	 .loc 1 357 0
+ 543 0002 4A78     	 ldrb r2,[r1,#1]
+ 544 0004 0B78     	 ldrb r3,[r1]
+ 545 0006 012A     	 cmp r2,#1
+ 546 0008 33D1     	 bne .L34
+ 358:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 359:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CCR |= PWM_CCR_CAP_RISING(PWM_CaptureConfigStruct->CaptureChannel);
+ 547              	 .loc 1 359 0
+ 548 000a 5C00     	 lsls r4,r3,#1
+ 549 000c 04F00404 	 and r4,r4,#4
+ 550 0010 03F00103 	 and r3,r3,#1
+ 551 0014 856A     	 ldr r5,[r0,#40]
+ 552 0016 2343     	 orrs r3,r3,r4
+ 553 0018 9A40     	 lsls r2,r2,r3
+ 554 001a 2A43     	 orrs r2,r2,r5
+ 555 001c 8262     	 str r2,[r0,#40]
+ 556              	.L35:
+ 360:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 361:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 362:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 363:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CCR &= (~PWM_CCR_CAP_RISING(PWM_CaptureConfigStruct->CaptureChannel)) \
+ 364:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_CCR_BITMASK;
+ 365:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 366:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 367:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWM_CaptureConfigStruct->FallingEdge == ENABLE)
+ 557              	 .loc 1 367 0
+ 558 001e 8C78     	 ldrb r4,[r1,#2]
+ 559 0020 0B78     	 ldrb r3,[r1]
+ 560 0022 012C     	 cmp r4,#1
+ 561 0024 34D1     	 bne .L36
+ 368:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 369:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CCR |= PWM_CCR_CAP_FALLING(PWM_CaptureConfigStruct->CaptureChannel);
+ 562              	 .loc 1 369 0
+ 563 0026 5A00     	 lsls r2,r3,#1
+ 564 0028 02F00402 	 and r2,r2,#4
+ 565 002c 03F00103 	 and r3,r3,#1
+ 566 0030 1343     	 orrs r3,r3,r2
+ 567 0032 856A     	 ldr r5,[r0,#40]
+ 568 0034 0133     	 adds r3,r3,#1
+ 569 0036 04FA03F3 	 lsl r3,r4,r3
+ 570 003a 2B43     	 orrs r3,r3,r5
+ 571              	.L40:
+ 370:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 371:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 372:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 373:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CCR &= (~PWM_CCR_CAP_FALLING(PWM_CaptureConfigStruct->CaptureChannel)) \
+ 572              	 .loc 1 373 0
+ 573 003c 8362     	 str r3,[r0,#40]
+ 574 003e 0B78     	 ldrb r3,[r1]
+ 374:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_CCR_BITMASK;
+ 375:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 376:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 377:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (PWM_CaptureConfigStruct->IntOnCaption == ENABLE)
+ 575              	 .loc 1 377 0
+ 576 0040 CC78     	 ldrb r4,[r1,#3]
+ 378:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 379:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CCR |= PWM_CCR_INT_ON_CAP(PWM_CaptureConfigStruct->CaptureChannel);
+ 577              	 .loc 1 379 0
+ 578 0042 5A00     	 lsls r2,r3,#1
+ 377:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 579              	 .loc 1 377 0
+ 580 0044 012C     	 cmp r4,#1
+ 581              	 .loc 1 379 0
+ 582 0046 02F00402 	 and r2,r2,#4
+ 583 004a 03F00103 	 and r3,r3,#1
+ 584 004e 43EA0203 	 orr r3,r3,r2
+ 380:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 381:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 382:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 383:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->CCR &= (~PWM_CCR_INT_ON_CAP(PWM_CaptureConfigStruct->CaptureChannel)) \
+ 585              	 .loc 1 383 0
+ 586 0052 18BF     	 it ne
+ 587 0054 0122     	 movne r2,#1
+ 379:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 588              	 .loc 1 379 0
+ 589 0056 816A     	 ldr r1,[r0,#40]
+ 590              	.LVL27:
+ 591 0058 03F10203 	 add r3,r3,#2
+ 592 005c 0DBF     	 iteet eq
+ 593 005e 04FA03F3 	 lsleq r3,r4,r3
+ 594              	 .loc 1 383 0
+ 595 0062 9A40     	 lslne r2,r2,r3
+ 596 0064 01F03F03 	 andne r3,r1,#63
+ 379:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 597              	 .loc 1 379 0
+ 598 0068 0B43     	 orreq r3,r3,r1
+ 599              	 .loc 1 383 0
+ 600 006a 18BF     	 it ne
+ 601 006c 9343     	 bicne r3,r3,r2
+ 602 006e 8362     	 str r3,[r0,#40]
+ 603 0070 30BD     	 pop {r4,r5,pc}
+ 604              	.LVL28:
+ 605              	.L34:
+ 363:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_CCR_BITMASK;
+ 606              	 .loc 1 363 0
+ 607 0072 5C00     	 lsls r4,r3,#1
+ 608 0074 04F00404 	 and r4,r4,#4
+ 609 0078 03F00103 	 and r3,r3,#1
+ 610 007c 2343     	 orrs r3,r3,r4
+ 611 007e 0124     	 movs r4,#1
+ 612 0080 826A     	 ldr r2,[r0,#40]
+ 613 0082 9C40     	 lsls r4,r4,r3
+ 614 0084 02F03F03 	 and r3,r2,#63
+ 615 0088 23EA0403 	 bic r3,r3,r4
+ 616 008c 8362     	 str r3,[r0,#40]
+ 617 008e C6E7     	 b .L35
+ 618              	.L36:
+ 373:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_CCR_BITMASK;
+ 619              	 .loc 1 373 0
+ 620 0090 5A00     	 lsls r2,r3,#1
+ 621 0092 02F00402 	 and r2,r2,#4
+ 622 0096 03F00103 	 and r3,r3,#1
+ 623 009a 1343     	 orrs r3,r3,r2
+ 624 009c 0122     	 movs r2,#1
+ 625 009e 846A     	 ldr r4,[r0,#40]
+ 626 00a0 0133     	 adds r3,r3,#1
+ 627 00a2 9A40     	 lsls r2,r2,r3
+ 628 00a4 04F03F03 	 and r3,r4,#63
+ 629 00a8 23EA0203 	 bic r3,r3,r2
+ 630 00ac C6E7     	 b .L40
+ 631              	 .cfi_endproc
+ 632              	.LFE64:
+ 634              	 .section .text.PWM_GetCaptureValue,"ax",%progbits
+ 635              	 .align 1
+ 636              	 .global PWM_GetCaptureValue
+ 637              	 .syntax unified
+ 638              	 .thumb
+ 639              	 .thumb_func
+ 640              	 .fpu softvfp
+ 642              	PWM_GetCaptureValue:
+ 643              	.LFB65:
+ 384:LPC17xxLib/src/lpc17xx_pwm.c **** 					& PWM_CCR_BITMASK;
+ 385:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 386:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 387:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 388:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 389:LPC17xxLib/src/lpc17xx_pwm.c **** /*********************************************************************//**
+ 390:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Read value of capture register PWM peripheral
+ 391:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 392:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	CaptureChannel: capture channel number, should be in
+ 393:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				range 0 to 1
+ 394:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		Value of capture register
+ 395:LPC17xxLib/src/lpc17xx_pwm.c ****  **********************************************************************/
+ 396:LPC17xxLib/src/lpc17xx_pwm.c **** uint32_t PWM_GetCaptureValue(LPC_PWM_TypeDef *PWMx, uint8_t CaptureChannel)
+ 397:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 644              	 .loc 1 397 0
+ 645              	 .cfi_startproc
+ 646              	 
+ 647              	 
+ 648              	 
+ 649              	.LVL29:
+ 398:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 399:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM1_CAPTURE_CHANNEL(CaptureChannel));
+ 400:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 401:LPC17xxLib/src/lpc17xx_pwm.c **** 	switch (CaptureChannel)
+ 650              	 .loc 1 401 0
+ 651 0000 19B1     	 cbz r1,.L44
+ 652 0002 0129     	 cmp r1,#1
+ 653 0004 03D0     	 beq .L45
+ 402:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 403:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 0:
+ 404:LPC17xxLib/src/lpc17xx_pwm.c **** 		return PWMx->CR0;
+ 405:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 406:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 1:
+ 407:LPC17xxLib/src/lpc17xx_pwm.c **** 		return PWMx->CR1;
+ 408:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 409:LPC17xxLib/src/lpc17xx_pwm.c **** 	default:
+ 410:LPC17xxLib/src/lpc17xx_pwm.c **** 		return (0);
+ 654              	 .loc 1 410 0
+ 655 0006 0020     	 movs r0,#0
+ 656              	.LVL30:
+ 411:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 412:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 657              	 .loc 1 412 0
+ 658 0008 7047     	 bx lr
+ 659              	.LVL31:
+ 660              	.L44:
+ 404:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 661              	 .loc 1 404 0
+ 662 000a C06A     	 ldr r0,[r0,#44]
+ 663              	.LVL32:
+ 664 000c 7047     	 bx lr
+ 665              	.LVL33:
+ 666              	.L45:
+ 407:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 667              	 .loc 1 407 0
+ 668 000e 006B     	 ldr r0,[r0,#48]
+ 669              	.LVL34:
+ 670 0010 7047     	 bx lr
+ 671              	 .cfi_endproc
+ 672              	.LFE65:
+ 674              	 .section .text.PWM_MatchUpdate,"ax",%progbits
+ 675              	 .align 1
+ 676              	 .global PWM_MatchUpdate
+ 677              	 .syntax unified
+ 678              	 .thumb
+ 679              	 .thumb_func
+ 680              	 .fpu softvfp
+ 682              	PWM_MatchUpdate:
+ 683              	.LFB66:
+ 413:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 414:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 415:LPC17xxLib/src/lpc17xx_pwm.c **** /********************************************************************//**
+ 416:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Update value for each PWM channel with update type option
+ 417:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 418:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	MatchChannel Match channel
+ 419:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	MatchValue Match value
+ 420:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	UpdateType Type of Update, should be:
+ 421:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_MATCH_UPDATE_NOW: The update value will be updated for
+ 422:LPC17xxLib/src/lpc17xx_pwm.c ****  * 					this channel immediately
+ 423:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_MATCH_UPDATE_NEXT_RST: The update value will be updated for
+ 424:LPC17xxLib/src/lpc17xx_pwm.c ****  * 					this channel on next reset by a PWM Match event.
+ 425:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return		None
+ 426:LPC17xxLib/src/lpc17xx_pwm.c ****  *********************************************************************/
+ 427:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_MatchUpdate(LPC_PWM_TypeDef *PWMx, uint8_t MatchChannel, \
+ 428:LPC17xxLib/src/lpc17xx_pwm.c **** 					uint32_t MatchValue, uint8_t UpdateType)
+ 429:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 684              	 .loc 1 429 0
+ 685              	 .cfi_startproc
+ 686              	 
+ 687              	 
+ 688              	.LVL35:
+ 689 0000 10B5     	 push {r4,lr}
+ 690              	 .cfi_def_cfa_offset 8
+ 691              	 .cfi_offset 4,-8
+ 692              	 .cfi_offset 14,-4
+ 430:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 431:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM1_MATCH_CHANNEL(MatchChannel));
+ 432:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_MATCH_UPDATE(UpdateType));
+ 433:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 434:LPC17xxLib/src/lpc17xx_pwm.c **** 	switch (MatchChannel)
+ 693              	 .loc 1 434 0
+ 694 0002 0629     	 cmp r1,#6
+ 695 0004 06D8     	 bhi .L49
+ 696 0006 DFE801F0 	 tbb [pc,r1]
+ 697              	.L51:
+ 698 000a 04       	 .byte (.L50-.L51)/2
+ 699 000b 19       	 .byte (.L52-.L51)/2
+ 700 000c 1B       	 .byte (.L53-.L51)/2
+ 701 000d 1D       	 .byte (.L54-.L51)/2
+ 702 000e 1F       	 .byte (.L55-.L51)/2
+ 703 000f 21       	 .byte (.L56-.L51)/2
+ 704 0010 23       	 .byte (.L57-.L51)/2
+ 705 0011 00       	 .p2align 1
+ 706              	.L50:
+ 435:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 436:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 0:
+ 437:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR0 = MatchValue;
+ 707              	 .loc 1 437 0
+ 708 0012 8261     	 str r2,[r0,#24]
+ 709              	.L49:
+ 438:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 439:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 440:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 1:
+ 441:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR1 = MatchValue;
+ 442:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 443:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 444:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 2:
+ 445:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR2 = MatchValue;
+ 446:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 447:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 448:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 3:
+ 449:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR3 = MatchValue;
+ 450:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 451:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 452:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 4:
+ 453:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR4 = MatchValue;
+ 454:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 455:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 456:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 5:
+ 457:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR5 = MatchValue;
+ 458:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 459:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 460:LPC17xxLib/src/lpc17xx_pwm.c **** 	case 6:
+ 461:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->MR6 = MatchValue;
+ 462:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 463:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 464:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 465:LPC17xxLib/src/lpc17xx_pwm.c **** 	// Write Latch register
+ 466:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->LER |= PWM_LER_EN_MATCHn_LATCH(MatchChannel);
+ 710              	 .loc 1 466 0
+ 711 0014 0629     	 cmp r1,#6
+ 712 0016 94BF     	 ite ls
+ 713 0018 0122     	 movls r2,#1
+ 714              	.LVL36:
+ 715 001a 0021     	 movhi r1,#0
+ 716              	.LVL37:
+ 717 001c 046D     	 ldr r4,[r0,#80]
+ 718 001e 98BF     	 it ls
+ 719 0020 02FA01F1 	 lslls r1,r2,r1
+ 720 0024 2143     	 orrs r1,r1,r4
+ 721 0026 0165     	 str r1,[r0,#80]
+ 467:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 468:LPC17xxLib/src/lpc17xx_pwm.c **** 	// In case of update now
+ 469:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (UpdateType == PWM_MATCH_UPDATE_NOW)
+ 722              	 .loc 1 469 0
+ 723 0028 3BB9     	 cbnz r3,.L48
+ 470:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 471:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR |= PWM_TCR_COUNTER_RESET;
+ 724              	 .loc 1 471 0
+ 725 002a 4368     	 ldr r3,[r0,#4]
+ 726              	.LVL38:
+ 727 002c 43F00203 	 orr r3,r3,#2
+ 728 0030 4360     	 str r3,[r0,#4]
+ 472:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR &= (~PWM_TCR_COUNTER_RESET) & PWM_TCR_BITMASK;
+ 729              	 .loc 1 472 0
+ 730 0032 4368     	 ldr r3,[r0,#4]
+ 731 0034 03F00903 	 and r3,r3,#9
+ 732 0038 4360     	 str r3,[r0,#4]
+ 733              	.L48:
+ 734 003a 10BD     	 pop {r4,pc}
+ 735              	.LVL39:
+ 736              	.L52:
+ 441:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 737              	 .loc 1 441 0
+ 738 003c C261     	 str r2,[r0,#28]
+ 442:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 739              	 .loc 1 442 0
+ 740 003e E9E7     	 b .L49
+ 741              	.L53:
+ 445:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 742              	 .loc 1 445 0
+ 743 0040 0262     	 str r2,[r0,#32]
+ 446:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 744              	 .loc 1 446 0
+ 745 0042 E7E7     	 b .L49
+ 746              	.L54:
+ 449:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 747              	 .loc 1 449 0
+ 748 0044 4262     	 str r2,[r0,#36]
+ 450:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 749              	 .loc 1 450 0
+ 750 0046 E5E7     	 b .L49
+ 751              	.L55:
+ 453:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 752              	 .loc 1 453 0
+ 753 0048 0264     	 str r2,[r0,#64]
+ 454:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 754              	 .loc 1 454 0
+ 755 004a E3E7     	 b .L49
+ 756              	.L56:
+ 457:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 757              	 .loc 1 457 0
+ 758 004c 4264     	 str r2,[r0,#68]
+ 458:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 759              	 .loc 1 458 0
+ 760 004e E1E7     	 b .L49
+ 761              	.L57:
+ 461:LPC17xxLib/src/lpc17xx_pwm.c **** 		break;
+ 762              	 .loc 1 461 0
+ 763 0050 8264     	 str r2,[r0,#72]
+ 462:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 764              	 .loc 1 462 0
+ 765 0052 DFE7     	 b .L49
+ 766              	 .cfi_endproc
+ 767              	.LFE66:
+ 769              	 .section .text.PWM_MultiMatchUpdate,"ax",%progbits
+ 770              	 .align 1
+ 771              	 .global PWM_MultiMatchUpdate
+ 772              	 .syntax unified
+ 773              	 .thumb
+ 774              	 .thumb_func
+ 775              	 .fpu softvfp
+ 777              	PWM_MultiMatchUpdate:
+ 778              	.LFB67:
+ 473:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 474:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 475:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 476:LPC17xxLib/src/lpc17xx_pwm.c **** /********************************************************************//**
+ 477:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Update value for multi PWM channel with update type option
+ 478:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				at the same time
+ 479:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 480:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	MatchStruct Structure that contents match value of 7 pwm channels
+ 481:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	UpdateType Type of Update, should be:
+ 482:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_MATCH_UPDATE_NOW: The update value will be updated for
+ 483:LPC17xxLib/src/lpc17xx_pwm.c ****  * 					this channel immediately
+ 484:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_MATCH_UPDATE_NEXT_RST: The update value will be updated for
+ 485:LPC17xxLib/src/lpc17xx_pwm.c ****  * 					this channel on next reset by a PWM Match event.
+ 486:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return		None
+ 487:LPC17xxLib/src/lpc17xx_pwm.c ****  *********************************************************************/
+ 488:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_MultiMatchUpdate(LPC_PWM_TypeDef *PWMx, PWM_Match_T *MatchStruct , uint8_t UpdateType)
+ 489:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 779              	 .loc 1 489 0
+ 780              	 .cfi_startproc
+ 781              	 
+ 782              	 
+ 783              	.LVL40:
+ 784 0000 0023     	 movs r3,#0
+ 785 0002 F0B5     	 push {r4,r5,r6,r7,lr}
+ 786              	 .cfi_def_cfa_offset 20
+ 787              	 .cfi_offset 4,-20
+ 788              	 .cfi_offset 5,-16
+ 789              	 .cfi_offset 6,-12
+ 790              	 .cfi_offset 7,-8
+ 791              	 .cfi_offset 14,-4
+ 490:LPC17xxLib/src/lpc17xx_pwm.c **** 	uint8_t LatchValue = 0;
+ 792              	 .loc 1 490 0
+ 793 0004 1C46     	 mov r4,r3
+ 491:LPC17xxLib/src/lpc17xx_pwm.c **** 	uint8_t i;
+ 492:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 493:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 494:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_MATCH_UPDATE(UpdateType));
+ 495:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 496:LPC17xxLib/src/lpc17xx_pwm.c **** 	//Update match value
+ 497:LPC17xxLib/src/lpc17xx_pwm.c **** 	for(i=0;i<7;i++)
+ 498:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 499:LPC17xxLib/src/lpc17xx_pwm.c **** 		if(MatchStruct[i].Status == SET)
+ 500:LPC17xxLib/src/lpc17xx_pwm.c **** 		{
+ 501:LPC17xxLib/src/lpc17xx_pwm.c **** 			if(i<4)
+ 502:LPC17xxLib/src/lpc17xx_pwm.c **** 				*((volatile unsigned int *)(&(PWMx->MR0) + i)) = MatchStruct[i].Matchvalue;
+ 503:LPC17xxLib/src/lpc17xx_pwm.c **** 			else
+ 504:LPC17xxLib/src/lpc17xx_pwm.c **** 			{
+ 505:LPC17xxLib/src/lpc17xx_pwm.c **** 				*((volatile unsigned int *)(&(PWMx->MR4) + (i-4))) = MatchStruct[i].Matchvalue;
+ 506:LPC17xxLib/src/lpc17xx_pwm.c **** 			}
+ 507:LPC17xxLib/src/lpc17xx_pwm.c **** 			LatchValue |=(1<<i);
+ 794              	 .loc 1 507 0
+ 795 0006 0127     	 movs r7,#1
+ 796 0008 00F11805 	 add r5,r0,#24
+ 797              	.LVL41:
+ 798              	.L65:
+ 499:LPC17xxLib/src/lpc17xx_pwm.c **** 		{
+ 799              	 .loc 1 499 0
+ 800 000c 0E79     	 ldrb r6,[r1,#4]
+ 801 000e 012E     	 cmp r6,#1
+ 802 0010 08D1     	 bne .L62
+ 803 0012 0E68     	 ldr r6,[r1]
+ 501:LPC17xxLib/src/lpc17xx_pwm.c **** 				*((volatile unsigned int *)(&(PWMx->MR0) + i)) = MatchStruct[i].Matchvalue;
+ 804              	 .loc 1 501 0
+ 805 0014 032B     	 cmp r3,#3
+ 502:LPC17xxLib/src/lpc17xx_pwm.c **** 			else
+ 806              	 .loc 1 502 0
+ 807 0016 94BF     	 ite ls
+ 808 0018 2E60     	 strls r6,[r5]
+ 505:LPC17xxLib/src/lpc17xx_pwm.c **** 			}
+ 809              	 .loc 1 505 0
+ 810 001a AE61     	 strhi r6,[r5,#24]
+ 811              	 .loc 1 507 0
+ 812 001c 07FA03F6 	 lsl r6,r7,r3
+ 813 0020 3443     	 orrs r4,r4,r6
+ 814              	.LVL42:
+ 815 0022 E4B2     	 uxtb r4,r4
+ 816              	.LVL43:
+ 817              	.L62:
+ 818 0024 0133     	 adds r3,r3,#1
+ 819              	.LVL44:
+ 497:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 820              	 .loc 1 497 0 discriminator 2
+ 821 0026 072B     	 cmp r3,#7
+ 822 0028 01F10501 	 add r1,r1,#5
+ 823 002c 05F10405 	 add r5,r5,#4
+ 824 0030 ECD1     	 bne .L65
+ 508:LPC17xxLib/src/lpc17xx_pwm.c **** 		}
+ 509:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 510:LPC17xxLib/src/lpc17xx_pwm.c **** 	//set update for multi-channel at the same time
+ 511:LPC17xxLib/src/lpc17xx_pwm.c **** 	PWMx->LER = LatchValue;
+ 825              	 .loc 1 511 0
+ 826 0032 0465     	 str r4,[r0,#80]
+ 512:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 513:LPC17xxLib/src/lpc17xx_pwm.c **** 	// In case of update now
+ 514:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (UpdateType == PWM_MATCH_UPDATE_NOW)
+ 827              	 .loc 1 514 0
+ 828 0034 3AB9     	 cbnz r2,.L61
+ 515:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 516:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR |= PWM_TCR_COUNTER_RESET;
+ 829              	 .loc 1 516 0
+ 830 0036 4368     	 ldr r3,[r0,#4]
+ 831 0038 43F00203 	 orr r3,r3,#2
+ 832 003c 4360     	 str r3,[r0,#4]
+ 517:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->TCR &= (~PWM_TCR_COUNTER_RESET) & PWM_TCR_BITMASK;
+ 833              	 .loc 1 517 0
+ 834 003e 4368     	 ldr r3,[r0,#4]
+ 835 0040 03F00903 	 and r3,r3,#9
+ 836 0044 4360     	 str r3,[r0,#4]
+ 837              	.L61:
+ 838 0046 F0BD     	 pop {r4,r5,r6,r7,pc}
+ 839              	 .cfi_endproc
+ 840              	.LFE67:
+ 842              	 .section .text.PWM_ChannelConfig,"ax",%progbits
+ 843              	 .align 1
+ 844              	 .global PWM_ChannelConfig
+ 845              	 .syntax unified
+ 846              	 .thumb
+ 847              	 .thumb_func
+ 848              	 .fpu softvfp
+ 850              	PWM_ChannelConfig:
+ 851              	.LFB68:
+ 518:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 519:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 520:LPC17xxLib/src/lpc17xx_pwm.c **** /********************************************************************//**
+ 521:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Configure Edge mode for each PWM channel
+ 522:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 523:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMChannel PWM channel, should be in range from 2 to 6
+ 524:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	ModeOption PWM mode option, should be:
+ 525:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_CHANNEL_SINGLE_EDGE: Single Edge mode
+ 526:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- PWM_CHANNEL_DUAL_EDGE: Dual Edge mode
+ 527:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return 		None
+ 528:LPC17xxLib/src/lpc17xx_pwm.c ****  * Note: PWM Channel 1 can not be selected for mode option
+ 529:LPC17xxLib/src/lpc17xx_pwm.c ****  *********************************************************************/
+ 530:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ChannelConfig(LPC_PWM_TypeDef *PWMx, uint8_t PWMChannel, uint8_t ModeOption)
+ 531:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 852              	 .loc 1 531 0
+ 853              	 .cfi_startproc
+ 854              	 
+ 855              	 
+ 856              	.LVL45:
+ 857 0000 10B5     	 push {r4,lr}
+ 858              	 .cfi_def_cfa_offset 8
+ 859              	 .cfi_offset 4,-8
+ 860              	 .cfi_offset 14,-4
+ 861 0002 01F00703 	 and r3,r1,#7
+ 532:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 533:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM1_EDGE_MODE_CHANNEL(PWMChannel));
+ 534:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM_CHANNEL_EDGE(ModeOption));
+ 535:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 536:LPC17xxLib/src/lpc17xx_pwm.c **** 	// Single edge mode
+ 537:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (ModeOption == PWM_CHANNEL_SINGLE_EDGE)
+ 862              	 .loc 1 537 0
+ 863 0006 72B9     	 cbnz r2,.L69
+ 538:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 539:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->PCR &= (~PWM_PCR_PWMSELn(PWMChannel)) & PWM_PCR_BITMASK;
+ 864              	 .loc 1 539 0
+ 865 0008 012B     	 cmp r3,#1
+ 866 000a 47F67C63 	 movw r3,#32380
+ 867 000e 8ABF     	 itet hi
+ 868 0010 0122     	 movhi r2,#1
+ 869              	.LVL46:
+ 870 0012 1946     	 movls r1,r3
+ 871              	.LVL47:
+ 872 0014 02FA01F1 	 lslhi r1,r2,r1
+ 873 0018 C46C     	 ldr r4,[r0,#76]
+ 874 001a 88BF     	 it hi
+ 875 001c 23EA0101 	 bichi r1,r3,r1
+ 876 0020 2140     	 ands r1,r1,r4
+ 877              	.L75:
+ 540:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 541:LPC17xxLib/src/lpc17xx_pwm.c **** 	// Double edge mode
+ 542:LPC17xxLib/src/lpc17xx_pwm.c **** 	else if (PWM_CHANNEL_DUAL_EDGE)
+ 543:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 544:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->PCR |= PWM_PCR_PWMSELn(PWMChannel);
+ 878              	 .loc 1 544 0 discriminator 4
+ 879 0022 C164     	 str r1,[r0,#76]
+ 880 0024 10BD     	 pop {r4,pc}
+ 881              	.LVL48:
+ 882              	.L69:
+ 883              	 .loc 1 544 0 is_stmt 0
+ 884 0026 012B     	 cmp r3,#1
+ 885 0028 8CBF     	 ite hi
+ 886 002a 0123     	 movhi r3,#1
+ 887 002c 0021     	 movls r1,#0
+ 888              	.LVL49:
+ 889 002e C26C     	 ldr r2,[r0,#76]
+ 890              	.LVL50:
+ 891 0030 88BF     	 it hi
+ 892 0032 03FA01F1 	 lslhi r1,r3,r1
+ 893 0036 1143     	 orrs r1,r1,r2
+ 894 0038 F3E7     	 b .L75
+ 895              	 .cfi_endproc
+ 896              	.LFE68:
+ 898              	 .section .text.PWM_ChannelCmd,"ax",%progbits
+ 899              	 .align 1
+ 900              	 .global PWM_ChannelCmd
+ 901              	 .syntax unified
+ 902              	 .thumb
+ 903              	 .thumb_func
+ 904              	 .fpu softvfp
+ 906              	PWM_ChannelCmd:
+ 907              	.LFB69:
+ 545:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 546:LPC17xxLib/src/lpc17xx_pwm.c **** }
+ 547:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 548:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 549:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 550:LPC17xxLib/src/lpc17xx_pwm.c **** /********************************************************************//**
+ 551:LPC17xxLib/src/lpc17xx_pwm.c ****  * @brief 		Enable/Disable PWM channel output
+ 552:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMx	PWM peripheral selected, should be LPC_PWM1
+ 553:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	PWMChannel PWM channel, should be in range from 1 to 6
+ 554:LPC17xxLib/src/lpc17xx_pwm.c ****  * @param[in]	NewState New State of this function, should be:
+ 555:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- ENABLE: Enable this PWM channel output
+ 556:LPC17xxLib/src/lpc17xx_pwm.c ****  * 				- DISABLE: Disable this PWM channel output
+ 557:LPC17xxLib/src/lpc17xx_pwm.c ****  * @return		None
+ 558:LPC17xxLib/src/lpc17xx_pwm.c ****  *********************************************************************/
+ 559:LPC17xxLib/src/lpc17xx_pwm.c **** void PWM_ChannelCmd(LPC_PWM_TypeDef *PWMx, uint8_t PWMChannel, FunctionalState NewState)
+ 560:LPC17xxLib/src/lpc17xx_pwm.c **** {
+ 908              	 .loc 1 560 0 is_stmt 1
+ 909              	 .cfi_startproc
+ 910              	 
+ 911              	 
+ 912              	.LVL51:
+ 561:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 562:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWM1_CHANNEL(PWMChannel));
+ 563:LPC17xxLib/src/lpc17xx_pwm.c **** 
+ 564:LPC17xxLib/src/lpc17xx_pwm.c **** 	if (NewState == ENABLE)
+ 913              	 .loc 1 564 0
+ 914 0000 012A     	 cmp r2,#1
+ 560:LPC17xxLib/src/lpc17xx_pwm.c **** 	CHECK_PARAM(PARAM_PWMx(PWMx));
+ 915              	 .loc 1 560 0
+ 916 0002 30B5     	 push {r4,r5,lr}
+ 917              	 .cfi_def_cfa_offset 12
+ 918              	 .cfi_offset 4,-12
+ 919              	 .cfi_offset 5,-8
+ 920              	 .cfi_offset 14,-4
+ 921 0004 01F00704 	 and r4,r1,#7
+ 922              	 .loc 1 564 0
+ 923 0008 0BD1     	 bne .L77
+ 565:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 566:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->PCR |= PWM_PCR_PWMENAn(PWMChannel);
+ 924              	 .loc 1 566 0
+ 925 000a C56C     	 ldr r5,[r0,#76]
+ 926 000c 04F0FF03 	 and r3,r4,#255
+ 927 0010 2CB1     	 cbz r4,.L81
+ 928              	 .loc 1 566 0 is_stmt 0 discriminator 1
+ 929 0012 0831     	 adds r1,r1,#8
+ 930              	.LVL52:
+ 931 0014 02FA01F1 	 lsl r1,r2,r1
+ 932              	.L78:
+ 933              	 .loc 1 566 0 discriminator 4
+ 934 0018 2943     	 orrs r1,r1,r5
+ 935              	.LVL53:
+ 936              	.L83:
+ 567:LPC17xxLib/src/lpc17xx_pwm.c **** 	}
+ 568:LPC17xxLib/src/lpc17xx_pwm.c **** 	else
+ 569:LPC17xxLib/src/lpc17xx_pwm.c **** 	{
+ 570:LPC17xxLib/src/lpc17xx_pwm.c **** 		PWMx->PCR &= (~PWM_PCR_PWMENAn(PWMChannel)) & PWM_PCR_BITMASK;
+ 937              	 .loc 1 570 0 is_stmt 1 discriminator 4
+ 938 001a C164     	 str r1,[r0,#76]
+ 939 001c 30BD     	 pop {r4,r5,pc}
+ 940              	.LVL54:
+ 941              	.L81:
+ 942 001e 1946     	 mov r1,r3
+ 943              	.LVL55:
+ 944 0020 FAE7     	 b .L78
+ 945              	.LVL56:
+ 946              	.L77:
+ 947              	 .loc 1 570 0 is_stmt 0
+ 948 0022 C26C     	 ldr r2,[r0,#76]
+ 949              	.LVL57:
+ 950 0024 4CB1     	 cbz r4,.L82
+ 951              	 .loc 1 570 0 discriminator 1
+ 952 0026 0123     	 movs r3,#1
+ 953 0028 0831     	 adds r1,r1,#8
+ 954              	.LVL58:
+ 955 002a 03FA01F1 	 lsl r1,r3,r1
+ 956 002e 47F67C63 	 movw r3,#32380
+ 957 0032 23EA0101 	 bic r1,r3,r1
+ 958              	.L80:
+ 959              	 .loc 1 570 0 discriminator 4
+ 960 0036 1140     	 ands r1,r1,r2
+ 961 0038 EFE7     	 b .L83
+ 962              	.LVL59:
+ 963              	.L82:
+ 964              	 .loc 1 570 0
+ 965 003a 47F67C61 	 movw r1,#32380
+ 966              	.LVL60:
+ 967 003e FAE7     	 b .L80
+ 968              	 .cfi_endproc
+ 969              	.LFE69:
+ 971              	 .text
+ 972              	.Letext0:
+ 973              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 974              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 975              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 976              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 977              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 978              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 979              	 .file 8 "LPC17xxLib/inc/lpc17xx_pwm.h"
+ 980              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_pwm.c
+    {standard input}:16     .text.PWM_GetIntStatus:0000000000000000 $t
+    {standard input}:23     .text.PWM_GetIntStatus:0000000000000000 PWM_GetIntStatus
+    {standard input}:45     .text.PWM_ClearIntPending:0000000000000000 $t
+    {standard input}:52     .text.PWM_ClearIntPending:0000000000000000 PWM_ClearIntPending
+    {standard input}:67     .text.PWM_ConfigStructInit:0000000000000000 $t
+    {standard input}:74     .text.PWM_ConfigStructInit:0000000000000000 PWM_ConfigStructInit
+    {standard input}:111    .text.PWM_Init:0000000000000000 $t
+    {standard input}:118    .text.PWM_Init:0000000000000000 PWM_Init
+    {standard input}:275    .text.PWM_Init:0000000000000110 $d
+    {standard input}:284    .text.PWM_DeInit:0000000000000000 $t
+    {standard input}:291    .text.PWM_DeInit:0000000000000000 PWM_DeInit
+    {standard input}:318    .text.PWM_DeInit:0000000000000018 $d
+    {standard input}:323    .text.PWM_Cmd:0000000000000000 $t
+    {standard input}:330    .text.PWM_Cmd:0000000000000000 PWM_Cmd
+    {standard input}:353    .text.PWM_CounterCmd:0000000000000000 $t
+    {standard input}:360    .text.PWM_CounterCmd:0000000000000000 PWM_CounterCmd
+    {standard input}:383    .text.PWM_ResetCounter:0000000000000000 $t
+    {standard input}:390    .text.PWM_ResetCounter:0000000000000000 PWM_ResetCounter
+    {standard input}:411    .text.PWM_ConfigMatch:0000000000000000 $t
+    {standard input}:418    .text.PWM_ConfigMatch:0000000000000000 PWM_ConfigMatch
+    {standard input}:523    .text.PWM_ConfigCapture:0000000000000000 $t
+    {standard input}:530    .text.PWM_ConfigCapture:0000000000000000 PWM_ConfigCapture
+    {standard input}:635    .text.PWM_GetCaptureValue:0000000000000000 $t
+    {standard input}:642    .text.PWM_GetCaptureValue:0000000000000000 PWM_GetCaptureValue
+    {standard input}:675    .text.PWM_MatchUpdate:0000000000000000 $t
+    {standard input}:682    .text.PWM_MatchUpdate:0000000000000000 PWM_MatchUpdate
+    {standard input}:698    .text.PWM_MatchUpdate:000000000000000a $d
+    {standard input}:770    .text.PWM_MultiMatchUpdate:0000000000000000 $t
+    {standard input}:777    .text.PWM_MultiMatchUpdate:0000000000000000 PWM_MultiMatchUpdate
+    {standard input}:843    .text.PWM_ChannelConfig:0000000000000000 $t
+    {standard input}:850    .text.PWM_ChannelConfig:0000000000000000 PWM_ChannelConfig
+    {standard input}:899    .text.PWM_ChannelCmd:0000000000000000 $t
+    {standard input}:906    .text.PWM_ChannelCmd:0000000000000000 PWM_ChannelCmd
+                     .debug_frame:0000000000000010 $d
+    {standard input}:705    .text.PWM_MatchUpdate:0000000000000011 $d
+    {standard input}:705    .text.PWM_MatchUpdate:0000000000000012 $t
+
+UNDEFINED SYMBOLS
+__aeabi_uldivmod
+CLKPWR_ConfigPPWR
+CLKPWR_SetPCLKDiv
+CLKPWR_GetPCLK

@@ -1,0 +1,2039 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_rtc.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.RTC_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global RTC_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	RTC_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_rtc.c"
+   1:LPC17xxLib/src/lpc17xx_rtc.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_rtc.c **** 
+   3:LPC17xxLib/src/lpc17xx_rtc.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_rtc.c **** * $Id$		lpc17xx_rtc.c				2011-06-06
+   5:LPC17xxLib/src/lpc17xx_rtc.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_rtc.c **** * @file		lpc17xx_rtc.c
+   7:LPC17xxLib/src/lpc17xx_rtc.c **** * @brief	Contains all functions support for RTC firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_rtc.c **** * @version	3.1
+   9:LPC17xxLib/src/lpc17xx_rtc.c **** * @date		6. June. 2011
+  10:LPC17xxLib/src/lpc17xx_rtc.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_rtc.c **** *
+  12:LPC17xxLib/src/lpc17xx_rtc.c **** * Copyright(C) 2011, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_rtc.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_rtc.c **** *
+  15:LPC17xxLib/src/lpc17xx_rtc.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_rtc.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_rtc.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_rtc.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_rtc.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_rtc.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_rtc.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_rtc.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_rtc.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_rtc.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_rtc.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_rtc.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  28:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  29:LPC17xxLib/src/lpc17xx_rtc.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_rtc.c **** /** @addtogroup RTC
+  31:LPC17xxLib/src/lpc17xx_rtc.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_rtc.c ****  */
+  33:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  34:LPC17xxLib/src/lpc17xx_rtc.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_rtc.c **** #include "lpc17xx_rtc.h"
+  36:LPC17xxLib/src/lpc17xx_rtc.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  38:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  39:LPC17xxLib/src/lpc17xx_rtc.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  40:LPC17xxLib/src/lpc17xx_rtc.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  41:LPC17xxLib/src/lpc17xx_rtc.c ****  * otherwise the default FW library configuration file must be included instead
+  42:LPC17xxLib/src/lpc17xx_rtc.c ****  */
+  43:LPC17xxLib/src/lpc17xx_rtc.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  44:LPC17xxLib/src/lpc17xx_rtc.c **** #include "lpc17xx_libcfg.h"
+  45:LPC17xxLib/src/lpc17xx_rtc.c **** #else
+  46:LPC17xxLib/src/lpc17xx_rtc.c **** #include "lpc17xx_libcfg_default.h"
+  47:LPC17xxLib/src/lpc17xx_rtc.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  48:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  49:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  50:LPC17xxLib/src/lpc17xx_rtc.c **** #ifdef _RTC
+  51:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  52:LPC17xxLib/src/lpc17xx_rtc.c **** /* Public Functions ----------------------------------------------------------- */
+  53:LPC17xxLib/src/lpc17xx_rtc.c **** /** @addtogroup RTC_Public_Functions
+  54:LPC17xxLib/src/lpc17xx_rtc.c ****  * @{
+  55:LPC17xxLib/src/lpc17xx_rtc.c ****  */
+  56:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  57:LPC17xxLib/src/lpc17xx_rtc.c **** /********************************************************************//**
+  58:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief		Initializes the RTC peripheral.
+  59:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+  60:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+  61:LPC17xxLib/src/lpc17xx_rtc.c ****  *********************************************************************/
+  62:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_Init (LPC_RTC_TypeDef *RTCx)
+  63:LPC17xxLib/src/lpc17xx_rtc.c **** {
+  26              	 .loc 1 63 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  31 0000 10B5     	 push {r4,lr}
+  32              	 .cfi_def_cfa_offset 8
+  33              	 .cfi_offset 4,-8
+  34              	 .cfi_offset 14,-4
+  64:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+  65:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  66:LPC17xxLib/src/lpc17xx_rtc.c **** 	/* Set up clock and power for RTC module */
+  67:LPC17xxLib/src/lpc17xx_rtc.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCRTC, ENABLE);
+  35              	 .loc 1 67 0
+  36 0002 0E4B     	 ldr r3,.L2
+  63:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+  37              	 .loc 1 63 0
+  38 0004 0446     	 mov r4,r0
+  39              	 .loc 1 67 0
+  40 0006 0121     	 movs r1,#1
+  41 0008 4FF40070 	 mov r0,#512
+  42              	.LVL1:
+  43 000c 9847     	 blx r3
+  44              	.LVL2:
+  68:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  69:LPC17xxLib/src/lpc17xx_rtc.c **** 	// Clear all register to be default
+  70:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ILR = 0x00;
+  45              	 .loc 1 70 0
+  46 000e 0023     	 movs r3,#0
+  71:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CCR = 0x00;
+  72:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CIIR = 0x00;
+  73:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->AMR = 0xFF;
+  47              	 .loc 1 73 0
+  48 0010 FF22     	 movs r2,#255
+  70:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CCR = 0x00;
+  49              	 .loc 1 70 0
+  50 0012 2370     	 strb r3,[r4]
+  71:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CCR = 0x00;
+  51              	 .loc 1 71 0
+  52 0014 2372     	 strb r3,[r4,#8]
+  72:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->AMR = 0xFF;
+  53              	 .loc 1 72 0
+  54 0016 2373     	 strb r3,[r4,#12]
+  55              	 .loc 1 73 0
+  56 0018 2274     	 strb r2,[r4,#16]
+  74:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CALIBRATION = 0x00;
+  57              	 .loc 1 74 0
+  58 001a 94F84020 	 ldrb r2,[r4,#64]
+  59 001e 84F84030 	 strb r3,[r4,#64]
+  60 0022 94F84120 	 ldrb r2,[r4,#65]
+  61 0026 84F84130 	 strb r3,[r4,#65]
+  62 002a 94F84220 	 ldrb r2,[r4,#66]
+  63 002e 84F84230 	 strb r3,[r4,#66]
+  64 0032 94F84320 	 ldrb r2,[r4,#67]
+  65 0036 84F84330 	 strb r3,[r4,#67]
+  66 003a 10BD     	 pop {r4,pc}
+  67              	.LVL3:
+  68              	.L3:
+  69              	 .align 2
+  70              	.L2:
+  71 003c 00000000 	 .word CLKPWR_ConfigPPWR
+  72              	 .cfi_endproc
+  73              	.LFE55:
+  75              	 .section .text.RTC_DeInit,"ax",%progbits
+  76              	 .align 1
+  77              	 .global RTC_DeInit
+  78              	 .syntax unified
+  79              	 .thumb
+  80              	 .thumb_func
+  81              	 .fpu softvfp
+  83              	RTC_DeInit:
+  84              	.LFB56:
+  75:LPC17xxLib/src/lpc17xx_rtc.c **** }
+  76:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  77:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  78:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+  79:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief		De-initializes the RTC peripheral registers to their
+  80:LPC17xxLib/src/lpc17xx_rtc.c **** *                  default reset values.
+  81:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+  82:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+  83:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+  84:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_DeInit(LPC_RTC_TypeDef *RTCx)
+  85:LPC17xxLib/src/lpc17xx_rtc.c **** {
+  85              	 .loc 1 85 0
+  86              	 .cfi_startproc
+  87              	 
+  88              	 
+  89              	 
+  90              	.LVL4:
+  86:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+  87:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  88:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CCR = 0x00;
+  91              	 .loc 1 88 0
+  92 0000 0021     	 movs r1,#0
+  89:LPC17xxLib/src/lpc17xx_rtc.c **** 	// Disable power and clock for RTC module
+  90:LPC17xxLib/src/lpc17xx_rtc.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCRTC, DISABLE);
+  93              	 .loc 1 90 0
+  94 0002 024B     	 ldr r3,.L5
+  88:LPC17xxLib/src/lpc17xx_rtc.c **** 	// Disable power and clock for RTC module
+  95              	 .loc 1 88 0
+  96 0004 0172     	 strb r1,[r0,#8]
+  97              	 .loc 1 90 0
+  98 0006 4FF40070 	 mov r0,#512
+  99              	.LVL5:
+ 100 000a 1847     	 bx r3
+ 101              	.LVL6:
+ 102              	.L6:
+ 103              	 .align 2
+ 104              	.L5:
+ 105 000c 00000000 	 .word CLKPWR_ConfigPPWR
+ 106              	 .cfi_endproc
+ 107              	.LFE56:
+ 109              	 .section .text.RTC_ResetClockTickCounter,"ax",%progbits
+ 110              	 .align 1
+ 111              	 .global RTC_ResetClockTickCounter
+ 112              	 .syntax unified
+ 113              	 .thumb
+ 114              	 .thumb_func
+ 115              	 .fpu softvfp
+ 117              	RTC_ResetClockTickCounter:
+ 118              	.LFB57:
+  91:LPC17xxLib/src/lpc17xx_rtc.c **** }
+  92:LPC17xxLib/src/lpc17xx_rtc.c **** 
+  93:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+  94:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Reset clock tick counter in RTC peripheral
+  95:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+  96:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+  97:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+  98:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_ResetClockTickCounter(LPC_RTC_TypeDef *RTCx)
+  99:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 119              	 .loc 1 99 0
+ 120              	 .cfi_startproc
+ 121              	 
+ 122              	 
+ 123              	 
+ 124              	.LVL7:
+ 100:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 101:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 102:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CCR |= RTC_CCR_CTCRST;
+ 125              	 .loc 1 102 0
+ 126 0000 037A     	 ldrb r3,[r0,#8]
+ 127 0002 43F00203 	 orr r3,r3,#2
+ 128 0006 0372     	 strb r3,[r0,#8]
+ 103:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CCR &= (~RTC_CCR_CTCRST) & RTC_CCR_BITMASK;
+ 129              	 .loc 1 103 0
+ 130 0008 037A     	 ldrb r3,[r0,#8]
+ 131 000a 03F01103 	 and r3,r3,#17
+ 132 000e 0372     	 strb r3,[r0,#8]
+ 133 0010 7047     	 bx lr
+ 134              	 .cfi_endproc
+ 135              	.LFE57:
+ 137              	 .section .text.RTC_Cmd,"ax",%progbits
+ 138              	 .align 1
+ 139              	 .global RTC_Cmd
+ 140              	 .syntax unified
+ 141              	 .thumb
+ 142              	 .thumb_func
+ 143              	 .fpu softvfp
+ 145              	RTC_Cmd:
+ 146              	.LFB58:
+ 104:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 105:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 106:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 107:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Start/Stop RTC peripheral
+ 108:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 109:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	NewState New State of this function, should be:
+ 110:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- ENABLE: The time counters are enabled
+ 111:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- DISABLE: The time counters are disabled
+ 112:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 113:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 114:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_Cmd (LPC_RTC_TypeDef *RTCx, FunctionalState NewState)
+ 115:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 147              	 .loc 1 115 0
+ 148              	 .cfi_startproc
+ 149              	 
+ 150              	 
+ 151              	 
+ 152              	.LVL8:
+ 116:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 117:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 118:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 119:LPC17xxLib/src/lpc17xx_rtc.c **** 	if (NewState == ENABLE)
+ 120:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 121:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->CCR |= RTC_CCR_CLKEN;
+ 153              	 .loc 1 121 0
+ 154 0000 037A     	 ldrb r3,[r0,#8]
+ 119:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 155              	 .loc 1 119 0
+ 156 0002 0129     	 cmp r1,#1
+ 157              	 .loc 1 121 0
+ 158 0004 0CBF     	 ite eq
+ 159 0006 43F00103 	 orreq r3,r3,#1
+ 122:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 123:LPC17xxLib/src/lpc17xx_rtc.c **** 	else
+ 124:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 125:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->CCR &= (~RTC_CCR_CLKEN) & RTC_CCR_BITMASK;
+ 160              	 .loc 1 125 0
+ 161 000a 03F01203 	 andne r3,r3,#18
+ 162 000e 0372     	 strb r3,[r0,#8]
+ 163 0010 7047     	 bx lr
+ 164              	 .cfi_endproc
+ 165              	.LFE58:
+ 167              	 .section .text.RTC_CntIncrIntConfig,"ax",%progbits
+ 168              	 .align 1
+ 169              	 .global RTC_CntIncrIntConfig
+ 170              	 .syntax unified
+ 171              	 .thumb
+ 172              	 .thumb_func
+ 173              	 .fpu softvfp
+ 175              	RTC_CntIncrIntConfig:
+ 176              	.LFB59:
+ 126:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 127:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 128:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 129:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 130:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 131:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Enable/Disable Counter increment interrupt for each time type
+ 132:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				in RTC peripheral
+ 133:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 134:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	CntIncrIntType: Counter Increment Interrupt type,
+ 135:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				an increment of this type value below will generates
+ 136:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				an interrupt, should be:
+ 137:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_SECOND
+ 138:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MINUTE
+ 139:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_HOUR
+ 140:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFWEEK
+ 141:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFMONTH
+ 142:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFYEAR
+ 143:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MONTH
+ 144:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_YEAR
+ 145:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	NewState New State of this function, should be:
+ 146:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- ENABLE: Counter Increment interrupt for this
+ 147:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					time type are enabled
+ 148:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- DISABLE: Counter Increment interrupt for this
+ 149:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					time type are disabled
+ 150:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 151:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 152:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_CntIncrIntConfig (LPC_RTC_TypeDef *RTCx, uint32_t CntIncrIntType, \
+ 153:LPC17xxLib/src/lpc17xx_rtc.c **** 								FunctionalState NewState)
+ 154:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 177              	 .loc 1 154 0
+ 178              	 .cfi_startproc
+ 179              	 
+ 180              	 
+ 181              	 
+ 182              	.LVL9:
+ 155:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 156:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 157:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_TIMETYPE(CntIncrIntType));
+ 158:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 159:LPC17xxLib/src/lpc17xx_rtc.c **** 	if (NewState ==  ENABLE)
+ 183              	 .loc 1 159 0
+ 184 0000 012A     	 cmp r2,#1
+ 185 0002 28D1     	 bne .L13
+ 160:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 161:LPC17xxLib/src/lpc17xx_rtc.c **** 		switch (CntIncrIntType)
+ 186              	 .loc 1 161 0
+ 187 0004 0729     	 cmp r1,#7
+ 188 0006 09D8     	 bhi .L12
+ 189 0008 DFE801F0 	 tbb [pc,r1]
+ 190              	.L16:
+ 191 000c 04       	 .byte (.L15-.L16)/2
+ 192 000d 09       	 .byte (.L17-.L16)/2
+ 193 000e 0D       	 .byte (.L18-.L16)/2
+ 194 000f 11       	 .byte (.L19-.L16)/2
+ 195 0010 15       	 .byte (.L20-.L16)/2
+ 196 0011 19       	 .byte (.L21-.L16)/2
+ 197 0012 1D       	 .byte (.L22-.L16)/2
+ 198 0013 21       	 .byte (.L23-.L16)/2
+ 199              	 .p2align 1
+ 200              	.L15:
+ 162:LPC17xxLib/src/lpc17xx_rtc.c **** 		{
+ 163:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_SECOND:
+ 164:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMSEC;
+ 201              	 .loc 1 164 0
+ 202 0014 037B     	 ldrb r3,[r0,#12]
+ 203 0016 43F00103 	 orr r3,r3,#1
+ 204              	.L33:
+ 165:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 166:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MINUTE:
+ 167:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMMIN;
+ 168:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 169:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_HOUR:
+ 170:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMHOUR;
+ 171:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 172:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFWEEK:
+ 173:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMDOW;
+ 174:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 175:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFMONTH:
+ 176:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMDOM;
+ 177:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 178:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFYEAR:
+ 179:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMDOY;
+ 180:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 181:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MONTH:
+ 182:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMMON;
+ 183:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 184:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_YEAR:
+ 185:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR |= RTC_CIIR_IMYEAR;
+ 186:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 187:LPC17xxLib/src/lpc17xx_rtc.c **** 		}
+ 188:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 189:LPC17xxLib/src/lpc17xx_rtc.c **** 	else
+ 190:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 191:LPC17xxLib/src/lpc17xx_rtc.c **** 		switch (CntIncrIntType)
+ 192:LPC17xxLib/src/lpc17xx_rtc.c **** 		{
+ 193:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_SECOND:
+ 194:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMSEC) & RTC_CIIR_BITMASK;
+ 195:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 196:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MINUTE:
+ 197:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMMIN) & RTC_CIIR_BITMASK;
+ 198:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 199:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_HOUR:
+ 200:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMHOUR) & RTC_CIIR_BITMASK;
+ 201:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 202:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFWEEK:
+ 203:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMDOW) & RTC_CIIR_BITMASK;
+ 204:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 205:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFMONTH:
+ 206:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMDOM) & RTC_CIIR_BITMASK;
+ 207:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 208:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFYEAR:
+ 209:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMDOY) & RTC_CIIR_BITMASK;
+ 210:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 211:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MONTH:
+ 212:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMMON) & RTC_CIIR_BITMASK;
+ 213:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 214:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_YEAR:
+ 215:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->CIIR &= (~RTC_CIIR_IMYEAR) & RTC_CIIR_BITMASK;
+ 205              	 .loc 1 215 0
+ 206 001a 0373     	 strb r3,[r0,#12]
+ 207              	.L12:
+ 208 001c 7047     	 bx lr
+ 209              	.L17:
+ 167:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 210              	 .loc 1 167 0
+ 211 001e 037B     	 ldrb r3,[r0,#12]
+ 212 0020 43F00203 	 orr r3,r3,#2
+ 213 0024 F9E7     	 b .L33
+ 214              	.L18:
+ 170:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 215              	 .loc 1 170 0
+ 216 0026 037B     	 ldrb r3,[r0,#12]
+ 217 0028 43F00403 	 orr r3,r3,#4
+ 218 002c F5E7     	 b .L33
+ 219              	.L19:
+ 173:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 220              	 .loc 1 173 0
+ 221 002e 037B     	 ldrb r3,[r0,#12]
+ 222 0030 43F01003 	 orr r3,r3,#16
+ 223 0034 F1E7     	 b .L33
+ 224              	.L20:
+ 176:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 225              	 .loc 1 176 0
+ 226 0036 037B     	 ldrb r3,[r0,#12]
+ 227 0038 43F00803 	 orr r3,r3,#8
+ 228 003c EDE7     	 b .L33
+ 229              	.L21:
+ 179:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 230              	 .loc 1 179 0
+ 231 003e 037B     	 ldrb r3,[r0,#12]
+ 232 0040 43F02003 	 orr r3,r3,#32
+ 233 0044 E9E7     	 b .L33
+ 234              	.L22:
+ 182:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 235              	 .loc 1 182 0
+ 236 0046 037B     	 ldrb r3,[r0,#12]
+ 237 0048 43F04003 	 orr r3,r3,#64
+ 238 004c E5E7     	 b .L33
+ 239              	.L23:
+ 185:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 240              	 .loc 1 185 0
+ 241 004e 037B     	 ldrb r3,[r0,#12]
+ 242 0050 43F08003 	 orr r3,r3,#128
+ 243 0054 E1E7     	 b .L33
+ 244              	.L13:
+ 191:LPC17xxLib/src/lpc17xx_rtc.c **** 		{
+ 245              	 .loc 1 191 0
+ 246 0056 0729     	 cmp r1,#7
+ 247 0058 E0D8     	 bhi .L12
+ 248 005a DFE801F0 	 tbb [pc,r1]
+ 249              	.L25:
+ 250 005e 04       	 .byte (.L24-.L25)/2
+ 251 005f 08       	 .byte (.L26-.L25)/2
+ 252 0060 0C       	 .byte (.L27-.L25)/2
+ 253 0061 10       	 .byte (.L28-.L25)/2
+ 254 0062 14       	 .byte (.L29-.L25)/2
+ 255 0063 18       	 .byte (.L30-.L25)/2
+ 256 0064 1C       	 .byte (.L31-.L25)/2
+ 257 0065 20       	 .byte (.L32-.L25)/2
+ 258              	 .p2align 1
+ 259              	.L24:
+ 194:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 260              	 .loc 1 194 0
+ 261 0066 037B     	 ldrb r3,[r0,#12]
+ 262 0068 03F0FE03 	 and r3,r3,#254
+ 263 006c D5E7     	 b .L33
+ 264              	.L26:
+ 197:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 265              	 .loc 1 197 0
+ 266 006e 037B     	 ldrb r3,[r0,#12]
+ 267 0070 03F0FD03 	 and r3,r3,#253
+ 268 0074 D1E7     	 b .L33
+ 269              	.L27:
+ 200:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 270              	 .loc 1 200 0
+ 271 0076 037B     	 ldrb r3,[r0,#12]
+ 272 0078 03F0FB03 	 and r3,r3,#251
+ 273 007c CDE7     	 b .L33
+ 274              	.L28:
+ 203:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 275              	 .loc 1 203 0
+ 276 007e 037B     	 ldrb r3,[r0,#12]
+ 277 0080 03F0EF03 	 and r3,r3,#239
+ 278 0084 C9E7     	 b .L33
+ 279              	.L29:
+ 206:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 280              	 .loc 1 206 0
+ 281 0086 037B     	 ldrb r3,[r0,#12]
+ 282 0088 03F0F703 	 and r3,r3,#247
+ 283 008c C5E7     	 b .L33
+ 284              	.L30:
+ 209:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 285              	 .loc 1 209 0
+ 286 008e 037B     	 ldrb r3,[r0,#12]
+ 287 0090 03F0DF03 	 and r3,r3,#223
+ 288 0094 C1E7     	 b .L33
+ 289              	.L31:
+ 212:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 290              	 .loc 1 212 0
+ 291 0096 037B     	 ldrb r3,[r0,#12]
+ 292 0098 03F0BF03 	 and r3,r3,#191
+ 293 009c BDE7     	 b .L33
+ 294              	.L32:
+ 295              	 .loc 1 215 0
+ 296 009e 037B     	 ldrb r3,[r0,#12]
+ 297 00a0 03F07F03 	 and r3,r3,#127
+ 298 00a4 B9E7     	 b .L33
+ 299              	 .cfi_endproc
+ 300              	.LFE59:
+ 302              	 .section .text.RTC_AlarmIntConfig,"ax",%progbits
+ 303              	 .align 1
+ 304              	 .global RTC_AlarmIntConfig
+ 305              	 .syntax unified
+ 306              	 .thumb
+ 307              	 .thumb_func
+ 308              	 .fpu softvfp
+ 310              	RTC_AlarmIntConfig:
+ 311              	.LFB60:
+ 216:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 217:LPC17xxLib/src/lpc17xx_rtc.c **** 		}
+ 218:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 219:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 220:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 221:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 222:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 223:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Enable/Disable Alarm interrupt for each time type
+ 224:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				in RTC peripheral
+ 225:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 226:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	AlarmTimeType: Alarm Time Interrupt type,
+ 227:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				an matching of this type value below with current time
+ 228:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				in RTC will generates an interrupt, should be:
+ 229:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_SECOND
+ 230:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MINUTE
+ 231:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_HOUR
+ 232:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFWEEK
+ 233:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFMONTH
+ 234:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFYEAR
+ 235:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MONTH
+ 236:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_YEAR
+ 237:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	NewState New State of this function, should be:
+ 238:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- ENABLE: Alarm interrupt for this
+ 239:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					time type are enabled
+ 240:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- DISABLE: Alarm interrupt for this
+ 241:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					time type are disabled
+ 242:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 243:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 244:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_AlarmIntConfig (LPC_RTC_TypeDef *RTCx, uint32_t AlarmTimeType, \
+ 245:LPC17xxLib/src/lpc17xx_rtc.c **** 								FunctionalState NewState)
+ 246:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 312              	 .loc 1 246 0
+ 313              	 .cfi_startproc
+ 314              	 
+ 315              	 
+ 316              	 
+ 317              	.LVL10:
+ 247:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 248:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 249:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_TIMETYPE(AlarmTimeType));
+ 250:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 251:LPC17xxLib/src/lpc17xx_rtc.c **** 	if (NewState == ENABLE)
+ 318              	 .loc 1 251 0
+ 319 0000 012A     	 cmp r2,#1
+ 320 0002 28D1     	 bne .L35
+ 252:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 253:LPC17xxLib/src/lpc17xx_rtc.c **** 		switch (AlarmTimeType)
+ 321              	 .loc 1 253 0
+ 322 0004 0729     	 cmp r1,#7
+ 323 0006 09D8     	 bhi .L34
+ 324 0008 DFE801F0 	 tbb [pc,r1]
+ 325              	.L38:
+ 326 000c 04       	 .byte (.L37-.L38)/2
+ 327 000d 09       	 .byte (.L39-.L38)/2
+ 328 000e 0D       	 .byte (.L40-.L38)/2
+ 329 000f 11       	 .byte (.L41-.L38)/2
+ 330 0010 15       	 .byte (.L42-.L38)/2
+ 331 0011 19       	 .byte (.L43-.L38)/2
+ 332 0012 1D       	 .byte (.L44-.L38)/2
+ 333 0013 21       	 .byte (.L45-.L38)/2
+ 334              	 .p2align 1
+ 335              	.L37:
+ 254:LPC17xxLib/src/lpc17xx_rtc.c **** 		{
+ 255:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_SECOND:
+ 256:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRSEC) & RTC_AMR_BITMASK;
+ 336              	 .loc 1 256 0
+ 337 0014 037C     	 ldrb r3,[r0,#16]
+ 338 0016 03F0FE03 	 and r3,r3,#254
+ 339              	.L55:
+ 257:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 258:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MINUTE:
+ 259:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRMIN) & RTC_AMR_BITMASK;
+ 260:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 261:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_HOUR:
+ 262:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRHOUR) & RTC_AMR_BITMASK;
+ 263:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 264:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFWEEK:
+ 265:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRDOW) & RTC_AMR_BITMASK;
+ 266:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 267:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFMONTH:
+ 268:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRDOM) & RTC_AMR_BITMASK;
+ 269:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 270:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFYEAR:
+ 271:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRDOY) & RTC_AMR_BITMASK;
+ 272:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 273:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MONTH:
+ 274:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRMON) & RTC_AMR_BITMASK;
+ 275:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 276:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_YEAR:
+ 277:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR &= (~RTC_AMR_AMRYEAR) & RTC_AMR_BITMASK;
+ 278:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 279:LPC17xxLib/src/lpc17xx_rtc.c **** 		}
+ 280:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 281:LPC17xxLib/src/lpc17xx_rtc.c **** 	else
+ 282:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 283:LPC17xxLib/src/lpc17xx_rtc.c **** 		switch (AlarmTimeType)
+ 284:LPC17xxLib/src/lpc17xx_rtc.c **** 		{
+ 285:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_SECOND:
+ 286:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRSEC);
+ 287:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 288:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MINUTE:
+ 289:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRMIN);
+ 290:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 291:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_HOUR:
+ 292:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRHOUR);
+ 293:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 294:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFWEEK:
+ 295:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRDOW);
+ 296:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 297:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFMONTH:
+ 298:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRDOM);
+ 299:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 300:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_DAYOFYEAR:
+ 301:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRDOY);
+ 302:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 303:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_MONTH:
+ 304:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRMON);
+ 305:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 306:LPC17xxLib/src/lpc17xx_rtc.c **** 		case RTC_TIMETYPE_YEAR:
+ 307:LPC17xxLib/src/lpc17xx_rtc.c **** 			RTCx->AMR |= (RTC_AMR_AMRYEAR);
+ 340              	 .loc 1 307 0
+ 341 001a 0374     	 strb r3,[r0,#16]
+ 342              	.L34:
+ 343 001c 7047     	 bx lr
+ 344              	.L39:
+ 259:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 345              	 .loc 1 259 0
+ 346 001e 037C     	 ldrb r3,[r0,#16]
+ 347 0020 03F0FD03 	 and r3,r3,#253
+ 348 0024 F9E7     	 b .L55
+ 349              	.L40:
+ 262:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 350              	 .loc 1 262 0
+ 351 0026 037C     	 ldrb r3,[r0,#16]
+ 352 0028 03F0FB03 	 and r3,r3,#251
+ 353 002c F5E7     	 b .L55
+ 354              	.L41:
+ 265:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 355              	 .loc 1 265 0
+ 356 002e 037C     	 ldrb r3,[r0,#16]
+ 357 0030 03F0EF03 	 and r3,r3,#239
+ 358 0034 F1E7     	 b .L55
+ 359              	.L42:
+ 268:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 360              	 .loc 1 268 0
+ 361 0036 037C     	 ldrb r3,[r0,#16]
+ 362 0038 03F0F703 	 and r3,r3,#247
+ 363 003c EDE7     	 b .L55
+ 364              	.L43:
+ 271:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 365              	 .loc 1 271 0
+ 366 003e 037C     	 ldrb r3,[r0,#16]
+ 367 0040 03F0DF03 	 and r3,r3,#223
+ 368 0044 E9E7     	 b .L55
+ 369              	.L44:
+ 274:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 370              	 .loc 1 274 0
+ 371 0046 037C     	 ldrb r3,[r0,#16]
+ 372 0048 03F0BF03 	 and r3,r3,#191
+ 373 004c E5E7     	 b .L55
+ 374              	.L45:
+ 277:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 375              	 .loc 1 277 0
+ 376 004e 037C     	 ldrb r3,[r0,#16]
+ 377 0050 03F07F03 	 and r3,r3,#127
+ 378 0054 E1E7     	 b .L55
+ 379              	.L35:
+ 283:LPC17xxLib/src/lpc17xx_rtc.c **** 		{
+ 380              	 .loc 1 283 0
+ 381 0056 0729     	 cmp r1,#7
+ 382 0058 E0D8     	 bhi .L34
+ 383 005a DFE801F0 	 tbb [pc,r1]
+ 384              	.L47:
+ 385 005e 04       	 .byte (.L46-.L47)/2
+ 386 005f 08       	 .byte (.L48-.L47)/2
+ 387 0060 0C       	 .byte (.L49-.L47)/2
+ 388 0061 10       	 .byte (.L50-.L47)/2
+ 389 0062 14       	 .byte (.L51-.L47)/2
+ 390 0063 18       	 .byte (.L52-.L47)/2
+ 391 0064 1C       	 .byte (.L53-.L47)/2
+ 392 0065 20       	 .byte (.L54-.L47)/2
+ 393              	 .p2align 1
+ 394              	.L46:
+ 286:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 395              	 .loc 1 286 0
+ 396 0066 037C     	 ldrb r3,[r0,#16]
+ 397 0068 43F00103 	 orr r3,r3,#1
+ 398 006c D5E7     	 b .L55
+ 399              	.L48:
+ 289:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 400              	 .loc 1 289 0
+ 401 006e 037C     	 ldrb r3,[r0,#16]
+ 402 0070 43F00203 	 orr r3,r3,#2
+ 403 0074 D1E7     	 b .L55
+ 404              	.L49:
+ 292:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 405              	 .loc 1 292 0
+ 406 0076 037C     	 ldrb r3,[r0,#16]
+ 407 0078 43F00403 	 orr r3,r3,#4
+ 408 007c CDE7     	 b .L55
+ 409              	.L50:
+ 295:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 410              	 .loc 1 295 0
+ 411 007e 037C     	 ldrb r3,[r0,#16]
+ 412 0080 43F01003 	 orr r3,r3,#16
+ 413 0084 C9E7     	 b .L55
+ 414              	.L51:
+ 298:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 415              	 .loc 1 298 0
+ 416 0086 037C     	 ldrb r3,[r0,#16]
+ 417 0088 43F00803 	 orr r3,r3,#8
+ 418 008c C5E7     	 b .L55
+ 419              	.L52:
+ 301:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 420              	 .loc 1 301 0
+ 421 008e 037C     	 ldrb r3,[r0,#16]
+ 422 0090 43F02003 	 orr r3,r3,#32
+ 423 0094 C1E7     	 b .L55
+ 424              	.L53:
+ 304:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 425              	 .loc 1 304 0
+ 426 0096 037C     	 ldrb r3,[r0,#16]
+ 427 0098 43F04003 	 orr r3,r3,#64
+ 428 009c BDE7     	 b .L55
+ 429              	.L54:
+ 430              	 .loc 1 307 0
+ 431 009e 037C     	 ldrb r3,[r0,#16]
+ 432 00a0 43F08003 	 orr r3,r3,#128
+ 433 00a4 B9E7     	 b .L55
+ 434              	 .cfi_endproc
+ 435              	.LFE60:
+ 437              	 .section .text.RTC_SetTime,"ax",%progbits
+ 438              	 .align 1
+ 439              	 .global RTC_SetTime
+ 440              	 .syntax unified
+ 441              	 .thumb
+ 442              	 .thumb_func
+ 443              	 .fpu softvfp
+ 445              	RTC_SetTime:
+ 446              	.LFB61:
+ 308:LPC17xxLib/src/lpc17xx_rtc.c **** 			break;
+ 309:LPC17xxLib/src/lpc17xx_rtc.c **** 		}
+ 310:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 311:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 312:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 313:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 314:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 315:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Set current time value for each time type in RTC peripheral
+ 316:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 317:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Timetype: Time Type, should be:
+ 318:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_SECOND
+ 319:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MINUTE
+ 320:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_HOUR
+ 321:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFWEEK
+ 322:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFMONTH
+ 323:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFYEAR
+ 324:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MONTH
+ 325:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_YEAR
+ 326:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	TimeValue Time value to set
+ 327:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 328:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 329:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_SetTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t TimeValue)
+ 330:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 447              	 .loc 1 330 0
+ 448              	 .cfi_startproc
+ 449              	 
+ 450              	 
+ 451              	 
+ 452              	.LVL11:
+ 331:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 332:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_TIMETYPE(Timetype));
+ 333:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 334:LPC17xxLib/src/lpc17xx_rtc.c **** 	switch ( Timetype)
+ 453              	 .loc 1 334 0
+ 454 0000 0729     	 cmp r1,#7
+ 455 0002 2AD8     	 bhi .L56
+ 456 0004 DFE801F0 	 tbb [pc,r1]
+ 457              	.L59:
+ 458 0008 04       	 .byte (.L58-.L59)/2
+ 459 0009 09       	 .byte (.L60-.L59)/2
+ 460 000a 0E       	 .byte (.L61-.L59)/2
+ 461 000b 13       	 .byte (.L62-.L59)/2
+ 462 000c 18       	 .byte (.L63-.L59)/2
+ 463 000d 1D       	 .byte (.L64-.L59)/2
+ 464 000e 21       	 .byte (.L65-.L59)/2
+ 465 000f 26       	 .byte (.L66-.L59)/2
+ 466              	 .p2align 1
+ 467              	.L58:
+ 335:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 336:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_SECOND:
+ 337:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(TimeValue <= RTC_SECOND_MAX);
+ 338:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 339:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->SEC = TimeValue & RTC_SEC_MASK;
+ 468              	 .loc 1 339 0
+ 469 0010 02F03F02 	 and r2,r2,#63
+ 470              	.LVL12:
+ 471 0014 80F82020 	 strb r2,[r0,#32]
+ 340:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 472              	 .loc 1 340 0
+ 473 0018 7047     	 bx lr
+ 474              	.LVL13:
+ 475              	.L60:
+ 341:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 342:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MINUTE:
+ 343:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(TimeValue <= RTC_MINUTE_MAX);
+ 344:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 345:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->MIN = TimeValue & RTC_MIN_MASK;
+ 476              	 .loc 1 345 0
+ 477 001a 02F03F02 	 and r2,r2,#63
+ 478              	.LVL14:
+ 479 001e 80F82420 	 strb r2,[r0,#36]
+ 346:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 480              	 .loc 1 346 0
+ 481 0022 7047     	 bx lr
+ 482              	.LVL15:
+ 483              	.L61:
+ 347:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 348:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_HOUR:
+ 349:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(TimeValue <= RTC_HOUR_MAX);
+ 350:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 351:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->HOUR = TimeValue & RTC_HOUR_MASK;
+ 484              	 .loc 1 351 0
+ 485 0024 02F01F02 	 and r2,r2,#31
+ 486              	.LVL16:
+ 487 0028 80F82820 	 strb r2,[r0,#40]
+ 352:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 488              	 .loc 1 352 0
+ 489 002c 7047     	 bx lr
+ 490              	.LVL17:
+ 491              	.L62:
+ 353:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 354:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFWEEK:
+ 355:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(TimeValue <= RTC_DAYOFWEEK_MAX);
+ 356:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 357:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->DOW = TimeValue & RTC_DOW_MASK;
+ 492              	 .loc 1 357 0
+ 493 002e 02F00702 	 and r2,r2,#7
+ 494              	.LVL18:
+ 495 0032 80F83020 	 strb r2,[r0,#48]
+ 358:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 496              	 .loc 1 358 0
+ 497 0036 7047     	 bx lr
+ 498              	.LVL19:
+ 499              	.L63:
+ 359:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 360:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFMONTH:
+ 361:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM((TimeValue <= RTC_DAYOFMONTH_MAX) \
+ 362:LPC17xxLib/src/lpc17xx_rtc.c **** 				&& (TimeValue >= RTC_DAYOFMONTH_MIN));
+ 363:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 364:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->DOM = TimeValue & RTC_DOM_MASK;
+ 500              	 .loc 1 364 0
+ 501 0038 02F01F02 	 and r2,r2,#31
+ 502              	.LVL20:
+ 503 003c 80F82C20 	 strb r2,[r0,#44]
+ 365:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 504              	 .loc 1 365 0
+ 505 0040 7047     	 bx lr
+ 506              	.LVL21:
+ 507              	.L64:
+ 366:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 367:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFYEAR:
+ 368:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM((TimeValue >= RTC_DAYOFYEAR_MIN) \
+ 369:LPC17xxLib/src/lpc17xx_rtc.c **** 				&& (TimeValue <= RTC_DAYOFYEAR_MAX));
+ 370:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 371:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->DOY = TimeValue & RTC_DOY_MASK;
+ 508              	 .loc 1 371 0
+ 509 0042 C2F30802 	 ubfx r2,r2,#0,#9
+ 510              	.LVL22:
+ 511 0046 8286     	 strh r2,[r0,#52]
+ 372:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 512              	 .loc 1 372 0
+ 513 0048 7047     	 bx lr
+ 514              	.LVL23:
+ 515              	.L65:
+ 373:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 374:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MONTH:
+ 375:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM((TimeValue >= RTC_MONTH_MIN) \
+ 376:LPC17xxLib/src/lpc17xx_rtc.c **** 				&& (TimeValue <= RTC_MONTH_MAX));
+ 377:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 378:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->MONTH = TimeValue & RTC_MONTH_MASK;
+ 516              	 .loc 1 378 0
+ 517 004a 02F00F02 	 and r2,r2,#15
+ 518              	.LVL24:
+ 519 004e 80F83820 	 strb r2,[r0,#56]
+ 379:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 520              	 .loc 1 379 0
+ 521 0052 7047     	 bx lr
+ 522              	.LVL25:
+ 523              	.L66:
+ 380:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 381:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_YEAR:
+ 382:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(TimeValue <= RTC_YEAR_MAX);
+ 383:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 384:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->YEAR = TimeValue & RTC_YEAR_MASK;
+ 524              	 .loc 1 384 0
+ 525 0054 C2F30B02 	 ubfx r2,r2,#0,#12
+ 526              	.LVL26:
+ 527 0058 8287     	 strh r2,[r0,#60]
+ 528              	.L56:
+ 529 005a 7047     	 bx lr
+ 530              	 .cfi_endproc
+ 531              	.LFE61:
+ 533              	 .section .text.RTC_GetTime,"ax",%progbits
+ 534              	 .align 1
+ 535              	 .global RTC_GetTime
+ 536              	 .syntax unified
+ 537              	 .thumb
+ 538              	 .thumb_func
+ 539              	 .fpu softvfp
+ 541              	RTC_GetTime:
+ 542              	.LFB62:
+ 385:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 386:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 387:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 388:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 389:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 390:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Get current time value for each type time type
+ 391:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 392:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Timetype: Time Type, should be:
+ 393:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_SECOND
+ 394:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MINUTE
+ 395:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_HOUR
+ 396:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFWEEK
+ 397:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFMONTH
+ 398:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFYEAR
+ 399:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MONTH
+ 400:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_YEAR
+ 401:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		Value of time according to specified time type
+ 402:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 403:LPC17xxLib/src/lpc17xx_rtc.c **** uint32_t RTC_GetTime(LPC_RTC_TypeDef *RTCx, uint32_t Timetype)
+ 404:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 543              	 .loc 1 404 0
+ 544              	 .cfi_startproc
+ 545              	 
+ 546              	 
+ 547              	 
+ 548              	.LVL27:
+ 405:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 406:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_TIMETYPE(Timetype));
+ 407:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 408:LPC17xxLib/src/lpc17xx_rtc.c **** 	switch (Timetype)
+ 549              	 .loc 1 408 0
+ 550 0000 0729     	 cmp r1,#7
+ 551 0002 27D8     	 bhi .L78
+ 552 0004 DFE801F0 	 tbb [pc,r1]
+ 553              	.L70:
+ 554 0008 04       	 .byte (.L69-.L70)/2
+ 555 0009 09       	 .byte (.L71-.L70)/2
+ 556 000a 0C       	 .byte (.L72-.L70)/2
+ 557 000b 11       	 .byte (.L73-.L70)/2
+ 558 000c 16       	 .byte (.L74-.L70)/2
+ 559 000d 19       	 .byte (.L75-.L70)/2
+ 560 000e 1D       	 .byte (.L76-.L70)/2
+ 561 000f 22       	 .byte (.L77-.L70)/2
+ 562              	 .p2align 1
+ 563              	.L69:
+ 409:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 410:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_SECOND:
+ 411:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->SEC & RTC_SEC_MASK);
+ 564              	 .loc 1 411 0
+ 565 0010 90F82000 	 ldrb r0,[r0,#32]
+ 566              	.LVL28:
+ 567              	.L79:
+ 412:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MINUTE:
+ 413:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->MIN & RTC_MIN_MASK);
+ 568              	 .loc 1 413 0
+ 569 0014 00F03F00 	 and r0,r0,#63
+ 570 0018 7047     	 bx lr
+ 571              	.LVL29:
+ 572              	.L71:
+ 573 001a 90F82400 	 ldrb r0,[r0,#36]
+ 574              	.LVL30:
+ 575 001e F9E7     	 b .L79
+ 576              	.LVL31:
+ 577              	.L72:
+ 414:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_HOUR:
+ 415:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->HOUR & RTC_HOUR_MASK);
+ 578              	 .loc 1 415 0
+ 579 0020 90F82800 	 ldrb r0,[r0,#40]
+ 580              	.LVL32:
+ 581              	.L80:
+ 416:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFWEEK:
+ 417:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->DOW & RTC_DOW_MASK);
+ 418:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFMONTH:
+ 419:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->DOM & RTC_DOM_MASK);
+ 582              	 .loc 1 419 0
+ 583 0024 00F01F00 	 and r0,r0,#31
+ 584 0028 7047     	 bx lr
+ 585              	.LVL33:
+ 586              	.L73:
+ 417:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFMONTH:
+ 587              	 .loc 1 417 0
+ 588 002a 90F83000 	 ldrb r0,[r0,#48]
+ 589              	.LVL34:
+ 590 002e 00F00700 	 and r0,r0,#7
+ 591 0032 7047     	 bx lr
+ 592              	.LVL35:
+ 593              	.L74:
+ 594              	 .loc 1 419 0
+ 595 0034 90F82C00 	 ldrb r0,[r0,#44]
+ 596              	.LVL36:
+ 597 0038 F4E7     	 b .L80
+ 598              	.LVL37:
+ 599              	.L75:
+ 420:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFYEAR:
+ 421:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->DOY & RTC_DOY_MASK);
+ 600              	 .loc 1 421 0
+ 601 003a 808E     	 ldrh r0,[r0,#52]
+ 602              	.LVL38:
+ 603 003c C0F30800 	 ubfx r0,r0,#0,#9
+ 604 0040 7047     	 bx lr
+ 605              	.LVL39:
+ 606              	.L76:
+ 422:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MONTH:
+ 423:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->MONTH & RTC_MONTH_MASK);
+ 607              	 .loc 1 423 0
+ 608 0042 90F83800 	 ldrb r0,[r0,#56]
+ 609              	.LVL40:
+ 610 0046 00F00F00 	 and r0,r0,#15
+ 611 004a 7047     	 bx lr
+ 612              	.LVL41:
+ 613              	.L77:
+ 424:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_YEAR:
+ 425:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->YEAR & RTC_YEAR_MASK);
+ 614              	 .loc 1 425 0
+ 615 004c 808F     	 ldrh r0,[r0,#60]
+ 616              	.LVL42:
+ 617 004e C0F30B00 	 ubfx r0,r0,#0,#12
+ 618 0052 7047     	 bx lr
+ 619              	.LVL43:
+ 620              	.L78:
+ 426:LPC17xxLib/src/lpc17xx_rtc.c **** 	default:
+ 427:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (0);
+ 621              	 .loc 1 427 0
+ 622 0054 0020     	 movs r0,#0
+ 623              	.LVL44:
+ 428:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 429:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 624              	 .loc 1 429 0
+ 625 0056 7047     	 bx lr
+ 626              	 .cfi_endproc
+ 627              	.LFE62:
+ 629              	 .section .text.RTC_SetFullTime,"ax",%progbits
+ 630              	 .align 1
+ 631              	 .global RTC_SetFullTime
+ 632              	 .syntax unified
+ 633              	 .thumb
+ 634              	 .thumb_func
+ 635              	 .fpu softvfp
+ 637              	RTC_SetFullTime:
+ 638              	.LFB63:
+ 430:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 431:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 432:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 433:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Set full of time in RTC peripheral
+ 434:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 435:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	pFullTime Pointer to a RTC_TIME_Type structure that
+ 436:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				contains time value in full.
+ 437:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 438:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 439:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_SetFullTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+ 440:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 639              	 .loc 1 440 0
+ 640              	 .cfi_startproc
+ 641              	 
+ 642              	 
+ 643              	 
+ 644              	.LVL45:
+ 441:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 442:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 443:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->DOM = pFullTime->DOM & RTC_DOM_MASK;
+ 645              	 .loc 1 443 0
+ 646 0000 CB68     	 ldr r3,[r1,#12]
+ 647 0002 03F01F03 	 and r3,r3,#31
+ 648 0006 80F82C30 	 strb r3,[r0,#44]
+ 444:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->DOW = pFullTime->DOW & RTC_DOW_MASK;
+ 649              	 .loc 1 444 0
+ 650 000a 0B69     	 ldr r3,[r1,#16]
+ 651 000c 03F00703 	 and r3,r3,#7
+ 652 0010 80F83030 	 strb r3,[r0,#48]
+ 445:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->DOY = pFullTime->DOY & RTC_DOY_MASK;
+ 653              	 .loc 1 445 0
+ 654 0014 4B69     	 ldr r3,[r1,#20]
+ 655 0016 C3F30803 	 ubfx r3,r3,#0,#9
+ 656 001a 8386     	 strh r3,[r0,#52]
+ 446:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->HOUR = pFullTime->HOUR & RTC_HOUR_MASK;
+ 657              	 .loc 1 446 0
+ 658 001c 8B68     	 ldr r3,[r1,#8]
+ 659 001e 03F01F03 	 and r3,r3,#31
+ 660 0022 80F82830 	 strb r3,[r0,#40]
+ 447:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->MIN = pFullTime->MIN & RTC_MIN_MASK;
+ 661              	 .loc 1 447 0
+ 662 0026 4B68     	 ldr r3,[r1,#4]
+ 663 0028 03F03F03 	 and r3,r3,#63
+ 664 002c 80F82430 	 strb r3,[r0,#36]
+ 448:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->SEC = pFullTime->SEC & RTC_SEC_MASK;
+ 665              	 .loc 1 448 0
+ 666 0030 0B68     	 ldr r3,[r1]
+ 667 0032 03F03F03 	 and r3,r3,#63
+ 668 0036 80F82030 	 strb r3,[r0,#32]
+ 449:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->MONTH = pFullTime->MONTH & RTC_MONTH_MASK;
+ 669              	 .loc 1 449 0
+ 670 003a 8B69     	 ldr r3,[r1,#24]
+ 671 003c 03F00F03 	 and r3,r3,#15
+ 672 0040 80F83830 	 strb r3,[r0,#56]
+ 450:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->YEAR = pFullTime->YEAR & RTC_YEAR_MASK;
+ 673              	 .loc 1 450 0
+ 674 0044 CB69     	 ldr r3,[r1,#28]
+ 675 0046 C3F30B03 	 ubfx r3,r3,#0,#12
+ 676 004a 8387     	 strh r3,[r0,#60]
+ 677 004c 7047     	 bx lr
+ 678              	 .cfi_endproc
+ 679              	.LFE63:
+ 681              	 .section .text.RTC_GetFullTime,"ax",%progbits
+ 682              	 .align 1
+ 683              	 .global RTC_GetFullTime
+ 684              	 .syntax unified
+ 685              	 .thumb
+ 686              	 .thumb_func
+ 687              	 .fpu softvfp
+ 689              	RTC_GetFullTime:
+ 690              	.LFB64:
+ 451:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 452:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 453:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 454:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 455:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Get full of time in RTC peripheral
+ 456:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 457:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	pFullTime Pointer to a RTC_TIME_Type structure that
+ 458:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				will be stored time in full.
+ 459:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 460:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 461:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_GetFullTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+ 462:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 691              	 .loc 1 462 0
+ 692              	 .cfi_startproc
+ 693              	 
+ 694              	 
+ 695              	 
+ 696              	.LVL46:
+ 463:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 464:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 465:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->DOM = RTCx->DOM & RTC_DOM_MASK;
+ 697              	 .loc 1 465 0
+ 698 0000 90F82C30 	 ldrb r3,[r0,#44]
+ 699 0004 03F01F03 	 and r3,r3,#31
+ 700 0008 CB60     	 str r3,[r1,#12]
+ 466:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->DOW = RTCx->DOW & RTC_DOW_MASK;
+ 701              	 .loc 1 466 0
+ 702 000a 90F83030 	 ldrb r3,[r0,#48]
+ 703 000e 03F00703 	 and r3,r3,#7
+ 704 0012 0B61     	 str r3,[r1,#16]
+ 467:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->DOY = RTCx->DOY & RTC_DOY_MASK;
+ 705              	 .loc 1 467 0
+ 706 0014 838E     	 ldrh r3,[r0,#52]
+ 707 0016 C3F30803 	 ubfx r3,r3,#0,#9
+ 708 001a 4B61     	 str r3,[r1,#20]
+ 468:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->HOUR = RTCx->HOUR & RTC_HOUR_MASK;
+ 709              	 .loc 1 468 0
+ 710 001c 90F82830 	 ldrb r3,[r0,#40]
+ 711 0020 03F01F03 	 and r3,r3,#31
+ 712 0024 8B60     	 str r3,[r1,#8]
+ 469:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->MIN = RTCx->MIN & RTC_MIN_MASK;
+ 713              	 .loc 1 469 0
+ 714 0026 90F82430 	 ldrb r3,[r0,#36]
+ 715 002a 03F03F03 	 and r3,r3,#63
+ 716 002e 4B60     	 str r3,[r1,#4]
+ 470:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->SEC = RTCx->SEC & RTC_SEC_MASK;
+ 717              	 .loc 1 470 0
+ 718 0030 90F82030 	 ldrb r3,[r0,#32]
+ 719 0034 03F03F03 	 and r3,r3,#63
+ 720 0038 0B60     	 str r3,[r1]
+ 471:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->MONTH = RTCx->MONTH & RTC_MONTH_MASK;
+ 721              	 .loc 1 471 0
+ 722 003a 90F83830 	 ldrb r3,[r0,#56]
+ 723 003e 03F00F03 	 and r3,r3,#15
+ 724 0042 8B61     	 str r3,[r1,#24]
+ 472:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->YEAR = RTCx->YEAR & RTC_YEAR_MASK;
+ 725              	 .loc 1 472 0
+ 726 0044 838F     	 ldrh r3,[r0,#60]
+ 727 0046 C3F30B03 	 ubfx r3,r3,#0,#12
+ 728 004a CB61     	 str r3,[r1,#28]
+ 729 004c 7047     	 bx lr
+ 730              	 .cfi_endproc
+ 731              	.LFE64:
+ 733              	 .section .text.RTC_SetAlarmTime,"ax",%progbits
+ 734              	 .align 1
+ 735              	 .global RTC_SetAlarmTime
+ 736              	 .syntax unified
+ 737              	 .thumb
+ 738              	 .thumb_func
+ 739              	 .fpu softvfp
+ 741              	RTC_SetAlarmTime:
+ 742              	.LFB65:
+ 473:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 474:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 475:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 476:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 477:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Set alarm time value for each time type
+ 478:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 479:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Timetype: Time Type, should be:
+ 480:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_SECOND
+ 481:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MINUTE
+ 482:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_HOUR
+ 483:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFWEEK
+ 484:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFMONTH
+ 485:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFYEAR
+ 486:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MONTH
+ 487:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_YEAR
+ 488:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	ALValue Alarm time value to set
+ 489:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 490:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 491:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_SetAlarmTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype, uint32_t ALValue)
+ 492:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 743              	 .loc 1 492 0
+ 744              	 .cfi_startproc
+ 745              	 
+ 746              	 
+ 747              	 
+ 748              	.LVL47:
+ 493:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 494:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 495:LPC17xxLib/src/lpc17xx_rtc.c **** 	switch (Timetype)
+ 749              	 .loc 1 495 0
+ 750 0000 0729     	 cmp r1,#7
+ 751 0002 2CD8     	 bhi .L83
+ 752 0004 DFE801F0 	 tbb [pc,r1]
+ 753              	.L86:
+ 754 0008 04       	 .byte (.L85-.L86)/2
+ 755 0009 09       	 .byte (.L87-.L86)/2
+ 756 000a 0E       	 .byte (.L88-.L86)/2
+ 757 000b 13       	 .byte (.L89-.L86)/2
+ 758 000c 18       	 .byte (.L90-.L86)/2
+ 759 000d 1D       	 .byte (.L91-.L86)/2
+ 760 000e 22       	 .byte (.L92-.L86)/2
+ 761 000f 27       	 .byte (.L93-.L86)/2
+ 762              	 .p2align 1
+ 763              	.L85:
+ 496:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 497:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_SECOND:
+ 498:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(ALValue <= RTC_SECOND_MAX);
+ 499:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 500:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALSEC = ALValue & RTC_SEC_MASK;
+ 764              	 .loc 1 500 0
+ 765 0010 02F03F02 	 and r2,r2,#63
+ 766              	.LVL48:
+ 767 0014 80F86020 	 strb r2,[r0,#96]
+ 501:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 768              	 .loc 1 501 0
+ 769 0018 7047     	 bx lr
+ 770              	.LVL49:
+ 771              	.L87:
+ 502:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 503:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MINUTE:
+ 504:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(ALValue <= RTC_MINUTE_MAX);
+ 505:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 506:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALMIN = ALValue & RTC_MIN_MASK;
+ 772              	 .loc 1 506 0
+ 773 001a 02F03F02 	 and r2,r2,#63
+ 774              	.LVL50:
+ 775 001e 80F86420 	 strb r2,[r0,#100]
+ 507:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 776              	 .loc 1 507 0
+ 777 0022 7047     	 bx lr
+ 778              	.LVL51:
+ 779              	.L88:
+ 508:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 509:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_HOUR:
+ 510:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(ALValue <= RTC_HOUR_MAX);
+ 511:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 512:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALHOUR = ALValue & RTC_HOUR_MASK;
+ 780              	 .loc 1 512 0
+ 781 0024 02F01F02 	 and r2,r2,#31
+ 782              	.LVL52:
+ 783 0028 80F86820 	 strb r2,[r0,#104]
+ 513:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 784              	 .loc 1 513 0
+ 785 002c 7047     	 bx lr
+ 786              	.LVL53:
+ 787              	.L89:
+ 514:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 515:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFWEEK:
+ 516:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(ALValue <= RTC_DAYOFWEEK_MAX);
+ 517:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 518:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALDOW = ALValue & RTC_DOW_MASK;
+ 788              	 .loc 1 518 0
+ 789 002e 02F00702 	 and r2,r2,#7
+ 790              	.LVL54:
+ 791 0032 80F87020 	 strb r2,[r0,#112]
+ 519:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 792              	 .loc 1 519 0
+ 793 0036 7047     	 bx lr
+ 794              	.LVL55:
+ 795              	.L90:
+ 520:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 521:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFMONTH:
+ 522:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM((ALValue <= RTC_DAYOFMONTH_MAX) \
+ 523:LPC17xxLib/src/lpc17xx_rtc.c **** 				&& (ALValue >= RTC_DAYOFMONTH_MIN));
+ 524:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 525:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALDOM = ALValue & RTC_DOM_MASK;
+ 796              	 .loc 1 525 0
+ 797 0038 02F01F02 	 and r2,r2,#31
+ 798              	.LVL56:
+ 799 003c 80F86C20 	 strb r2,[r0,#108]
+ 526:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 800              	 .loc 1 526 0
+ 801 0040 7047     	 bx lr
+ 802              	.LVL57:
+ 803              	.L91:
+ 527:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 528:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFYEAR:
+ 529:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM((ALValue >= RTC_DAYOFYEAR_MIN) \
+ 530:LPC17xxLib/src/lpc17xx_rtc.c **** 				&& (ALValue <= RTC_DAYOFYEAR_MAX));
+ 531:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 532:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALDOY = ALValue & RTC_DOY_MASK;
+ 804              	 .loc 1 532 0
+ 805 0042 C2F30802 	 ubfx r2,r2,#0,#9
+ 806              	.LVL58:
+ 807 0046 A0F87420 	 strh r2,[r0,#116]
+ 533:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 808              	 .loc 1 533 0
+ 809 004a 7047     	 bx lr
+ 810              	.LVL59:
+ 811              	.L92:
+ 534:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 535:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MONTH:
+ 536:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM((ALValue >= RTC_MONTH_MIN) \
+ 537:LPC17xxLib/src/lpc17xx_rtc.c **** 				&& (ALValue <= RTC_MONTH_MAX));
+ 538:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 539:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALMON = ALValue & RTC_MONTH_MASK;
+ 812              	 .loc 1 539 0
+ 813 004c 02F00F02 	 and r2,r2,#15
+ 814              	.LVL60:
+ 815 0050 80F87820 	 strb r2,[r0,#120]
+ 540:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 816              	 .loc 1 540 0
+ 817 0054 7047     	 bx lr
+ 818              	.LVL61:
+ 819              	.L93:
+ 541:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 542:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_YEAR:
+ 543:LPC17xxLib/src/lpc17xx_rtc.c **** 		CHECK_PARAM(ALValue <= RTC_YEAR_MAX);
+ 544:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 545:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->ALYEAR = ALValue & RTC_YEAR_MASK;
+ 820              	 .loc 1 545 0
+ 821 0056 C2F30B02 	 ubfx r2,r2,#0,#12
+ 822              	.LVL62:
+ 823 005a A0F87C20 	 strh r2,[r0,#124]
+ 824              	.L83:
+ 825 005e 7047     	 bx lr
+ 826              	 .cfi_endproc
+ 827              	.LFE65:
+ 829              	 .section .text.RTC_GetAlarmTime,"ax",%progbits
+ 830              	 .align 1
+ 831              	 .global RTC_GetAlarmTime
+ 832              	 .syntax unified
+ 833              	 .thumb
+ 834              	 .thumb_func
+ 835              	 .fpu softvfp
+ 837              	RTC_GetAlarmTime:
+ 838              	.LFB66:
+ 546:LPC17xxLib/src/lpc17xx_rtc.c **** 		break;
+ 547:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 548:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 549:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 550:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 551:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 552:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 553:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Get alarm time value for each time type
+ 554:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 555:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Timetype: Time Type, should be:
+ 556:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_SECOND
+ 557:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MINUTE
+ 558:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_HOUR
+ 559:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFWEEK
+ 560:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFMONTH
+ 561:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_DAYOFYEAR
+ 562:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_MONTH
+ 563:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- RTC_TIMETYPE_YEAR
+ 564:LPC17xxLib/src/lpc17xx_rtc.c ****   * @return 	Value of Alarm time according to specified time type
+ 565:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 566:LPC17xxLib/src/lpc17xx_rtc.c **** uint32_t RTC_GetAlarmTime (LPC_RTC_TypeDef *RTCx, uint32_t Timetype)
+ 567:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 839              	 .loc 1 567 0
+ 840              	 .cfi_startproc
+ 841              	 
+ 842              	 
+ 843              	 
+ 844              	.LVL63:
+ 568:LPC17xxLib/src/lpc17xx_rtc.c **** 	switch (Timetype)
+ 845              	 .loc 1 568 0
+ 846 0000 0729     	 cmp r1,#7
+ 847 0002 29D8     	 bhi .L105
+ 848 0004 DFE801F0 	 tbb [pc,r1]
+ 849              	.L97:
+ 850 0008 04       	 .byte (.L96-.L97)/2
+ 851 0009 09       	 .byte (.L98-.L97)/2
+ 852 000a 0C       	 .byte (.L99-.L97)/2
+ 853 000b 11       	 .byte (.L100-.L97)/2
+ 854 000c 16       	 .byte (.L101-.L97)/2
+ 855 000d 19       	 .byte (.L102-.L97)/2
+ 856 000e 1E       	 .byte (.L103-.L97)/2
+ 857 000f 23       	 .byte (.L104-.L97)/2
+ 858              	 .p2align 1
+ 859              	.L96:
+ 569:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 570:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_SECOND:
+ 571:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALSEC & RTC_SEC_MASK);
+ 860              	 .loc 1 571 0
+ 861 0010 90F86000 	 ldrb r0,[r0,#96]
+ 862              	.LVL64:
+ 863              	.L106:
+ 572:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MINUTE:
+ 573:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALMIN & RTC_MIN_MASK);
+ 864              	 .loc 1 573 0
+ 865 0014 00F03F00 	 and r0,r0,#63
+ 866 0018 7047     	 bx lr
+ 867              	.LVL65:
+ 868              	.L98:
+ 869 001a 90F86400 	 ldrb r0,[r0,#100]
+ 870              	.LVL66:
+ 871 001e F9E7     	 b .L106
+ 872              	.LVL67:
+ 873              	.L99:
+ 574:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_HOUR:
+ 575:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALHOUR & RTC_HOUR_MASK);
+ 874              	 .loc 1 575 0
+ 875 0020 90F86800 	 ldrb r0,[r0,#104]
+ 876              	.LVL68:
+ 877              	.L107:
+ 576:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFWEEK:
+ 577:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALDOW & RTC_DOW_MASK);
+ 578:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFMONTH:
+ 579:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALDOM & RTC_DOM_MASK);
+ 878              	 .loc 1 579 0
+ 879 0024 00F01F00 	 and r0,r0,#31
+ 880 0028 7047     	 bx lr
+ 881              	.LVL69:
+ 882              	.L100:
+ 577:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFMONTH:
+ 883              	 .loc 1 577 0
+ 884 002a 90F87000 	 ldrb r0,[r0,#112]
+ 885              	.LVL70:
+ 886 002e 00F00700 	 and r0,r0,#7
+ 887 0032 7047     	 bx lr
+ 888              	.LVL71:
+ 889              	.L101:
+ 890              	 .loc 1 579 0
+ 891 0034 90F86C00 	 ldrb r0,[r0,#108]
+ 892              	.LVL72:
+ 893 0038 F4E7     	 b .L107
+ 894              	.LVL73:
+ 895              	.L102:
+ 580:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_DAYOFYEAR:
+ 581:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALDOY & RTC_DOY_MASK);
+ 896              	 .loc 1 581 0
+ 897 003a B0F87400 	 ldrh r0,[r0,#116]
+ 898              	.LVL74:
+ 899 003e C0F30800 	 ubfx r0,r0,#0,#9
+ 900 0042 7047     	 bx lr
+ 901              	.LVL75:
+ 902              	.L103:
+ 582:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_MONTH:
+ 583:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALMON & RTC_MONTH_MASK);
+ 903              	 .loc 1 583 0
+ 904 0044 90F87800 	 ldrb r0,[r0,#120]
+ 905              	.LVL76:
+ 906 0048 00F00F00 	 and r0,r0,#15
+ 907 004c 7047     	 bx lr
+ 908              	.LVL77:
+ 909              	.L104:
+ 584:LPC17xxLib/src/lpc17xx_rtc.c **** 	case RTC_TIMETYPE_YEAR:
+ 585:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (RTCx->ALYEAR & RTC_YEAR_MASK);
+ 910              	 .loc 1 585 0
+ 911 004e B0F87C00 	 ldrh r0,[r0,#124]
+ 912              	.LVL78:
+ 913 0052 C0F30B00 	 ubfx r0,r0,#0,#12
+ 914 0056 7047     	 bx lr
+ 915              	.LVL79:
+ 916              	.L105:
+ 586:LPC17xxLib/src/lpc17xx_rtc.c **** 	default:
+ 587:LPC17xxLib/src/lpc17xx_rtc.c **** 		return (0);
+ 917              	 .loc 1 587 0
+ 918 0058 0020     	 movs r0,#0
+ 919              	.LVL80:
+ 588:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 589:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 920              	 .loc 1 589 0
+ 921 005a 7047     	 bx lr
+ 922              	 .cfi_endproc
+ 923              	.LFE66:
+ 925              	 .section .text.RTC_SetFullAlarmTime,"ax",%progbits
+ 926              	 .align 1
+ 927              	 .global RTC_SetFullAlarmTime
+ 928              	 .syntax unified
+ 929              	 .thumb
+ 930              	 .thumb_func
+ 931              	 .fpu softvfp
+ 933              	RTC_SetFullAlarmTime:
+ 934              	.LFB67:
+ 590:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 591:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 592:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 593:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Set full of alarm time in RTC peripheral
+ 594:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 595:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	pFullTime Pointer to a RTC_TIME_Type structure that
+ 596:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				contains alarm time value in full.
+ 597:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 598:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 599:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_SetFullAlarmTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+ 600:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 935              	 .loc 1 600 0
+ 936              	 .cfi_startproc
+ 937              	 
+ 938              	 
+ 939              	 
+ 940              	.LVL81:
+ 601:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 602:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 603:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALDOM = pFullTime->DOM & RTC_DOM_MASK;
+ 941              	 .loc 1 603 0
+ 942 0000 CB68     	 ldr r3,[r1,#12]
+ 943 0002 03F01F03 	 and r3,r3,#31
+ 944 0006 80F86C30 	 strb r3,[r0,#108]
+ 604:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALDOW = pFullTime->DOW & RTC_DOW_MASK;
+ 945              	 .loc 1 604 0
+ 946 000a 0B69     	 ldr r3,[r1,#16]
+ 947 000c 03F00703 	 and r3,r3,#7
+ 948 0010 80F87030 	 strb r3,[r0,#112]
+ 605:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALDOY = pFullTime->DOY & RTC_DOY_MASK;
+ 949              	 .loc 1 605 0
+ 950 0014 4B69     	 ldr r3,[r1,#20]
+ 951 0016 C3F30803 	 ubfx r3,r3,#0,#9
+ 952 001a A0F87430 	 strh r3,[r0,#116]
+ 606:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALHOUR = pFullTime->HOUR & RTC_HOUR_MASK;
+ 953              	 .loc 1 606 0
+ 954 001e 8B68     	 ldr r3,[r1,#8]
+ 955 0020 03F01F03 	 and r3,r3,#31
+ 956 0024 80F86830 	 strb r3,[r0,#104]
+ 607:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALMIN = pFullTime->MIN & RTC_MIN_MASK;
+ 957              	 .loc 1 607 0
+ 958 0028 4B68     	 ldr r3,[r1,#4]
+ 959 002a 03F03F03 	 and r3,r3,#63
+ 960 002e 80F86430 	 strb r3,[r0,#100]
+ 608:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALSEC = pFullTime->SEC & RTC_SEC_MASK;
+ 961              	 .loc 1 608 0
+ 962 0032 0B68     	 ldr r3,[r1]
+ 963 0034 03F03F03 	 and r3,r3,#63
+ 964 0038 80F86030 	 strb r3,[r0,#96]
+ 609:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALMON = pFullTime->MONTH & RTC_MONTH_MASK;
+ 965              	 .loc 1 609 0
+ 966 003c 8B69     	 ldr r3,[r1,#24]
+ 967 003e 03F00F03 	 and r3,r3,#15
+ 968 0042 80F87830 	 strb r3,[r0,#120]
+ 610:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ALYEAR = pFullTime->YEAR & RTC_YEAR_MASK;
+ 969              	 .loc 1 610 0
+ 970 0046 CB69     	 ldr r3,[r1,#28]
+ 971 0048 C3F30B03 	 ubfx r3,r3,#0,#12
+ 972 004c A0F87C30 	 strh r3,[r0,#124]
+ 973 0050 7047     	 bx lr
+ 974              	 .cfi_endproc
+ 975              	.LFE67:
+ 977              	 .section .text.RTC_GetFullAlarmTime,"ax",%progbits
+ 978              	 .align 1
+ 979              	 .global RTC_GetFullAlarmTime
+ 980              	 .syntax unified
+ 981              	 .thumb
+ 982              	 .thumb_func
+ 983              	 .fpu softvfp
+ 985              	RTC_GetFullAlarmTime:
+ 986              	.LFB68:
+ 611:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 612:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 613:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 614:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 615:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Get full of alarm time in RTC peripheral
+ 616:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 617:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	pFullTime Pointer to a RTC_TIME_Type structure that
+ 618:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				will be stored alarm time in full.
+ 619:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 620:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 621:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_GetFullAlarmTime (LPC_RTC_TypeDef *RTCx, RTC_TIME_Type *pFullTime)
+ 622:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 987              	 .loc 1 622 0
+ 988              	 .cfi_startproc
+ 989              	 
+ 990              	 
+ 991              	 
+ 992              	.LVL82:
+ 623:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 624:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 625:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->DOM = RTCx->ALDOM & RTC_DOM_MASK;
+ 993              	 .loc 1 625 0
+ 994 0000 90F86C30 	 ldrb r3,[r0,#108]
+ 995 0004 03F01F03 	 and r3,r3,#31
+ 996 0008 CB60     	 str r3,[r1,#12]
+ 626:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->DOW = RTCx->ALDOW & RTC_DOW_MASK;
+ 997              	 .loc 1 626 0
+ 998 000a 90F87030 	 ldrb r3,[r0,#112]
+ 999 000e 03F00703 	 and r3,r3,#7
+ 1000 0012 0B61     	 str r3,[r1,#16]
+ 627:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->DOY = RTCx->ALDOY & RTC_DOY_MASK;
+ 1001              	 .loc 1 627 0
+ 1002 0014 B0F87430 	 ldrh r3,[r0,#116]
+ 1003 0018 C3F30803 	 ubfx r3,r3,#0,#9
+ 1004 001c 4B61     	 str r3,[r1,#20]
+ 628:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->HOUR = RTCx->ALHOUR & RTC_HOUR_MASK;
+ 1005              	 .loc 1 628 0
+ 1006 001e 90F86830 	 ldrb r3,[r0,#104]
+ 1007 0022 03F01F03 	 and r3,r3,#31
+ 1008 0026 8B60     	 str r3,[r1,#8]
+ 629:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->MIN = RTCx->ALMIN & RTC_MIN_MASK;
+ 1009              	 .loc 1 629 0
+ 1010 0028 90F86430 	 ldrb r3,[r0,#100]
+ 1011 002c 03F03F03 	 and r3,r3,#63
+ 1012 0030 4B60     	 str r3,[r1,#4]
+ 630:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->SEC = RTCx->ALSEC & RTC_SEC_MASK;
+ 1013              	 .loc 1 630 0
+ 1014 0032 90F86030 	 ldrb r3,[r0,#96]
+ 1015 0036 03F03F03 	 and r3,r3,#63
+ 1016 003a 0B60     	 str r3,[r1]
+ 631:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->MONTH = RTCx->ALMON & RTC_MONTH_MASK;
+ 1017              	 .loc 1 631 0
+ 1018 003c 90F87830 	 ldrb r3,[r0,#120]
+ 1019 0040 03F00F03 	 and r3,r3,#15
+ 1020 0044 8B61     	 str r3,[r1,#24]
+ 632:LPC17xxLib/src/lpc17xx_rtc.c **** 	pFullTime->YEAR = RTCx->ALYEAR & RTC_YEAR_MASK;
+ 1021              	 .loc 1 632 0
+ 1022 0046 B0F87C30 	 ldrh r3,[r0,#124]
+ 1023 004a C3F30B03 	 ubfx r3,r3,#0,#12
+ 1024 004e CB61     	 str r3,[r1,#28]
+ 1025 0050 7047     	 bx lr
+ 1026              	 .cfi_endproc
+ 1027              	.LFE68:
+ 1029              	 .section .text.RTC_GetIntPending,"ax",%progbits
+ 1030              	 .align 1
+ 1031              	 .global RTC_GetIntPending
+ 1032              	 .syntax unified
+ 1033              	 .thumb
+ 1034              	 .thumb_func
+ 1035              	 .fpu softvfp
+ 1037              	RTC_GetIntPending:
+ 1038              	.LFB69:
+ 633:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 634:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 635:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 636:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 637:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Check whether if specified Location interrupt in
+ 638:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				RTC peripheral is set or not
+ 639:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 640:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	IntType Interrupt location type, should be:
+ 641:LPC17xxLib/src/lpc17xx_rtc.c ****  * 						- RTC_INT_COUNTER_INCREASE: Counter Increment Interrupt
+ 642:LPC17xxLib/src/lpc17xx_rtc.c ****  * 							block generated an interrupt.
+ 643:LPC17xxLib/src/lpc17xx_rtc.c ****  * 						- RTC_INT_ALARM: Alarm generated an
+ 644:LPC17xxLib/src/lpc17xx_rtc.c ****  * 							interrupt.
+ 645:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		New state of specified Location interrupt in RTC peripheral
+ 646:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				(SET or RESET)
+ 647:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 648:LPC17xxLib/src/lpc17xx_rtc.c **** IntStatus RTC_GetIntPending (LPC_RTC_TypeDef *RTCx, uint32_t IntType)
+ 649:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 1039              	 .loc 1 649 0
+ 1040              	 .cfi_startproc
+ 1041              	 
+ 1042              	 
+ 1043              	 
+ 1044              	.LVL83:
+ 650:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 651:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_INT(IntType));
+ 652:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 653:LPC17xxLib/src/lpc17xx_rtc.c **** 	return ((RTCx->ILR & IntType) ? SET : RESET);
+ 1045              	 .loc 1 653 0
+ 1046 0000 0378     	 ldrb r3,[r0]
+ 1047 0002 0B42     	 tst r3,r1
+ 654:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 1048              	 .loc 1 654 0
+ 1049 0004 14BF     	 ite ne
+ 1050 0006 0120     	 movne r0,#1
+ 1051              	.LVL84:
+ 1052 0008 0020     	 moveq r0,#0
+ 1053 000a 7047     	 bx lr
+ 1054              	 .cfi_endproc
+ 1055              	.LFE69:
+ 1057              	 .section .text.RTC_ClearIntPending,"ax",%progbits
+ 1058              	 .align 1
+ 1059              	 .global RTC_ClearIntPending
+ 1060              	 .syntax unified
+ 1061              	 .thumb
+ 1062              	 .thumb_func
+ 1063              	 .fpu softvfp
+ 1065              	RTC_ClearIntPending:
+ 1066              	.LFB70:
+ 655:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 656:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 657:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 658:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Clear specified Location interrupt pending in
+ 659:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				RTC peripheral
+ 660:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 661:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	IntType Interrupt location type, should be:
+ 662:LPC17xxLib/src/lpc17xx_rtc.c ****  * 						- RTC_INT_COUNTER_INCREASE: Clear Counter Increment
+ 663:LPC17xxLib/src/lpc17xx_rtc.c ****  * 						Interrupt pending.
+ 664:LPC17xxLib/src/lpc17xx_rtc.c ****  * 						- RTC_INT_ALARM: Clear alarm interrupt pending
+ 665:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 666:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 667:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_ClearIntPending (LPC_RTC_TypeDef *RTCx, uint32_t IntType)
+ 668:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 1067              	 .loc 1 668 0
+ 1068              	 .cfi_startproc
+ 1069              	 
+ 1070              	 
+ 1071              	 
+ 1072              	.LVL85:
+ 669:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 670:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_INT(IntType));
+ 671:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 672:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->ILR |= IntType;
+ 1073              	 .loc 1 672 0
+ 1074 0000 0378     	 ldrb r3,[r0]
+ 1075 0002 1943     	 orrs r1,r1,r3
+ 1076              	.LVL86:
+ 1077 0004 C9B2     	 uxtb r1,r1
+ 1078 0006 0170     	 strb r1,[r0]
+ 1079 0008 7047     	 bx lr
+ 1080              	 .cfi_endproc
+ 1081              	.LFE70:
+ 1083              	 .section .text.RTC_CalibCounterCmd,"ax",%progbits
+ 1084              	 .align 1
+ 1085              	 .global RTC_CalibCounterCmd
+ 1086              	 .syntax unified
+ 1087              	 .thumb
+ 1088              	 .thumb_func
+ 1089              	 .fpu softvfp
+ 1091              	RTC_CalibCounterCmd:
+ 1092              	.LFB71:
+ 673:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 674:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 675:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 676:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Enable/Disable calibration counter in RTC peripheral
+ 677:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 678:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	NewState New State of this function, should be:
+ 679:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- ENABLE: The calibration counter is enabled and counting
+ 680:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				- DISABLE: The calibration counter is disabled and reset to zero
+ 681:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 682:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 683:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_CalibCounterCmd(LPC_RTC_TypeDef *RTCx, FunctionalState NewState)
+ 684:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 1093              	 .loc 1 684 0
+ 1094              	 .cfi_startproc
+ 1095              	 
+ 1096              	 
+ 1097              	 
+ 1098              	.LVL87:
+ 685:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 686:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 687:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 688:LPC17xxLib/src/lpc17xx_rtc.c **** 	if (NewState == ENABLE)
+ 689:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 690:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->CCR &= (~RTC_CCR_CCALEN) & RTC_CCR_BITMASK;
+ 1099              	 .loc 1 690 0
+ 1100 0000 037A     	 ldrb r3,[r0,#8]
+ 688:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 1101              	 .loc 1 688 0
+ 1102 0002 0129     	 cmp r1,#1
+ 1103              	 .loc 1 690 0
+ 1104 0004 0CBF     	 ite eq
+ 1105 0006 03F00303 	 andeq r3,r3,#3
+ 691:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 692:LPC17xxLib/src/lpc17xx_rtc.c **** 	else
+ 693:LPC17xxLib/src/lpc17xx_rtc.c **** 	{
+ 694:LPC17xxLib/src/lpc17xx_rtc.c **** 		RTCx->CCR |= RTC_CCR_CCALEN;
+ 1106              	 .loc 1 694 0
+ 1107 000a 43F01003 	 orrne r3,r3,#16
+ 1108 000e 0372     	 strb r3,[r0,#8]
+ 1109 0010 7047     	 bx lr
+ 1110              	 .cfi_endproc
+ 1111              	.LFE71:
+ 1113              	 .section .text.RTC_CalibConfig,"ax",%progbits
+ 1114              	 .align 1
+ 1115              	 .global RTC_CalibConfig
+ 1116              	 .syntax unified
+ 1117              	 .thumb
+ 1118              	 .thumb_func
+ 1119              	 .fpu softvfp
+ 1121              	RTC_CalibConfig:
+ 1122              	.LFB72:
+ 695:LPC17xxLib/src/lpc17xx_rtc.c **** 	}
+ 696:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 697:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 698:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 699:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 700:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Configures Calibration in RTC peripheral
+ 701:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 702:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	CalibValue Calibration value, should be in range from
+ 703:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					0 to 131,072
+ 704:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	CalibDir Calibration Direction, should be:
+ 705:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					- RTC_CALIB_DIR_FORWARD: Forward calibration
+ 706:LPC17xxLib/src/lpc17xx_rtc.c ****  * 					- RTC_CALIB_DIR_BACKWARD: Backward calibration
+ 707:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 708:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 709:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_CalibConfig(LPC_RTC_TypeDef *RTCx, uint32_t CalibValue, uint8_t CalibDir)
+ 710:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 1123              	 .loc 1 710 0
+ 1124              	 .cfi_startproc
+ 1125              	 
+ 1126              	 
+ 1127              	 
+ 1128              	.LVL88:
+ 711:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 712:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_CALIB_DIR(CalibDir));
+ 713:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(CalibValue < RTC_CALIBRATION_MAX);
+ 714:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 715:LPC17xxLib/src/lpc17xx_rtc.c **** 	RTCx->CALIBRATION = ((CalibValue - 1) & RTC_CALIBRATION_CALVAL_MASK) \
+ 1129              	 .loc 1 715 0
+ 1130 0000 0139     	 subs r1,r1,#1
+ 1131              	.LVL89:
+ 716:LPC17xxLib/src/lpc17xx_rtc.c **** 			| ((CalibDir == RTC_CALIB_DIR_BACKWARD) ? RTC_CALIBRATION_LIBDIR : 0);
+ 1132              	 .loc 1 716 0
+ 1133 0002 012A     	 cmp r2,#1
+ 715:LPC17xxLib/src/lpc17xx_rtc.c **** 			| ((CalibDir == RTC_CALIB_DIR_BACKWARD) ? RTC_CALIBRATION_LIBDIR : 0);
+ 1134              	 .loc 1 715 0
+ 1135 0004 C1F31003 	 ubfx r3,r1,#0,#17
+ 1136              	 .loc 1 716 0
+ 1137 0008 0CBF     	 ite eq
+ 1138 000a 4FF40031 	 moveq r1,#131072
+ 1139              	.LVL90:
+ 1140 000e 0021     	 movne r1,#0
+ 1141 0010 1943     	 orrs r1,r1,r3
+ 715:LPC17xxLib/src/lpc17xx_rtc.c **** 			| ((CalibDir == RTC_CALIB_DIR_BACKWARD) ? RTC_CALIBRATION_LIBDIR : 0);
+ 1142              	 .loc 1 715 0
+ 1143 0012 0164     	 str r1,[r0,#64]
+ 1144 0014 7047     	 bx lr
+ 1145              	 .cfi_endproc
+ 1146              	.LFE72:
+ 1148              	 .section .text.RTC_WriteGPREG,"ax",%progbits
+ 1149              	 .align 1
+ 1150              	 .global RTC_WriteGPREG
+ 1151              	 .syntax unified
+ 1152              	 .thumb
+ 1153              	 .thumb_func
+ 1154              	 .fpu softvfp
+ 1156              	RTC_WriteGPREG:
+ 1157              	.LFB73:
+ 717:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 718:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 719:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 720:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 721:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Write value to General purpose registers
+ 722:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 723:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Channel General purpose registers Channel number,
+ 724:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				should be in range from 0 to 4.
+ 725:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Value Value to write
+ 726:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		None
+ 727:LPC17xxLib/src/lpc17xx_rtc.c ****  * Note: These General purpose registers can be used to store important
+ 728:LPC17xxLib/src/lpc17xx_rtc.c ****  * information when the main power supply is off. The value in these
+ 729:LPC17xxLib/src/lpc17xx_rtc.c ****  * registers is not affected by chip reset.
+ 730:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 731:LPC17xxLib/src/lpc17xx_rtc.c **** void RTC_WriteGPREG (LPC_RTC_TypeDef *RTCx, uint8_t Channel, uint32_t Value)
+ 732:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 1158              	 .loc 1 732 0
+ 1159              	 .cfi_startproc
+ 1160              	 
+ 1161              	 
+ 1162              	 
+ 1163              	.LVL91:
+ 733:LPC17xxLib/src/lpc17xx_rtc.c **** 	uint32_t *preg;
+ 734:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 735:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 736:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_GPREG_CH(Channel));
+ 737:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 738:LPC17xxLib/src/lpc17xx_rtc.c **** 	preg = (uint32_t *)&RTCx->GPREG0;
+ 1164              	 .loc 1 738 0
+ 1165 0000 4430     	 adds r0,r0,#68
+ 1166              	.LVL92:
+ 739:LPC17xxLib/src/lpc17xx_rtc.c **** 	preg += Channel;
+ 740:LPC17xxLib/src/lpc17xx_rtc.c **** 	*preg = Value;
+ 1167              	 .loc 1 740 0
+ 1168 0002 40F82120 	 str r2,[r0,r1,lsl#2]
+ 1169 0006 7047     	 bx lr
+ 1170              	 .cfi_endproc
+ 1171              	.LFE73:
+ 1173              	 .section .text.RTC_ReadGPREG,"ax",%progbits
+ 1174              	 .align 1
+ 1175              	 .global RTC_ReadGPREG
+ 1176              	 .syntax unified
+ 1177              	 .thumb
+ 1178              	 .thumb_func
+ 1179              	 .fpu softvfp
+ 1181              	RTC_ReadGPREG:
+ 1182              	.LFB74:
+ 741:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 742:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 743:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 744:LPC17xxLib/src/lpc17xx_rtc.c **** /*********************************************************************//**
+ 745:LPC17xxLib/src/lpc17xx_rtc.c ****  * @brief 		Read value from General purpose registers
+ 746:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	RTCx	RTC peripheral selected, should be LPC_RTC
+ 747:LPC17xxLib/src/lpc17xx_rtc.c ****  * @param[in]	Channel General purpose registers Channel number,
+ 748:LPC17xxLib/src/lpc17xx_rtc.c ****  * 				should be in range from 0 to 4.
+ 749:LPC17xxLib/src/lpc17xx_rtc.c ****  * @return 		Read Value
+ 750:LPC17xxLib/src/lpc17xx_rtc.c ****  * Note: These General purpose registers can be used to store important
+ 751:LPC17xxLib/src/lpc17xx_rtc.c ****  * information when the main power supply is off. The value in these
+ 752:LPC17xxLib/src/lpc17xx_rtc.c ****  * registers is not affected by chip reset.
+ 753:LPC17xxLib/src/lpc17xx_rtc.c ****  **********************************************************************/
+ 754:LPC17xxLib/src/lpc17xx_rtc.c **** uint32_t RTC_ReadGPREG (LPC_RTC_TypeDef *RTCx, uint8_t Channel)
+ 755:LPC17xxLib/src/lpc17xx_rtc.c **** {
+ 1183              	 .loc 1 755 0
+ 1184              	 .cfi_startproc
+ 1185              	 
+ 1186              	 
+ 1187              	 
+ 1188              	.LVL93:
+ 756:LPC17xxLib/src/lpc17xx_rtc.c **** 	uint32_t *preg;
+ 757:LPC17xxLib/src/lpc17xx_rtc.c **** 	uint32_t value;
+ 758:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 759:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTCx(RTCx));
+ 760:LPC17xxLib/src/lpc17xx_rtc.c **** 	CHECK_PARAM(PARAM_RTC_GPREG_CH(Channel));
+ 761:LPC17xxLib/src/lpc17xx_rtc.c **** 
+ 762:LPC17xxLib/src/lpc17xx_rtc.c **** 	preg = (uint32_t *)&RTCx->GPREG0;
+ 1189              	 .loc 1 762 0
+ 1190 0000 4430     	 adds r0,r0,#68
+ 1191              	.LVL94:
+ 763:LPC17xxLib/src/lpc17xx_rtc.c **** 	preg += Channel;
+ 764:LPC17xxLib/src/lpc17xx_rtc.c **** 	value = *preg;
+ 765:LPC17xxLib/src/lpc17xx_rtc.c **** 	return (value);
+ 766:LPC17xxLib/src/lpc17xx_rtc.c **** }
+ 1192              	 .loc 1 766 0
+ 1193 0002 50F82100 	 ldr r0,[r0,r1,lsl#2]
+ 1194              	.LVL95:
+ 1195 0006 7047     	 bx lr
+ 1196              	 .cfi_endproc
+ 1197              	.LFE74:
+ 1199              	 .text
+ 1200              	.Letext0:
+ 1201              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 1202              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 1203              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 1204              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 1205              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 1206              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 1207              	 .file 8 "LPC17xxLib/inc/lpc17xx_rtc.h"
+ 1208              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_rtc.c
+    {standard input}:16     .text.RTC_Init:0000000000000000 $t
+    {standard input}:23     .text.RTC_Init:0000000000000000 RTC_Init
+    {standard input}:71     .text.RTC_Init:000000000000003c $d
+    {standard input}:76     .text.RTC_DeInit:0000000000000000 $t
+    {standard input}:83     .text.RTC_DeInit:0000000000000000 RTC_DeInit
+    {standard input}:105    .text.RTC_DeInit:000000000000000c $d
+    {standard input}:110    .text.RTC_ResetClockTickCounter:0000000000000000 $t
+    {standard input}:117    .text.RTC_ResetClockTickCounter:0000000000000000 RTC_ResetClockTickCounter
+    {standard input}:138    .text.RTC_Cmd:0000000000000000 $t
+    {standard input}:145    .text.RTC_Cmd:0000000000000000 RTC_Cmd
+    {standard input}:168    .text.RTC_CntIncrIntConfig:0000000000000000 $t
+    {standard input}:175    .text.RTC_CntIncrIntConfig:0000000000000000 RTC_CntIncrIntConfig
+    {standard input}:191    .text.RTC_CntIncrIntConfig:000000000000000c $d
+    {standard input}:199    .text.RTC_CntIncrIntConfig:0000000000000014 $t
+    {standard input}:250    .text.RTC_CntIncrIntConfig:000000000000005e $d
+    {standard input}:258    .text.RTC_CntIncrIntConfig:0000000000000066 $t
+    {standard input}:303    .text.RTC_AlarmIntConfig:0000000000000000 $t
+    {standard input}:310    .text.RTC_AlarmIntConfig:0000000000000000 RTC_AlarmIntConfig
+    {standard input}:326    .text.RTC_AlarmIntConfig:000000000000000c $d
+    {standard input}:334    .text.RTC_AlarmIntConfig:0000000000000014 $t
+    {standard input}:385    .text.RTC_AlarmIntConfig:000000000000005e $d
+    {standard input}:393    .text.RTC_AlarmIntConfig:0000000000000066 $t
+    {standard input}:438    .text.RTC_SetTime:0000000000000000 $t
+    {standard input}:445    .text.RTC_SetTime:0000000000000000 RTC_SetTime
+    {standard input}:458    .text.RTC_SetTime:0000000000000008 $d
+    {standard input}:466    .text.RTC_SetTime:0000000000000010 $t
+    {standard input}:534    .text.RTC_GetTime:0000000000000000 $t
+    {standard input}:541    .text.RTC_GetTime:0000000000000000 RTC_GetTime
+    {standard input}:554    .text.RTC_GetTime:0000000000000008 $d
+    {standard input}:562    .text.RTC_GetTime:0000000000000010 $t
+    {standard input}:630    .text.RTC_SetFullTime:0000000000000000 $t
+    {standard input}:637    .text.RTC_SetFullTime:0000000000000000 RTC_SetFullTime
+    {standard input}:682    .text.RTC_GetFullTime:0000000000000000 $t
+    {standard input}:689    .text.RTC_GetFullTime:0000000000000000 RTC_GetFullTime
+    {standard input}:734    .text.RTC_SetAlarmTime:0000000000000000 $t
+    {standard input}:741    .text.RTC_SetAlarmTime:0000000000000000 RTC_SetAlarmTime
+    {standard input}:754    .text.RTC_SetAlarmTime:0000000000000008 $d
+    {standard input}:762    .text.RTC_SetAlarmTime:0000000000000010 $t
+    {standard input}:830    .text.RTC_GetAlarmTime:0000000000000000 $t
+    {standard input}:837    .text.RTC_GetAlarmTime:0000000000000000 RTC_GetAlarmTime
+    {standard input}:850    .text.RTC_GetAlarmTime:0000000000000008 $d
+    {standard input}:858    .text.RTC_GetAlarmTime:0000000000000010 $t
+    {standard input}:926    .text.RTC_SetFullAlarmTime:0000000000000000 $t
+    {standard input}:933    .text.RTC_SetFullAlarmTime:0000000000000000 RTC_SetFullAlarmTime
+    {standard input}:978    .text.RTC_GetFullAlarmTime:0000000000000000 $t
+    {standard input}:985    .text.RTC_GetFullAlarmTime:0000000000000000 RTC_GetFullAlarmTime
+    {standard input}:1030   .text.RTC_GetIntPending:0000000000000000 $t
+    {standard input}:1037   .text.RTC_GetIntPending:0000000000000000 RTC_GetIntPending
+    {standard input}:1058   .text.RTC_ClearIntPending:0000000000000000 $t
+    {standard input}:1065   .text.RTC_ClearIntPending:0000000000000000 RTC_ClearIntPending
+    {standard input}:1084   .text.RTC_CalibCounterCmd:0000000000000000 $t
+    {standard input}:1091   .text.RTC_CalibCounterCmd:0000000000000000 RTC_CalibCounterCmd
+    {standard input}:1114   .text.RTC_CalibConfig:0000000000000000 $t
+    {standard input}:1121   .text.RTC_CalibConfig:0000000000000000 RTC_CalibConfig
+    {standard input}:1149   .text.RTC_WriteGPREG:0000000000000000 $t
+    {standard input}:1156   .text.RTC_WriteGPREG:0000000000000000 RTC_WriteGPREG
+    {standard input}:1174   .text.RTC_ReadGPREG:0000000000000000 $t
+    {standard input}:1181   .text.RTC_ReadGPREG:0000000000000000 RTC_ReadGPREG
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR

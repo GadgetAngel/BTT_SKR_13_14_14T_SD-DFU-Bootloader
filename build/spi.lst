@@ -1,0 +1,696 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "spi.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.SPI_frequency,"ax",%progbits
+  16              	 .align 1
+  17              	 .global SPI_frequency
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	SPI_frequency:
+  24              	.LFB57:
+  25              	 .file 1 "spi.c"
+   1:spi.c         **** /*****************************************************************************
+   2:spi.c         ****  *                                                                            *
+   3:spi.c         ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:spi.c         ****  *                                                                            *
+   5:spi.c         ****  * by Triffid Hunter                                                          *
+   6:spi.c         ****  *                                                                            *
+   7:spi.c         ****  *                                                                            *
+   8:spi.c         ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:spi.c         ****  *                                                                            *
+  10:spi.c         ****  * This program is free software; you can redistribute it and/or modify       *
+  11:spi.c         ****  * it under the terms of the GNU General Public License as published by       *
+  12:spi.c         ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:spi.c         ****  * (at your option) any later version.                                        *
+  14:spi.c         ****  *                                                                            *
+  15:spi.c         ****  * This program is distributed in the hope that it will be useful,            *
+  16:spi.c         ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:spi.c         ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:spi.c         ****  * GNU General Public License for more details.                               *
+  19:spi.c         ****  *                                                                            *
+  20:spi.c         ****  * You should have received a copy of the GNU General Public License          *
+  21:spi.c         ****  * along with this program; if not, write to the Free Software                *
+  22:spi.c         ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:spi.c         ****  *                                                                            *
+  24:spi.c         ****  *****************************************************************************/
+  25:spi.c         **** 
+  26:spi.c         **** #include "spi.h"
+  27:spi.c         **** 
+  28:spi.c         **** #include "lpc17xx_clkpwr.h"
+  29:spi.c         **** #include "lpc17xx_pinsel.h"
+  30:spi.c         **** #include "lpc17xx_ssp.h"
+  31:spi.c         **** #include "lpc17xx_gpio.h"
+  32:spi.c         **** 
+  33:spi.c         **** #include <stdio.h>
+  34:spi.c         **** 
+  35:spi.c         **** // #define SOFT_SPI
+  36:spi.c         **** 
+  37:spi.c         **** uint32_t delay;
+  38:spi.c         **** Pin_t miso;
+  39:spi.c         **** Pin_t mosi;
+  40:spi.c         **** Pin_t sclk;
+  41:spi.c         **** SPI_REG *sspr;
+  42:spi.c         **** 
+  43:spi.c         **** 
+  44:spi.c         **** void SPI_init(PinName mosi, PinName miso, PinName sclk)
+  45:spi.c         **** {
+  46:spi.c         **** 	FIO_SetDir((mosi >> 5) & 7, 1UL << (mosi & 0x1F), 1);
+  47:spi.c         **** 	FIO_SetDir((miso >> 5) & 7, 1UL << (miso & 0x1F), 0);
+  48:spi.c         **** 	FIO_SetDir((sclk >> 5) & 7, 1UL << (sclk & 0x1F), 1);
+  49:spi.c         **** 
+  50:spi.c         ****     if (mosi == P0_9 && miso == P0_8 && sclk == P0_7)
+  51:spi.c         ****     {
+  52:spi.c         ****         // SSP1 on 0.7,0.8,0.9
+  53:spi.c         ****         sspr = LPC_SSP1;
+  54:spi.c         **** //         isr_dispatch[1] = this;
+  55:spi.c         **** // 		printf("SPI:Using SSP1\n");
+  56:spi.c         **** 
+  57:spi.c         ****         LPC_PINCON->PINSEL0 &= ~((3 << (7*2)) | (3 << (8*2)) | (3 << (9*2)));
+  58:spi.c         ****         LPC_PINCON->PINSEL0 |=  ((2 << (7*2)) | (2 << (8*2)) | (2 << (9*2)));
+  59:spi.c         **** 
+  60:spi.c         ****         LPC_SC->PCLKSEL0 &= 0xFFCFFFFF;
+  61:spi.c         ****         LPC_SC->PCLKSEL0 |= 0x00100000;
+  62:spi.c         **** 
+  63:spi.c         ****         LPC_SC->PCONP |= CLKPWR_PCONP_PCSSP1;
+  64:spi.c         ****     }
+  65:spi.c         ****     else if (mosi == P0_18 && miso == P0_17 && sclk == P0_15)
+  66:spi.c         ****     {
+  67:spi.c         ****         // SSP0 on 0.15,0.16,0.17,0.18
+  68:spi.c         ****         sspr = LPC_SSP0;
+  69:spi.c         **** //         isr_dispatch[0] = this;
+  70:spi.c         **** 
+  71:spi.c         ****         LPC_PINCON->PINSEL0 &= ~(3 << (15*2));
+  72:spi.c         ****         LPC_PINCON->PINSEL0 |=  (2 << (15*2));
+  73:spi.c         ****         LPC_PINCON->PINSEL1 &= ~( (3 << ((17*2)&30)) | (3 << ((18*2)&30)) );
+  74:spi.c         ****         LPC_PINCON->PINSEL1 |=  ( (2 << ((17*2)&30)) | (2 << ((18*2)&30)) );
+  75:spi.c         **** 
+  76:spi.c         ****         LPC_SC->PCLKSEL1 &= 0xFFFFF3FF;
+  77:spi.c         ****         LPC_SC->PCLKSEL1 |= 0x00000400;
+  78:spi.c         **** 
+  79:spi.c         ****         LPC_SC->PCONP |= CLKPWR_PCONP_PCSSP0;
+  80:spi.c         ****     }
+  81:spi.c         ****     else if (mosi == P1_24 && miso == P1_23 && sclk == P1_20)
+  82:spi.c         ****     {
+  83:spi.c         ****         // SSP0 on 1.20,1.23,1.24
+  84:spi.c         ****         sspr = LPC_SSP0;
+  85:spi.c         **** //         isr_dispatch[0] = this;
+  86:spi.c         **** 
+  87:spi.c         **** // //         LPC_PINCON->PINSEL3 &= 0xFFFC3CFF;
+  88:spi.c         **** //         LPC_PINCON->PINSEL3 |= 0x0003C300;
+  89:spi.c         **** 
+  90:spi.c         **** //         LPC_PINCON->PINSEL3 &= ~( (3 << ((20*2)&30)) | (3 << ((23*2)&30)) | (3 << ((24*2)&30)) )
+  91:spi.c         ****         LPC_PINCON->PINSEL3 |=  ( (3 << ((20*2)&30)) | (3 << ((23*2)&30)) | (3 << ((24*2)&30)) );
+  92:spi.c         **** 
+  93:spi.c         ****         LPC_SC->PCLKSEL1 &= 0xFFFFF3FF;
+  94:spi.c         ****         LPC_SC->PCLKSEL1 |= 0x00000400;
+  95:spi.c         **** 
+  96:spi.c         ****         LPC_SC->PCONP |= CLKPWR_PCONP_PCSSP0;
+  97:spi.c         ****     }
+  98:spi.c         ****     else
+  99:spi.c         ****     {
+ 100:spi.c         ****         sspr = (LPC_SSP_TypeDef *) 0;
+ 101:spi.c         ****     }
+ 102:spi.c         **** 
+ 103:spi.c         ****     if (sspr) {
+ 104:spi.c         ****         // simple assignment does not work with gcc 6.3.1,
+ 105:spi.c         ****         // this results in register being zero (compiler problem?)
+ 106:spi.c         ****         sspr->CR0 &= ~SSP_CR0_BITMASK;
+ 107:spi.c         ****         sspr->CR0 |= SSP_DATABIT_8 |
+ 108:spi.c         ****                      SSP_FRAME_SPI ;
+ 109:spi.c         ****         sspr->CR1 &= ~SSP_CR1_BITMASK;
+ 110:spi.c         ****         sspr->CR1 |= SSP_MASTER_MODE;
+ 111:spi.c         ****         SPI_frequency(10000);
+ 112:spi.c         ****         sspr->CR1 |= SSP_CR1_SSP_EN;
+ 113:spi.c         ****     }
+ 114:spi.c         **** }
+ 115:spi.c         **** 
+ 116:spi.c         **** void SPI_frequency(uint32_t f)
+ 117:spi.c         **** {
+  26              	 .loc 1 117 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+ 118:spi.c         ****     // CCLK = 25MHz
+ 119:spi.c         ****     // CPSR = 2 to 254, even only
+ 120:spi.c         ****     // CR0[8:15] (SCR, 0..255) is a further prescale
+ 121:spi.c         **** 
+ 122:spi.c         **** //     iprintf("SPI: frequency %lu:", f);
+ 123:spi.c         ****     delay = 25000000 / f;
+  32              	 .loc 1 123 0
+  33 0000 1E4A     	 ldr r2,.L9
+  34 0002 1F4B     	 ldr r3,.L9+4
+  35 0004 B2FBF0F2 	 udiv r2,r2,r0
+  36 0008 1A60     	 str r2,[r3]
+ 124:spi.c         ****     // f = 25MHz / (CPSR . [SCR + 1])
+ 125:spi.c         ****     // CPSR . (SCR + 1) = 25MHz / f
+ 126:spi.c         ****     // min freq is 25MHz / (254 * 256)
+ 127:spi.c         ****     if (sspr) {
+  37              	 .loc 1 127 0
+  38 000a 1E4B     	 ldr r3,.L9+8
+  39 000c 1B68     	 ldr r3,[r3]
+  40 000e A3B1     	 cbz r3,.L1
+ 128:spi.c         ****         if (f < 385) {
+  41              	 .loc 1 128 0
+  42 0010 B0F5C07F 	 cmp r0,#384
+  43 0014 12D8     	 bhi .L3
+ 129:spi.c         ****             sspr->CPSR = 254;
+  44              	 .loc 1 129 0
+  45 0016 6FF00101 	 mvn r1,#1
+  46 001a 1A7C     	 ldrb r2,[r3,#16]
+  47 001c 0022     	 movs r2,#0
+  48 001e 1974     	 strb r1,[r3,#16]
+  49 0020 597C     	 ldrb r1,[r3,#17]
+  50 0022 5A74     	 strb r2,[r3,#17]
+  51 0024 997C     	 ldrb r1,[r3,#18]
+  52 0026 9A74     	 strb r2,[r3,#18]
+  53 0028 D97C     	 ldrb r1,[r3,#19]
+  54 002a DA74     	 strb r2,[r3,#19]
+ 130:spi.c         ****             sspr->CR0 &= 0x00FF;
+  55              	 .loc 1 130 0
+  56 002c 1A68     	 ldr r2,[r3]
+  57 002e D2B2     	 uxtb r2,r2
+  58 0030 1A60     	 str r2,[r3]
+ 131:spi.c         ****             sspr->CR0 |= 255 << 8;
+  59              	 .loc 1 131 0
+  60 0032 1A68     	 ldr r2,[r3]
+  61 0034 42F47F42 	 orr r2,r2,#65280
+  62              	.LVL1:
+  63              	.L8:
+ 132:spi.c         ****         }
+ 133:spi.c         ****         // max freq is 25MHz / (2 * 1)
+ 134:spi.c         ****         else if (f > 12500000) {
+ 135:spi.c         ****             sspr->CPSR = 2;
+ 136:spi.c         ****             sspr->CR0 &= 0x00FF;
+ 137:spi.c         ****         }
+ 138:spi.c         ****         else {
+ 139:spi.c         ****             sspr->CPSR = delay & 0xFE;
+ 140:spi.c         ****             // CPSR . (SCR + 1) = f;
+ 141:spi.c         ****             // (SCR + 1) = f / CPSR;
+ 142:spi.c         ****             // SCR = (f / CPSR) - 1
+ 143:spi.c         ****             sspr->CR0 &= 0x00FF;
+ 144:spi.c         ****             sspr->CR0 |= (((delay / sspr->CPSR) - 1) & 0xFF) << 8;
+  64              	 .loc 1 144 0
+  65 0038 1A60     	 str r2,[r3]
+  66              	.L1:
+  67 003a 7047     	 bx lr
+  68              	.LVL2:
+  69              	.L3:
+ 134:spi.c         ****             sspr->CPSR = 2;
+  70              	 .loc 1 134 0
+  71 003c 1249     	 ldr r1,.L9+12
+  72 003e 8842     	 cmp r0,r1
+  73 0040 0CD9     	 bls .L4
+ 135:spi.c         ****             sspr->CR0 &= 0x00FF;
+  74              	 .loc 1 135 0
+  75 0042 0221     	 movs r1,#2
+  76 0044 1A7C     	 ldrb r2,[r3,#16]
+  77 0046 0022     	 movs r2,#0
+  78 0048 1974     	 strb r1,[r3,#16]
+  79 004a 597C     	 ldrb r1,[r3,#17]
+  80 004c 5A74     	 strb r2,[r3,#17]
+  81 004e 997C     	 ldrb r1,[r3,#18]
+  82 0050 9A74     	 strb r2,[r3,#18]
+  83 0052 D97C     	 ldrb r1,[r3,#19]
+  84 0054 DA74     	 strb r2,[r3,#19]
+ 136:spi.c         ****         }
+  85              	 .loc 1 136 0
+  86 0056 1A68     	 ldr r2,[r3]
+  87 0058 D2B2     	 uxtb r2,r2
+  88 005a EDE7     	 b .L8
+  89              	.L4:
+ 139:spi.c         ****             // CPSR . (SCR + 1) = f;
+  90              	 .loc 1 139 0
+  91 005c 02F0FE01 	 and r1,r2,#254
+  92 0060 1961     	 str r1,[r3,#16]
+ 143:spi.c         ****             sspr->CR0 |= (((delay / sspr->CPSR) - 1) & 0xFF) << 8;
+  93              	 .loc 1 143 0
+  94 0062 1968     	 ldr r1,[r3]
+  95 0064 C9B2     	 uxtb r1,r1
+  96 0066 1960     	 str r1,[r3]
+  97              	 .loc 1 144 0
+  98 0068 1869     	 ldr r0,[r3,#16]
+  99              	.LVL3:
+ 100 006a 1968     	 ldr r1,[r3]
+ 101 006c B2FBF0F2 	 udiv r2,r2,r0
+ 102 0070 013A     	 subs r2,r2,#1
+ 103 0072 1202     	 lsls r2,r2,#8
+ 104 0074 92B2     	 uxth r2,r2
+ 105 0076 0A43     	 orrs r2,r2,r1
+ 106 0078 DEE7     	 b .L8
+ 107              	.L10:
+ 108 007a 00BF     	 .align 2
+ 109              	.L9:
+ 110 007c 40787D01 	 .word 25000000
+ 111 0080 00000000 	 .word delay
+ 112 0084 00000000 	 .word sspr
+ 113 0088 20BCBE00 	 .word 12500000
+ 114              	 .cfi_endproc
+ 115              	.LFE57:
+ 117              	 .section .text.SPI_init,"ax",%progbits
+ 118              	 .align 1
+ 119              	 .global SPI_init
+ 120              	 .syntax unified
+ 121              	 .thumb
+ 122              	 .thumb_func
+ 123              	 .fpu softvfp
+ 125              	SPI_init:
+ 126              	.LFB56:
+  45:spi.c         **** 	FIO_SetDir((mosi >> 5) & 7, 1UL << (mosi & 0x1F), 1);
+ 127              	 .loc 1 45 0
+ 128              	 .cfi_startproc
+ 129              	 
+ 130              	 
+ 131              	.LVL4:
+ 132 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 133              	 .cfi_def_cfa_offset 24
+ 134              	 .cfi_offset 4,-24
+ 135              	 .cfi_offset 5,-20
+ 136              	 .cfi_offset 6,-16
+ 137              	 .cfi_offset 7,-12
+ 138              	 .cfi_offset 8,-8
+ 139              	 .cfi_offset 14,-4
+  46:spi.c         **** 	FIO_SetDir((miso >> 5) & 7, 1UL << (miso & 0x1F), 0);
+ 140              	 .loc 1 46 0
+ 141 0004 0124     	 movs r4,#1
+  45:spi.c         **** 	FIO_SetDir((mosi >> 5) & 7, 1UL << (mosi & 0x1F), 1);
+ 142              	 .loc 1 45 0
+ 143 0006 0E46     	 mov r6,r1
+ 144 0008 1546     	 mov r5,r2
+ 145 000a 0746     	 mov r7,r0
+  46:spi.c         **** 	FIO_SetDir((miso >> 5) & 7, 1UL << (miso & 0x1F), 0);
+ 146              	 .loc 1 46 0
+ 147 000c 00F01F01 	 and r1,r0,#31
+ 148              	.LVL5:
+ 149 0010 2246     	 mov r2,r4
+ 150              	.LVL6:
+ 151 0012 04FA01F1 	 lsl r1,r4,r1
+ 152 0016 DFF84881 	 ldr r8,.L22+24
+ 153 001a C0F34210 	 ubfx r0,r0,#5,#3
+ 154              	.LVL7:
+ 155 001e C047     	 blx r8
+ 156              	.LVL8:
+  47:spi.c         **** 	FIO_SetDir((sclk >> 5) & 7, 1UL << (sclk & 0x1F), 1);
+ 157              	 .loc 1 47 0
+ 158 0020 06F01F01 	 and r1,r6,#31
+ 159 0024 04FA01F1 	 lsl r1,r4,r1
+ 160 0028 0022     	 movs r2,#0
+ 161 002a C6F34210 	 ubfx r0,r6,#5,#3
+ 162 002e C047     	 blx r8
+ 163              	.LVL9:
+  48:spi.c         **** 
+ 164              	 .loc 1 48 0
+ 165 0030 05F01F01 	 and r1,r5,#31
+ 166 0034 2246     	 mov r2,r4
+ 167 0036 04FA01F1 	 lsl r1,r4,r1
+ 168 003a C5F34210 	 ubfx r0,r5,#5,#3
+ 169 003e C047     	 blx r8
+ 170              	.LVL10:
+  50:spi.c         ****     {
+ 171              	 .loc 1 50 0
+ 172 0040 092F     	 cmp r7,#9
+ 173 0042 414C     	 ldr r4,.L22
+ 174 0044 3ED1     	 bne .L12
+  50:spi.c         ****     {
+ 175              	 .loc 1 50 0 is_stmt 0 discriminator 1
+ 176 0046 082E     	 cmp r6,#8
+ 177 0048 7AD1     	 bne .L13
+  50:spi.c         ****     {
+ 178              	 .loc 1 50 0 discriminator 2
+ 179 004a 072D     	 cmp r5,#7
+ 180 004c 78D1     	 bne .L13
+  53:spi.c         **** //         isr_dispatch[1] = this;
+ 181              	 .loc 1 53 0 is_stmt 1
+ 182 004e 3F4B     	 ldr r3,.L22+4
+ 183 0050 2360     	 str r3,[r4]
+  57:spi.c         ****         LPC_PINCON->PINSEL0 |=  ((2 << (7*2)) | (2 << (8*2)) | (2 << (9*2)));
+ 184              	 .loc 1 57 0
+ 185 0052 A3F58043 	 sub r3,r3,#16384
+ 186 0056 1A68     	 ldr r2,[r3]
+ 187 0058 22F47C22 	 bic r2,r2,#1032192
+ 188 005c 1A60     	 str r2,[r3]
+  58:spi.c         **** 
+ 189              	 .loc 1 58 0
+ 190 005e 1A68     	 ldr r2,[r3]
+ 191 0060 42F42822 	 orr r2,r2,#688128
+ 192 0064 1A60     	 str r2,[r3]
+  60:spi.c         ****         LPC_SC->PCLKSEL0 |= 0x00100000;
+ 193              	 .loc 1 60 0
+ 194 0066 03F55023 	 add r3,r3,#851968
+ 195 006a D3F8A821 	 ldr r2,[r3,#424]
+ 196 006e 22F44012 	 bic r2,r2,#3145728
+ 197 0072 C3F8A821 	 str r2,[r3,#424]
+  61:spi.c         **** 
+ 198              	 .loc 1 61 0
+ 199 0076 D3F8A821 	 ldr r2,[r3,#424]
+ 200 007a 42F48012 	 orr r2,r2,#1048576
+ 201 007e C3F8A821 	 str r2,[r3,#424]
+  63:spi.c         ****     }
+ 202              	 .loc 1 63 0
+ 203 0082 D3F8C420 	 ldr r2,[r3,#196]
+ 204 0086 42F48062 	 orr r2,r2,#1024
+ 205              	.L20:
+  79:spi.c         ****     }
+ 206              	 .loc 1 79 0
+ 207 008a C3F8C420 	 str r2,[r3,#196]
+ 208              	.L14:
+ 103:spi.c         ****         // simple assignment does not work with gcc 6.3.1,
+ 209              	 .loc 1 103 0
+ 210 008e 2368     	 ldr r3,[r4]
+ 211 0090 B3B1     	 cbz r3,.L11
+ 106:spi.c         ****         sspr->CR0 |= SSP_DATABIT_8 |
+ 212              	 .loc 1 106 0
+ 213 0092 1A68     	 ldr r2,[r3]
+ 111:spi.c         ****         sspr->CR1 |= SSP_CR1_SSP_EN;
+ 214              	 .loc 1 111 0
+ 215 0094 42F21070 	 movw r0,#10000
+ 106:spi.c         ****         sspr->CR0 |= SSP_DATABIT_8 |
+ 216              	 .loc 1 106 0
+ 217 0098 120C     	 lsrs r2,r2,#16
+ 218 009a 1204     	 lsls r2,r2,#16
+ 219 009c 1A60     	 str r2,[r3]
+ 107:spi.c         ****                      SSP_FRAME_SPI ;
+ 220              	 .loc 1 107 0
+ 221 009e 1A68     	 ldr r2,[r3]
+ 222 00a0 42F00702 	 orr r2,r2,#7
+ 223 00a4 1A60     	 str r2,[r3]
+ 109:spi.c         ****         sspr->CR1 |= SSP_MASTER_MODE;
+ 224              	 .loc 1 109 0
+ 225 00a6 5A68     	 ldr r2,[r3,#4]
+ 226 00a8 22F00F02 	 bic r2,r2,#15
+ 227 00ac 5A60     	 str r2,[r3,#4]
+ 110:spi.c         ****         SPI_frequency(10000);
+ 228              	 .loc 1 110 0
+ 229 00ae 5A68     	 ldr r2,[r3,#4]
+ 230 00b0 5A60     	 str r2,[r3,#4]
+ 111:spi.c         ****         sspr->CR1 |= SSP_CR1_SSP_EN;
+ 231              	 .loc 1 111 0
+ 232 00b2 274B     	 ldr r3,.L22+8
+ 233 00b4 9847     	 blx r3
+ 234              	.LVL11:
+ 112:spi.c         ****     }
+ 235              	 .loc 1 112 0
+ 236 00b6 2268     	 ldr r2,[r4]
+ 237 00b8 5368     	 ldr r3,[r2,#4]
+ 238 00ba 43F00203 	 orr r3,r3,#2
+ 239 00be 5360     	 str r3,[r2,#4]
+ 240              	.L11:
+ 241 00c0 BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 242              	.L12:
+  65:spi.c         ****     {
+ 243              	 .loc 1 65 0
+ 244 00c4 122F     	 cmp r7,#18
+ 245 00c6 2AD1     	 bne .L15
+  65:spi.c         ****     {
+ 246              	 .loc 1 65 0 is_stmt 0 discriminator 1
+ 247 00c8 112E     	 cmp r6,#17
+ 248 00ca 39D1     	 bne .L13
+  65:spi.c         ****     {
+ 249              	 .loc 1 65 0 discriminator 2
+ 250 00cc 0F2D     	 cmp r5,#15
+ 251 00ce 37D1     	 bne .L13
+  68:spi.c         **** //         isr_dispatch[0] = this;
+ 252              	 .loc 1 68 0 is_stmt 1
+ 253 00d0 204B     	 ldr r3,.L22+12
+ 254 00d2 2360     	 str r3,[r4]
+  71:spi.c         ****         LPC_PINCON->PINSEL0 |=  (2 << (15*2));
+ 255              	 .loc 1 71 0
+ 256 00d4 A3F5B823 	 sub r3,r3,#376832
+ 257 00d8 1A68     	 ldr r2,[r3]
+ 258 00da 22F04042 	 bic r2,r2,#-1073741824
+ 259 00de 1A60     	 str r2,[r3]
+  72:spi.c         ****         LPC_PINCON->PINSEL1 &= ~( (3 << ((17*2)&30)) | (3 << ((18*2)&30)) );
+ 260              	 .loc 1 72 0
+ 261 00e0 1A68     	 ldr r2,[r3]
+ 262 00e2 42F00042 	 orr r2,r2,#-2147483648
+ 263 00e6 1A60     	 str r2,[r3]
+  73:spi.c         ****         LPC_PINCON->PINSEL1 |=  ( (2 << ((17*2)&30)) | (2 << ((18*2)&30)) );
+ 264              	 .loc 1 73 0
+ 265 00e8 5A68     	 ldr r2,[r3,#4]
+ 266 00ea 22F03C02 	 bic r2,r2,#60
+ 267 00ee 5A60     	 str r2,[r3,#4]
+  74:spi.c         **** 
+ 268              	 .loc 1 74 0
+ 269 00f0 5A68     	 ldr r2,[r3,#4]
+ 270 00f2 42F02802 	 orr r2,r2,#40
+ 271 00f6 5A60     	 str r2,[r3,#4]
+  76:spi.c         ****         LPC_SC->PCLKSEL1 |= 0x00000400;
+ 272              	 .loc 1 76 0
+ 273 00f8 03F55023 	 add r3,r3,#851968
+ 274              	.L21:
+ 275 00fc D3F8AC21 	 ldr r2,[r3,#428]
+ 276 0100 22F44062 	 bic r2,r2,#3072
+ 277 0104 C3F8AC21 	 str r2,[r3,#428]
+  77:spi.c         **** 
+ 278              	 .loc 1 77 0
+ 279 0108 D3F8AC21 	 ldr r2,[r3,#428]
+ 280 010c 42F48062 	 orr r2,r2,#1024
+ 281 0110 C3F8AC21 	 str r2,[r3,#428]
+  79:spi.c         ****     }
+ 282              	 .loc 1 79 0
+ 283 0114 D3F8C420 	 ldr r2,[r3,#196]
+ 284 0118 42F40012 	 orr r2,r2,#2097152
+ 285 011c B5E7     	 b .L20
+ 286              	.L15:
+  81:spi.c         ****     {
+ 287              	 .loc 1 81 0
+ 288 011e 382F     	 cmp r7,#56
+ 289 0120 0ED1     	 bne .L13
+  81:spi.c         ****     {
+ 290              	 .loc 1 81 0 is_stmt 0 discriminator 1
+ 291 0122 372E     	 cmp r6,#55
+ 292 0124 0CD1     	 bne .L13
+  81:spi.c         ****     {
+ 293              	 .loc 1 81 0 discriminator 2
+ 294 0126 342D     	 cmp r5,#52
+ 295 0128 0AD1     	 bne .L13
+  84:spi.c         **** //         isr_dispatch[0] = this;
+ 296              	 .loc 1 84 0 is_stmt 1
+ 297 012a 0A4B     	 ldr r3,.L22+12
+  91:spi.c         **** 
+ 298              	 .loc 1 91 0
+ 299 012c 0A4A     	 ldr r2,.L22+16
+  84:spi.c         **** //         isr_dispatch[0] = this;
+ 300              	 .loc 1 84 0
+ 301 012e 2360     	 str r3,[r4]
+  91:spi.c         **** 
+ 302              	 .loc 1 91 0
+ 303 0130 D368     	 ldr r3,[r2,#12]
+ 304 0132 43F47033 	 orr r3,r3,#245760
+ 305 0136 43F44073 	 orr r3,r3,#768
+ 306 013a D360     	 str r3,[r2,#12]
+  93:spi.c         ****         LPC_SC->PCLKSEL1 |= 0x00000400;
+ 307              	 .loc 1 93 0
+ 308 013c 074B     	 ldr r3,.L22+20
+ 309 013e DDE7     	 b .L21
+ 310              	.L13:
+ 100:spi.c         ****     }
+ 311              	 .loc 1 100 0
+ 312 0140 0023     	 movs r3,#0
+ 313 0142 2360     	 str r3,[r4]
+ 314 0144 A3E7     	 b .L14
+ 315              	.L23:
+ 316 0146 00BF     	 .align 2
+ 317              	.L22:
+ 318 0148 00000000 	 .word sspr
+ 319 014c 00000340 	 .word 1073938432
+ 320 0150 00000000 	 .word SPI_frequency
+ 321 0154 00800840 	 .word 1074298880
+ 322 0158 00C00240 	 .word 1073922048
+ 323 015c 00C00F40 	 .word 1074774016
+ 324 0160 00000000 	 .word FIO_SetDir
+ 325              	 .cfi_endproc
+ 326              	.LFE56:
+ 328              	 .section .text._delay,"ax",%progbits
+ 329              	 .align 1
+ 330              	 .global _delay
+ 331              	 .syntax unified
+ 332              	 .thumb
+ 333              	 .thumb_func
+ 334              	 .fpu softvfp
+ 336              	_delay:
+ 337              	.LFB58:
+ 145:spi.c         ****         }
+ 146:spi.c         **** //         iprintf(" CPSR=%lu, CR0=%lu", sspr->CPSR, sspr->CR0);
+ 147:spi.c         ****     }
+ 148:spi.c         **** //     iprintf("\n");
+ 149:spi.c         **** }
+ 150:spi.c         **** 
+ 151:spi.c         **** void _delay(uint32_t ticks) {
+ 338              	 .loc 1 151 0
+ 339              	 .cfi_startproc
+ 340              	 
+ 341              	 
+ 342              	 
+ 343              	.LVL12:
+ 344              	.L25:
+ 152:spi.c         ****     for (;ticks;ticks--)
+ 345              	 .loc 1 152 0 discriminator 1
+ 346 0000 00B9     	 cbnz r0,.L26
+ 153:spi.c         ****         asm volatile("nop\n\t");
+ 154:spi.c         **** }
+ 347              	 .loc 1 154 0
+ 348 0002 7047     	 bx lr
+ 349              	.L26:
+ 153:spi.c         ****         asm volatile("nop\n\t");
+ 350              	 .loc 1 153 0 discriminator 2
+ 351              	 .syntax unified
+ 352              	
+ 353 0004 00BF     	 nop
+ 354              	 
+ 355              	
+ 152:spi.c         ****     for (;ticks;ticks--)
+ 356              	 .loc 1 152 0 discriminator 2
+ 357              	 .thumb
+ 358              	 .syntax unified
+ 359 0006 0138     	 subs r0,r0,#1
+ 360              	.LVL13:
+ 361 0008 FAE7     	 b .L25
+ 362              	 .cfi_endproc
+ 363              	.LFE58:
+ 365              	 .section .text.SPI_write,"ax",%progbits
+ 366              	 .align 1
+ 367              	 .global SPI_write
+ 368              	 .syntax unified
+ 369              	 .thumb
+ 370              	 .thumb_func
+ 371              	 .fpu softvfp
+ 373              	SPI_write:
+ 374              	.LFB59:
+ 155:spi.c         **** 
+ 156:spi.c         **** uint8_t SPI_write(uint8_t data)
+ 157:spi.c         **** {
+ 375              	 .loc 1 157 0
+ 376              	 .cfi_startproc
+ 377              	 
+ 378              	 
+ 379              	 
+ 380              	.LVL14:
+ 158:spi.c         **** //     _cs = 1;
+ 159:spi.c         ****     uint8_t r = 0;
+ 160:spi.c         **** //     printf("SPI: >0x%x", data);
+ 161:spi.c         ****     if (sspr) {
+ 381              	 .loc 1 161 0
+ 382 0000 074B     	 ldr r3,.L37
+ 383 0002 1B68     	 ldr r3,[r3]
+ 384 0004 4BB1     	 cbz r3,.L31
+ 385              	.L34:
+ 162:spi.c         ****         while ((sspr->SR & SSP_SR_TNF) == 0);
+ 386              	 .loc 1 162 0 discriminator 1
+ 387 0006 DA68     	 ldr r2,[r3,#12]
+ 388 0008 9107     	 lsls r1,r2,#30
+ 389 000a FCD5     	 bpl .L34
+ 163:spi.c         ****         sspr->DR = data;
+ 390              	 .loc 1 163 0
+ 391 000c 9860     	 str r0,[r3,#8]
+ 392              	.L30:
+ 164:spi.c         ****         while ((sspr->SR & SSP_SR_RNE) == 0);
+ 393              	 .loc 1 164 0 discriminator 1
+ 394 000e DA68     	 ldr r2,[r3,#12]
+ 395 0010 5207     	 lsls r2,r2,#29
+ 396 0012 FCD5     	 bpl .L30
+ 165:spi.c         ****         r = sspr->DR & 255;
+ 397              	 .loc 1 165 0
+ 398 0014 9868     	 ldr r0,[r3,#8]
+ 399              	.LVL15:
+ 400 0016 C0B2     	 uxtb r0,r0
+ 401              	.LVL16:
+ 402 0018 7047     	 bx lr
+ 403              	.LVL17:
+ 404              	.L31:
+ 159:spi.c         **** //     printf("SPI: >0x%x", data);
+ 405              	 .loc 1 159 0
+ 406 001a 1846     	 mov r0,r3
+ 407              	.LVL18:
+ 166:spi.c         ****     }
+ 167:spi.c         **** #ifdef SOFT_SPI
+ 168:spi.c         ****     else {
+ 169:spi.c         ****         for (int i = 0; i < 8; i++) {
+ 170:spi.c         ****             FIO_ClearValue(sclk.port, 1UL << sclk.pin);         // clock LOW
+ 171:spi.c         **** 
+ 172:spi.c         ****             if (data & 0x80)                                    // WRITE
+ 173:spi.c         ****                 FIO_SetValue(mosi.port, 1UL << mosi.pin);
+ 174:spi.c         ****             else
+ 175:spi.c         ****                 FIO_ClearValue(mosi.port, 1UL << mosi.pin);
+ 176:spi.c         ****             data <<= 1;
+ 177:spi.c         **** 
+ 178:spi.c         ****             _delay(delay >> 1);                                 // DELAY
+ 179:spi.c         **** 
+ 180:spi.c         ****             FIO_SetValue(sclk.port, 1UL << sclk.pin);           // clock HIGH
+ 181:spi.c         **** 
+ 182:spi.c         ****             _delay(delay >> 1);                                 // DELAY
+ 183:spi.c         **** 
+ 184:spi.c         ****             r <<= 1;
+ 185:spi.c         ****             if (FIO_ReadValue(miso.port) & (1UL << miso.pin))   // READ
+ 186:spi.c         ****                 r |= 1;
+ 187:spi.c         ****         }
+ 188:spi.c         ****         FIO_ClearValue(sclk.port, 1UL << sclk.pin);
+ 189:spi.c         ****     }
+ 190:spi.c         **** #endif
+ 191:spi.c         **** //     printf(" <0x%x\n", r);
+ 192:spi.c         ****     return r;
+ 193:spi.c         **** }
+ 408              	 .loc 1 193 0
+ 409 001c 7047     	 bx lr
+ 410              	.L38:
+ 411 001e 00BF     	 .align 2
+ 412              	.L37:
+ 413 0020 00000000 	 .word sspr
+ 414              	 .cfi_endproc
+ 415              	.LFE59:
+ 417              	 .comm sspr,4,4
+ 418              	 .comm sclk,2,1
+ 419              	 .comm mosi,2,1
+ 420              	 .comm miso,2,1
+ 421              	 .comm delay,4,4
+ 422              	 .text
+ 423              	.Letext0:
+ 424              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 425              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 426              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 427              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 428              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 429              	 .file 7 "spi_hal.h"
+ 430              	 .file 8 "pins.h"
+ 431              	 .file 9 "spi.h"
+ 432              	 .file 10 "/usr/include/newlib/sys/lock.h"
+ 433              	 .file 11 "/usr/include/newlib/sys/_types.h"
+ 434              	 .file 12 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 435              	 .file 13 "/usr/include/newlib/sys/reent.h"
+ 436              	 .file 14 "LPC17xxLib/inc/lpc17xx_gpio.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 spi.c
+    {standard input}:16     .text.SPI_frequency:0000000000000000 $t
+    {standard input}:23     .text.SPI_frequency:0000000000000000 SPI_frequency
+    {standard input}:110    .text.SPI_frequency:000000000000007c $d
+                            *COM*:0000000000000004 delay
+                            *COM*:0000000000000004 sspr
+    {standard input}:118    .text.SPI_init:0000000000000000 $t
+    {standard input}:125    .text.SPI_init:0000000000000000 SPI_init
+    {standard input}:318    .text.SPI_init:0000000000000148 $d
+    {standard input}:329    .text._delay:0000000000000000 $t
+    {standard input}:336    .text._delay:0000000000000000 _delay
+    {standard input}:366    .text.SPI_write:0000000000000000 $t
+    {standard input}:373    .text.SPI_write:0000000000000000 SPI_write
+    {standard input}:413    .text.SPI_write:0000000000000020 $d
+                            *COM*:0000000000000002 sclk
+                            *COM*:0000000000000002 mosi
+                            *COM*:0000000000000002 miso
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+FIO_SetDir

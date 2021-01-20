@@ -1,0 +1,14 @@
+#!/bin/sh
+# flash the bootloader to the skr board, needs st-link v2 (change in cfg)
+
+LDR=../bootloader_bin/DFU-Bootloader.bin
+CFG=lpc17xx-stlink-v2.cfg
+
+[ -z "$1" ] || LDR=$1
+if [ ! -f $LDR ]; then
+	echo "$LDR not found"
+	exit 1
+fi
+
+echo "Flashing bootloader from $1"
+openocd -f $CFG  -c "flash write_image erase $LDR 0x0" -c "reset run" -c "exit"

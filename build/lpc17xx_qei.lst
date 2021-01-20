@@ -1,0 +1,1287 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_qei.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.QEI_Reset,"ax",%progbits
+  16              	 .align 1
+  17              	 .global QEI_Reset
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	QEI_Reset:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_qei.c"
+   1:LPC17xxLib/src/lpc17xx_qei.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_qei.c **** 
+   3:LPC17xxLib/src/lpc17xx_qei.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_qei.c **** * $Id$		lpc17xx_qei.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_qei.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_qei.c **** * @file		lpc17xx_qei.c
+   7:LPC17xxLib/src/lpc17xx_qei.c **** * @brief	Contains all functions support for QEI firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_qei.c **** * @version	2.0
+   9:LPC17xxLib/src/lpc17xx_qei.c **** * @date		21. May. 2010
+  10:LPC17xxLib/src/lpc17xx_qei.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_qei.c **** *
+  12:LPC17xxLib/src/lpc17xx_qei.c **** * Copyright(C) 2010, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_qei.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_qei.c **** *
+  15:LPC17xxLib/src/lpc17xx_qei.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_qei.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_qei.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_qei.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_qei.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_qei.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_qei.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_qei.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_qei.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_qei.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_qei.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_qei.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_qei.c **** 
+  28:LPC17xxLib/src/lpc17xx_qei.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_qei.c **** /** @addtogroup QEI
+  30:LPC17xxLib/src/lpc17xx_qei.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_qei.c ****  */
+  32:LPC17xxLib/src/lpc17xx_qei.c **** 
+  33:LPC17xxLib/src/lpc17xx_qei.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_qei.c **** #include "lpc17xx_qei.h"
+  35:LPC17xxLib/src/lpc17xx_qei.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_qei.c **** 
+  37:LPC17xxLib/src/lpc17xx_qei.c **** 
+  38:LPC17xxLib/src/lpc17xx_qei.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  39:LPC17xxLib/src/lpc17xx_qei.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  40:LPC17xxLib/src/lpc17xx_qei.c ****  * otherwise the default FW library configuration file must be included instead
+  41:LPC17xxLib/src/lpc17xx_qei.c ****  */
+  42:LPC17xxLib/src/lpc17xx_qei.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  43:LPC17xxLib/src/lpc17xx_qei.c **** #include "lpc17xx_libcfg.h"
+  44:LPC17xxLib/src/lpc17xx_qei.c **** #else
+  45:LPC17xxLib/src/lpc17xx_qei.c **** #include "lpc17xx_libcfg_default.h"
+  46:LPC17xxLib/src/lpc17xx_qei.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  47:LPC17xxLib/src/lpc17xx_qei.c **** 
+  48:LPC17xxLib/src/lpc17xx_qei.c **** 
+  49:LPC17xxLib/src/lpc17xx_qei.c **** #ifdef _QEI
+  50:LPC17xxLib/src/lpc17xx_qei.c **** 
+  51:LPC17xxLib/src/lpc17xx_qei.c **** /* Private Types -------------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_qei.c **** /** @defgroup QEI_Private_Types QEI Private Types
+  53:LPC17xxLib/src/lpc17xx_qei.c ****  * @{
+  54:LPC17xxLib/src/lpc17xx_qei.c ****  */
+  55:LPC17xxLib/src/lpc17xx_qei.c **** 
+  56:LPC17xxLib/src/lpc17xx_qei.c **** /**
+  57:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief QEI configuration union type definition
+  58:LPC17xxLib/src/lpc17xx_qei.c ****  */
+  59:LPC17xxLib/src/lpc17xx_qei.c **** typedef union {
+  60:LPC17xxLib/src/lpc17xx_qei.c **** 	QEI_CFG_Type bmQEIConfig;
+  61:LPC17xxLib/src/lpc17xx_qei.c **** 	uint32_t ulQEIConfig;
+  62:LPC17xxLib/src/lpc17xx_qei.c **** } QEI_CFGOPT_Type;
+  63:LPC17xxLib/src/lpc17xx_qei.c **** 
+  64:LPC17xxLib/src/lpc17xx_qei.c **** /**
+  65:LPC17xxLib/src/lpc17xx_qei.c ****  * @}
+  66:LPC17xxLib/src/lpc17xx_qei.c ****  */
+  67:LPC17xxLib/src/lpc17xx_qei.c **** 
+  68:LPC17xxLib/src/lpc17xx_qei.c **** 
+  69:LPC17xxLib/src/lpc17xx_qei.c **** /* Public Functions ----------------------------------------------------------- */
+  70:LPC17xxLib/src/lpc17xx_qei.c **** /** @addtogroup QEI_Public_Functions
+  71:LPC17xxLib/src/lpc17xx_qei.c ****  * @{
+  72:LPC17xxLib/src/lpc17xx_qei.c ****  */
+  73:LPC17xxLib/src/lpc17xx_qei.c **** 
+  74:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+  75:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Resets value for each type of QEI value, such as velocity,
+  76:LPC17xxLib/src/lpc17xx_qei.c ****  * 				counter, position, etc..
+  77:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+  78:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulResetType		QEI Reset Type, should be one of the following:
+  79:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_RESET_POS: Reset Position Counter
+  80:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_RESET_POSOnIDX: Reset Position Counter on Index signal
+  81:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_RESET_VEL: Reset Velocity
+  82:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_RESET_IDX: Reset Index Counter
+  83:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+  84:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+  85:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_Reset(LPC_QEI_TypeDef *QEIx, uint32_t ulResetType)
+  86:LPC17xxLib/src/lpc17xx_qei.c **** {
+  26              	 .loc 1 86 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+  87:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+  88:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_RESET(ulResetType));
+  89:LPC17xxLib/src/lpc17xx_qei.c **** 
+  90:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEICON = ulResetType;
+  32              	 .loc 1 90 0
+  33 0000 0160     	 str r1,[r0]
+  34 0002 7047     	 bx lr
+  35              	 .cfi_endproc
+  36              	.LFE55:
+  38              	 .section .text.QEI_Init,"ax",%progbits
+  39              	 .align 1
+  40              	 .global QEI_Init
+  41              	 .syntax unified
+  42              	 .thumb
+  43              	 .thumb_func
+  44              	 .fpu softvfp
+  46              	QEI_Init:
+  47              	.LFB56:
+  91:LPC17xxLib/src/lpc17xx_qei.c **** }
+  92:LPC17xxLib/src/lpc17xx_qei.c **** 
+  93:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+  94:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Initializes the QEI peripheral according to the specified
+  95:LPC17xxLib/src/lpc17xx_qei.c **** *               parameters in the QEI_ConfigStruct.
+  96:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx				QEI peripheral, should be LPC_QEI
+  97:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEI_ConfigStruct	Pointer to a QEI_CFG_Type structure
+  98:LPC17xxLib/src/lpc17xx_qei.c **** *                    that contains the configuration information for the
+  99:LPC17xxLib/src/lpc17xx_qei.c **** *                    specified QEI peripheral
+ 100:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 101:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 102:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_Init(LPC_QEI_TypeDef *QEIx, QEI_CFG_Type *QEI_ConfigStruct)
+ 103:LPC17xxLib/src/lpc17xx_qei.c **** {
+  48              	 .loc 1 103 0
+  49              	 .cfi_startproc
+  50              	 
+  51              	 
+  52              	.LVL1:
+  53 0000 38B5     	 push {r3,r4,r5,lr}
+  54              	 .cfi_def_cfa_offset 16
+  55              	 .cfi_offset 3,-16
+  56              	 .cfi_offset 4,-12
+  57              	 .cfi_offset 5,-8
+  58              	 .cfi_offset 14,-4
+  59              	 .loc 1 103 0
+  60 0002 0446     	 mov r4,r0
+  61 0004 0D46     	 mov r5,r1
+ 104:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 105:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 106:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_DIRINV(QEI_ConfigStruct->DirectionInvert));
+ 107:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_SIGNALMODE(QEI_ConfigStruct->SignalMode));
+ 108:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_CAPMODE(QEI_ConfigStruct->CaptureMode));
+ 109:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_INVINX(QEI_ConfigStruct->InvertIndex));
+ 110:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 111:LPC17xxLib/src/lpc17xx_qei.c **** 	/* Set up clock and power for QEI module */
+ 112:LPC17xxLib/src/lpc17xx_qei.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCQEI, ENABLE);
+  62              	 .loc 1 112 0
+  63 0006 4FF48020 	 mov r0,#262144
+  64              	.LVL2:
+  65 000a 0121     	 movs r1,#1
+  66              	.LVL3:
+  67 000c 4A4B     	 ldr r3,.L3
+  68 000e 9847     	 blx r3
+  69              	.LVL4:
+ 113:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 114:LPC17xxLib/src/lpc17xx_qei.c **** 	/* As default, peripheral clock for QEI module
+ 115:LPC17xxLib/src/lpc17xx_qei.c **** 	 * is set to FCCLK / 2 */
+ 116:LPC17xxLib/src/lpc17xx_qei.c **** 	CLKPWR_SetPCLKDiv(CLKPWR_PCLKSEL_QEI, CLKPWR_PCLKSEL_CCLK_DIV_1);
+  70              	 .loc 1 116 0
+  71 0010 0121     	 movs r1,#1
+  72 0012 2020     	 movs r0,#32
+  73 0014 494B     	 ldr r3,.L3+4
+  74 0016 9847     	 blx r3
+  75              	.LVL5:
+ 117:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 118:LPC17xxLib/src/lpc17xx_qei.c **** 	// Reset all remaining value in QEI peripheral
+ 119:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEICON = QEI_CON_RESP | QEI_CON_RESV | QEI_CON_RESI;
+  76              	 .loc 1 119 0
+  77 0018 0D22     	 movs r2,#13
+  78 001a 2378     	 ldrb r3,[r4]
+  79 001c 0023     	 movs r3,#0
+  80 001e 2270     	 strb r2,[r4]
+  81 0020 6278     	 ldrb r2,[r4,#1]
+  82 0022 6370     	 strb r3,[r4,#1]
+  83 0024 A278     	 ldrb r2,[r4,#2]
+  84 0026 A370     	 strb r3,[r4,#2]
+  85 0028 E278     	 ldrb r2,[r4,#3]
+  86 002a E370     	 strb r3,[r4,#3]
+ 120:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEIMAXPOS = 0x00;
+  87              	 .loc 1 120 0
+  88 002c 227C     	 ldrb r2,[r4,#16]
+ 121:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->CMPOS0 = 0x00;
+ 122:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->CMPOS1 = 0x00;
+ 123:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->CMPOS2 = 0x00;
+ 124:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->INXCMP = 0x00;
+ 125:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEILOAD = 0x00;
+ 126:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->VELCOMP = 0x00;
+ 127:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->FILTER = 0x00;
+ 128:LPC17xxLib/src/lpc17xx_qei.c **** 	// Disable all Interrupt
+ 129:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEIIEC = QEI_IECLR_BITMASK;
+  89              	 .loc 1 129 0
+  90 002e 4FF0FF31 	 mov r1,#-1
+ 120:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEIMAXPOS = 0x00;
+  91              	 .loc 1 120 0
+  92 0032 2374     	 strb r3,[r4,#16]
+  93 0034 627C     	 ldrb r2,[r4,#17]
+  94 0036 6374     	 strb r3,[r4,#17]
+  95 0038 A27C     	 ldrb r2,[r4,#18]
+  96 003a A374     	 strb r3,[r4,#18]
+  97 003c E27C     	 ldrb r2,[r4,#19]
+  98 003e E374     	 strb r3,[r4,#19]
+ 121:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->CMPOS0 = 0x00;
+  99              	 .loc 1 121 0
+ 100 0040 227D     	 ldrb r2,[r4,#20]
+ 101 0042 2375     	 strb r3,[r4,#20]
+ 102 0044 627D     	 ldrb r2,[r4,#21]
+ 103 0046 6375     	 strb r3,[r4,#21]
+ 104 0048 A27D     	 ldrb r2,[r4,#22]
+ 105 004a A375     	 strb r3,[r4,#22]
+ 106 004c E27D     	 ldrb r2,[r4,#23]
+ 107 004e E375     	 strb r3,[r4,#23]
+ 122:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->CMPOS2 = 0x00;
+ 108              	 .loc 1 122 0
+ 109 0050 227E     	 ldrb r2,[r4,#24]
+ 110 0052 2376     	 strb r3,[r4,#24]
+ 111 0054 627E     	 ldrb r2,[r4,#25]
+ 112 0056 6376     	 strb r3,[r4,#25]
+ 113 0058 A27E     	 ldrb r2,[r4,#26]
+ 114 005a A376     	 strb r3,[r4,#26]
+ 115 005c E27E     	 ldrb r2,[r4,#27]
+ 116 005e E376     	 strb r3,[r4,#27]
+ 123:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->INXCMP = 0x00;
+ 117              	 .loc 1 123 0
+ 118 0060 227F     	 ldrb r2,[r4,#28]
+ 119 0062 2377     	 strb r3,[r4,#28]
+ 120 0064 627F     	 ldrb r2,[r4,#29]
+ 121 0066 6377     	 strb r3,[r4,#29]
+ 122 0068 A27F     	 ldrb r2,[r4,#30]
+ 123 006a A377     	 strb r3,[r4,#30]
+ 124 006c E27F     	 ldrb r2,[r4,#31]
+ 125 006e E377     	 strb r3,[r4,#31]
+ 124:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEILOAD = 0x00;
+ 126              	 .loc 1 124 0
+ 127 0070 94F82420 	 ldrb r2,[r4,#36]
+ 128 0074 84F82430 	 strb r3,[r4,#36]
+ 129 0078 94F82520 	 ldrb r2,[r4,#37]
+ 130 007c 84F82530 	 strb r3,[r4,#37]
+ 131 0080 94F82620 	 ldrb r2,[r4,#38]
+ 132 0084 84F82630 	 strb r3,[r4,#38]
+ 133 0088 94F82720 	 ldrb r2,[r4,#39]
+ 134 008c 84F82730 	 strb r3,[r4,#39]
+ 125:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->VELCOMP = 0x00;
+ 135              	 .loc 1 125 0
+ 136 0090 94F82820 	 ldrb r2,[r4,#40]
+ 137 0094 84F82830 	 strb r3,[r4,#40]
+ 138 0098 94F82920 	 ldrb r2,[r4,#41]
+ 139 009c 84F82930 	 strb r3,[r4,#41]
+ 140 00a0 94F82A20 	 ldrb r2,[r4,#42]
+ 141 00a4 84F82A30 	 strb r3,[r4,#42]
+ 142 00a8 94F82B20 	 ldrb r2,[r4,#43]
+ 143 00ac 84F82B30 	 strb r3,[r4,#43]
+ 126:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->FILTER = 0x00;
+ 144              	 .loc 1 126 0
+ 145 00b0 94F83820 	 ldrb r2,[r4,#56]
+ 146 00b4 84F83830 	 strb r3,[r4,#56]
+ 147 00b8 94F83920 	 ldrb r2,[r4,#57]
+ 148 00bc 84F83930 	 strb r3,[r4,#57]
+ 149 00c0 94F83A20 	 ldrb r2,[r4,#58]
+ 150 00c4 84F83A30 	 strb r3,[r4,#58]
+ 151 00c8 94F83B20 	 ldrb r2,[r4,#59]
+ 152 00cc 84F83B30 	 strb r3,[r4,#59]
+ 127:LPC17xxLib/src/lpc17xx_qei.c **** 	// Disable all Interrupt
+ 153              	 .loc 1 127 0
+ 154 00d0 94F83C20 	 ldrb r2,[r4,#60]
+ 155 00d4 84F83C30 	 strb r3,[r4,#60]
+ 156 00d8 94F83D20 	 ldrb r2,[r4,#61]
+ 157 00dc 84F83D30 	 strb r3,[r4,#61]
+ 158 00e0 94F83E20 	 ldrb r2,[r4,#62]
+ 159 00e4 84F83E30 	 strb r3,[r4,#62]
+ 160 00e8 94F83F20 	 ldrb r2,[r4,#63]
+ 161 00ec 84F83F30 	 strb r3,[r4,#63]
+ 162              	 .loc 1 129 0
+ 163 00f0 94F8D82F 	 ldrb r2,[r4,#4056]
+ 164 00f4 84F8D81F 	 strb r1,[r4,#4056]
+ 165 00f8 94F8D92F 	 ldrb r2,[r4,#4057]
+ 166 00fc 1F22     	 movs r2,#31
+ 167 00fe 84F8D92F 	 strb r2,[r4,#4057]
+ 168 0102 94F8DA0F 	 ldrb r0,[r4,#4058]
+ 169 0106 84F8DA3F 	 strb r3,[r4,#4058]
+ 170 010a 94F8DB0F 	 ldrb r0,[r4,#4059]
+ 171 010e 84F8DB3F 	 strb r3,[r4,#4059]
+ 130:LPC17xxLib/src/lpc17xx_qei.c **** 	// Clear all Interrupt pending
+ 131:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEICLR = QEI_INTCLR_BITMASK;
+ 172              	 .loc 1 131 0
+ 173 0112 94F8E80F 	 ldrb r0,[r4,#4072]
+ 174 0116 84F8E81F 	 strb r1,[r4,#4072]
+ 175 011a 94F8E91F 	 ldrb r1,[r4,#4073]
+ 176 011e 84F8E92F 	 strb r2,[r4,#4073]
+ 177 0122 94F8EA2F 	 ldrb r2,[r4,#4074]
+ 178 0126 84F8EA3F 	 strb r3,[r4,#4074]
+ 179 012a 94F8EB2F 	 ldrb r2,[r4,#4075]
+ 180 012e 84F8EB3F 	 strb r3,[r4,#4075]
+ 132:LPC17xxLib/src/lpc17xx_qei.c **** 	// Set QEI configuration value corresponding to its setting up value
+ 133:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEICONF = ((QEI_CFGOPT_Type *)QEI_ConfigStruct)->ulQEIConfig;
+ 181              	 .loc 1 133 0
+ 182 0132 2B68     	 ldr r3,[r5]
+ 183 0134 A360     	 str r3,[r4,#8]
+ 184 0136 38BD     	 pop {r3,r4,r5,pc}
+ 185              	.LVL6:
+ 186              	.L4:
+ 187              	 .align 2
+ 188              	.L3:
+ 189 0138 00000000 	 .word CLKPWR_ConfigPPWR
+ 190 013c 00000000 	 .word CLKPWR_SetPCLKDiv
+ 191              	 .cfi_endproc
+ 192              	.LFE56:
+ 194              	 .section .text.QEI_DeInit,"ax",%progbits
+ 195              	 .align 1
+ 196              	 .global QEI_DeInit
+ 197              	 .syntax unified
+ 198              	 .thumb
+ 199              	 .thumb_func
+ 200              	 .fpu softvfp
+ 202              	QEI_DeInit:
+ 203              	.LFB57:
+ 134:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 135:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 136:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 137:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 138:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		De-initializes the QEI peripheral registers to their
+ 139:LPC17xxLib/src/lpc17xx_qei.c **** *                  default reset values.
+ 140:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx	QEI peripheral, should be LPC_QEI
+ 141:LPC17xxLib/src/lpc17xx_qei.c ****  * @return 		None
+ 142:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 143:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_DeInit(LPC_QEI_TypeDef *QEIx)
+ 144:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 204              	 .loc 1 144 0
+ 205              	 .cfi_startproc
+ 206              	 
+ 207              	 
+ 208              	 
+ 209              	.LVL7:
+ 145:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 146:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 147:LPC17xxLib/src/lpc17xx_qei.c **** 	/* Turn off clock and power for QEI module */
+ 148:LPC17xxLib/src/lpc17xx_qei.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCQEI, DISABLE);
+ 210              	 .loc 1 148 0
+ 211 0000 0021     	 movs r1,#0
+ 212 0002 4FF48020 	 mov r0,#262144
+ 213              	.LVL8:
+ 214 0006 014B     	 ldr r3,.L6
+ 215 0008 1847     	 bx r3
+ 216              	.LVL9:
+ 217              	.L7:
+ 218 000a 00BF     	 .align 2
+ 219              	.L6:
+ 220 000c 00000000 	 .word CLKPWR_ConfigPPWR
+ 221              	 .cfi_endproc
+ 222              	.LFE57:
+ 224              	 .section .text.QEI_ConfigStructInit,"ax",%progbits
+ 225              	 .align 1
+ 226              	 .global QEI_ConfigStructInit
+ 227              	 .syntax unified
+ 228              	 .thumb
+ 229              	 .thumb_func
+ 230              	 .fpu softvfp
+ 232              	QEI_ConfigStructInit:
+ 233              	.LFB58:
+ 149:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 150:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 151:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 152:LPC17xxLib/src/lpc17xx_qei.c **** /*****************************************************************************//**
+ 153:LPC17xxLib/src/lpc17xx_qei.c **** * @brief		Fills each QIE_InitStruct member with its default value:
+ 154:LPC17xxLib/src/lpc17xx_qei.c **** * 				- DirectionInvert = QEI_DIRINV_NONE
+ 155:LPC17xxLib/src/lpc17xx_qei.c **** * 				- SignalMode = QEI_SIGNALMODE_QUAD
+ 156:LPC17xxLib/src/lpc17xx_qei.c **** * 				- CaptureMode = QEI_CAPMODE_4X
+ 157:LPC17xxLib/src/lpc17xx_qei.c **** * 				- InvertIndex = QEI_INVINX_NONE
+ 158:LPC17xxLib/src/lpc17xx_qei.c **** * @param[in]	QIE_InitStruct Pointer to a QEI_CFG_Type structure
+ 159:LPC17xxLib/src/lpc17xx_qei.c **** *                    which will be initialized.
+ 160:LPC17xxLib/src/lpc17xx_qei.c **** * @return		None
+ 161:LPC17xxLib/src/lpc17xx_qei.c **** *******************************************************************************/
+ 162:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_ConfigStructInit(QEI_CFG_Type *QIE_InitStruct)
+ 163:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 234              	 .loc 1 163 0
+ 235              	 .cfi_startproc
+ 236              	 
+ 237              	 
+ 238              	 
+ 239              	.LVL10:
+ 164:LPC17xxLib/src/lpc17xx_qei.c **** 	QIE_InitStruct->CaptureMode = QEI_CAPMODE_4X;
+ 240              	 .loc 1 164 0
+ 241 0000 0378     	 ldrb r3,[r0]
+ 165:LPC17xxLib/src/lpc17xx_qei.c **** 	QIE_InitStruct->DirectionInvert = QEI_DIRINV_NONE;
+ 242              	 .loc 1 165 0
+ 243 0002 43F00403 	 orr r3,r3,#4
+ 166:LPC17xxLib/src/lpc17xx_qei.c **** 	QIE_InitStruct->InvertIndex = QEI_INVINX_NONE;
+ 167:LPC17xxLib/src/lpc17xx_qei.c **** 	QIE_InitStruct->SignalMode = QEI_SIGNALMODE_QUAD;
+ 244              	 .loc 1 167 0
+ 245 0006 03F0F603 	 and r3,r3,#246
+ 246 000a 6FF34103 	 bfc r3,#1,#1
+ 247 000e 0370     	 strb r3,[r0]
+ 248 0010 7047     	 bx lr
+ 249              	 .cfi_endproc
+ 250              	.LFE58:
+ 252              	 .section .text.QEI_GetStatus,"ax",%progbits
+ 253              	 .align 1
+ 254              	 .global QEI_GetStatus
+ 255              	 .syntax unified
+ 256              	 .thumb
+ 257              	 .thumb_func
+ 258              	 .fpu softvfp
+ 260              	QEI_GetStatus:
+ 261              	.LFB59:
+ 168:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 169:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 170:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 171:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 172:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Check whether if specified flag status is set or not
+ 173:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx		QEI peripheral, should be LPC_QEI
+ 174:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulFlagType	Status Flag Type, should be one of the following:
+ 175:LPC17xxLib/src/lpc17xx_qei.c ****  * 							- QEI_STATUS_DIR: Direction Status
+ 176:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		New Status of this status flag (SET or RESET)
+ 177:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 178:LPC17xxLib/src/lpc17xx_qei.c **** FlagStatus QEI_GetStatus(LPC_QEI_TypeDef *QEIx, uint32_t ulFlagType)
+ 179:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 262              	 .loc 1 179 0
+ 263              	 .cfi_startproc
+ 264              	 
+ 265              	 
+ 266              	 
+ 267              	.LVL11:
+ 180:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 181:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_STATUS(ulFlagType));
+ 182:LPC17xxLib/src/lpc17xx_qei.c **** 	return ((QEIx->QEISTAT & ulFlagType) ? SET : RESET);
+ 268              	 .loc 1 182 0
+ 269 0000 4368     	 ldr r3,[r0,#4]
+ 270 0002 0B42     	 tst r3,r1
+ 183:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 271              	 .loc 1 183 0
+ 272 0004 14BF     	 ite ne
+ 273 0006 0120     	 movne r0,#1
+ 274              	.LVL12:
+ 275 0008 0020     	 moveq r0,#0
+ 276 000a 7047     	 bx lr
+ 277              	 .cfi_endproc
+ 278              	.LFE59:
+ 280              	 .section .text.QEI_GetPosition,"ax",%progbits
+ 281              	 .align 1
+ 282              	 .global QEI_GetPosition
+ 283              	 .syntax unified
+ 284              	 .thumb
+ 285              	 .thumb_func
+ 286              	 .fpu softvfp
+ 288              	QEI_GetPosition:
+ 289              	.LFB60:
+ 184:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 185:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 186:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Get current position value in QEI peripheral
+ 187:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx	QEI peripheral, should be LPC_QEI
+ 188:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		Current position value of QEI peripheral
+ 189:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 190:LPC17xxLib/src/lpc17xx_qei.c **** uint32_t QEI_GetPosition(LPC_QEI_TypeDef *QEIx)
+ 191:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 290              	 .loc 1 191 0
+ 291              	 .cfi_startproc
+ 292              	 
+ 293              	 
+ 294              	 
+ 295              	.LVL13:
+ 192:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 193:LPC17xxLib/src/lpc17xx_qei.c **** 	return (QEIx->QEIPOS);
+ 296              	 .loc 1 193 0
+ 297 0000 C068     	 ldr r0,[r0,#12]
+ 298              	.LVL14:
+ 194:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 299              	 .loc 1 194 0
+ 300 0002 7047     	 bx lr
+ 301              	 .cfi_endproc
+ 302              	.LFE60:
+ 304              	 .section .text.QEI_SetMaxPosition,"ax",%progbits
+ 305              	 .align 1
+ 306              	 .global QEI_SetMaxPosition
+ 307              	 .syntax unified
+ 308              	 .thumb
+ 309              	 .thumb_func
+ 310              	 .fpu softvfp
+ 312              	QEI_SetMaxPosition:
+ 313              	.LFB61:
+ 195:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 196:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 197:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Set max position value for QEI peripheral
+ 198:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx		QEI peripheral, should be LPC_QEI
+ 199:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulMaxPos	Max position value to set
+ 200:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 201:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 202:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_SetMaxPosition(LPC_QEI_TypeDef *QEIx, uint32_t ulMaxPos)
+ 203:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 314              	 .loc 1 203 0
+ 315              	 .cfi_startproc
+ 316              	 
+ 317              	 
+ 318              	 
+ 319              	.LVL15:
+ 204:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 205:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEIMAXPOS = ulMaxPos;
+ 320              	 .loc 1 205 0
+ 321 0000 0161     	 str r1,[r0,#16]
+ 322 0002 7047     	 bx lr
+ 323              	 .cfi_endproc
+ 324              	.LFE61:
+ 326              	 .section .text.QEI_SetPositionComp,"ax",%progbits
+ 327              	 .align 1
+ 328              	 .global QEI_SetPositionComp
+ 329              	 .syntax unified
+ 330              	 .thumb
+ 331              	 .thumb_func
+ 332              	 .fpu softvfp
+ 334              	QEI_SetPositionComp:
+ 335              	.LFB62:
+ 206:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 207:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 208:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 209:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Set position compare value for QEI peripheral
+ 210:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx		QEI peripheral, should be LPC_QEI
+ 211:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	bPosCompCh	Compare Position channel, should be:
+ 212:LPC17xxLib/src/lpc17xx_qei.c ****  * 							- QEI_COMPPOS_CH_0: QEI compare position channel 0
+ 213:LPC17xxLib/src/lpc17xx_qei.c ****  * 							- QEI_COMPPOS_CH_1: QEI compare position channel 1
+ 214:LPC17xxLib/src/lpc17xx_qei.c ****  * 							- QEI_COMPPOS_CH_2: QEI compare position channel 2
+ 215:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulPosComp	Compare Position value to set
+ 216:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 217:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 218:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_SetPositionComp(LPC_QEI_TypeDef *QEIx, uint8_t bPosCompCh, uint32_t ulPosComp)
+ 219:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 336              	 .loc 1 219 0
+ 337              	 .cfi_startproc
+ 338              	 
+ 339              	 
+ 340              	 
+ 341              	.LVL16:
+ 220:LPC17xxLib/src/lpc17xx_qei.c **** 	uint32_t *tmp;
+ 221:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 222:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 223:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_COMPPOS_CH(bPosCompCh));
+ 224:LPC17xxLib/src/lpc17xx_qei.c **** 	tmp = (uint32_t *) (&(QEIx->CMPOS0) + bPosCompCh * 4);
+ 225:LPC17xxLib/src/lpc17xx_qei.c **** 	*tmp = ulPosComp;
+ 342              	 .loc 1 225 0
+ 343 0000 00EB0111 	 add r1,r0,r1,lsl#4
+ 344              	.LVL17:
+ 345 0004 4A61     	 str r2,[r1,#20]
+ 346 0006 7047     	 bx lr
+ 347              	 .cfi_endproc
+ 348              	.LFE62:
+ 350              	 .section .text.QEI_GetIndex,"ax",%progbits
+ 351              	 .align 1
+ 352              	 .global QEI_GetIndex
+ 353              	 .syntax unified
+ 354              	 .thumb
+ 355              	 .thumb_func
+ 356              	 .fpu softvfp
+ 358              	QEI_GetIndex:
+ 359              	.LFB63:
+ 226:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 227:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 228:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 229:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 230:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Get current index counter of QEI peripheral
+ 231:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx		QEI peripheral, should be LPC_QEI
+ 232:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		Current value of QEI index counter
+ 233:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 234:LPC17xxLib/src/lpc17xx_qei.c **** uint32_t QEI_GetIndex(LPC_QEI_TypeDef *QEIx)
+ 235:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 360              	 .loc 1 235 0
+ 361              	 .cfi_startproc
+ 362              	 
+ 363              	 
+ 364              	 
+ 365              	.LVL18:
+ 236:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 237:LPC17xxLib/src/lpc17xx_qei.c **** 	return (QEIx->INXCNT);
+ 366              	 .loc 1 237 0
+ 367 0000 006A     	 ldr r0,[r0,#32]
+ 368              	.LVL19:
+ 238:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 369              	 .loc 1 238 0
+ 370 0002 7047     	 bx lr
+ 371              	 .cfi_endproc
+ 372              	.LFE63:
+ 374              	 .section .text.QEI_SetIndexComp,"ax",%progbits
+ 375              	 .align 1
+ 376              	 .global QEI_SetIndexComp
+ 377              	 .syntax unified
+ 378              	 .thumb
+ 379              	 .thumb_func
+ 380              	 .fpu softvfp
+ 382              	QEI_SetIndexComp:
+ 383              	.LFB64:
+ 239:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 240:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 241:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Set value for index compare in QEI peripheral
+ 242:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx		QEI peripheral, should be LPC_QEI
+ 243:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulIndexComp		Compare Index Value to set
+ 244:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 245:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 246:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_SetIndexComp(LPC_QEI_TypeDef *QEIx, uint32_t ulIndexComp)
+ 247:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 384              	 .loc 1 247 0
+ 385              	 .cfi_startproc
+ 386              	 
+ 387              	 
+ 388              	 
+ 389              	.LVL20:
+ 248:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 249:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->INXCMP = ulIndexComp;
+ 390              	 .loc 1 249 0
+ 391 0000 4162     	 str r1,[r0,#36]
+ 392 0002 7047     	 bx lr
+ 393              	 .cfi_endproc
+ 394              	.LFE64:
+ 396              	 .global __aeabi_uldivmod
+ 397              	 .section .text.QEI_SetTimerReload,"ax",%progbits
+ 398              	 .align 1
+ 399              	 .global QEI_SetTimerReload
+ 400              	 .syntax unified
+ 401              	 .thumb
+ 402              	 .thumb_func
+ 403              	 .fpu softvfp
+ 405              	QEI_SetTimerReload:
+ 406              	.LFB65:
+ 250:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 251:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 252:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 253:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Set timer reload value for QEI peripheral. When the velocity timer is
+ 254:LPC17xxLib/src/lpc17xx_qei.c ****  * 				over-flow, the value that set for Timer Reload register will be loaded
+ 255:LPC17xxLib/src/lpc17xx_qei.c ****  * 				into the velocity timer for next period. The calculated velocity in RPM
+ 256:LPC17xxLib/src/lpc17xx_qei.c ****  * 				therefore will be affect by this value.
+ 257:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 258:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIReloadStruct	QEI reload structure
+ 259:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 260:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 261:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_SetTimerReload(LPC_QEI_TypeDef *QEIx, QEI_RELOADCFG_Type *QEIReloadStruct)
+ 262:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 407              	 .loc 1 262 0
+ 408              	 .cfi_startproc
+ 409              	 
+ 410              	 
+ 411              	.LVL21:
+ 412 0000 38B5     	 push {r3,r4,r5,lr}
+ 413              	 .cfi_def_cfa_offset 16
+ 414              	 .cfi_offset 3,-16
+ 415              	 .cfi_offset 4,-12
+ 416              	 .cfi_offset 5,-8
+ 417              	 .cfi_offset 14,-4
+ 263:LPC17xxLib/src/lpc17xx_qei.c **** 	uint64_t pclk;
+ 264:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 265:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 266:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_TIMERRELOAD(QEIReloadStruct->ReloadOption));
+ 267:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 268:LPC17xxLib/src/lpc17xx_qei.c **** 	if (QEIReloadStruct->ReloadOption == QEI_TIMERRELOAD_TICKVAL) {
+ 418              	 .loc 1 268 0
+ 419 0002 0B78     	 ldrb r3,[r1]
+ 262:LPC17xxLib/src/lpc17xx_qei.c **** 	uint64_t pclk;
+ 420              	 .loc 1 262 0
+ 421 0004 0546     	 mov r5,r0
+ 422 0006 0C46     	 mov r4,r1
+ 423              	 .loc 1 268 0
+ 424 0008 1BB9     	 cbnz r3,.L16
+ 269:LPC17xxLib/src/lpc17xx_qei.c **** 		QEIx->QEILOAD = QEIReloadStruct->ReloadValue - 1;
+ 425              	 .loc 1 269 0
+ 426 000a 4B68     	 ldr r3,[r1,#4]
+ 427 000c 013B     	 subs r3,r3,#1
+ 428 000e 8362     	 str r3,[r0,#40]
+ 429 0010 38BD     	 pop {r3,r4,r5,pc}
+ 430              	.L16:
+ 270:LPC17xxLib/src/lpc17xx_qei.c **** 	} else {
+ 271:LPC17xxLib/src/lpc17xx_qei.c **** 		pclk = (uint64_t)CLKPWR_GetPCLK(CLKPWR_PCLKSEL_QEI);
+ 431              	 .loc 1 271 0
+ 432 0012 074B     	 ldr r3,.L18
+ 433 0014 2020     	 movs r0,#32
+ 434              	.LVL22:
+ 435 0016 9847     	 blx r3
+ 436              	.LVL23:
+ 272:LPC17xxLib/src/lpc17xx_qei.c **** 		pclk = (pclk /(1000000/QEIReloadStruct->ReloadValue)) - 1;
+ 437              	 .loc 1 272 0
+ 438 0018 6368     	 ldr r3,[r4,#4]
+ 439 001a 064A     	 ldr r2,.L18+4
+ 440 001c 064C     	 ldr r4,.L18+8
+ 441              	.LVL24:
+ 442 001e B2FBF3F2 	 udiv r2,r2,r3
+ 443 0022 0023     	 movs r3,#0
+ 444 0024 1946     	 mov r1,r3
+ 445 0026 A047     	 blx r4
+ 446              	.LVL25:
+ 273:LPC17xxLib/src/lpc17xx_qei.c **** 		QEIx->QEILOAD = (uint32_t)pclk;
+ 447              	 .loc 1 273 0
+ 448 0028 0138     	 subs r0,r0,#1
+ 449 002a A862     	 str r0,[r5,#40]
+ 450 002c 38BD     	 pop {r3,r4,r5,pc}
+ 451              	.LVL26:
+ 452              	.L19:
+ 453 002e 00BF     	 .align 2
+ 454              	.L18:
+ 455 0030 00000000 	 .word CLKPWR_GetPCLK
+ 456 0034 40420F00 	 .word 1000000
+ 457 0038 00000000 	 .word __aeabi_uldivmod
+ 458              	 .cfi_endproc
+ 459              	.LFE65:
+ 461              	 .section .text.QEI_GetTimer,"ax",%progbits
+ 462              	 .align 1
+ 463              	 .global QEI_GetTimer
+ 464              	 .syntax unified
+ 465              	 .thumb
+ 466              	 .thumb_func
+ 467              	 .fpu softvfp
+ 469              	QEI_GetTimer:
+ 470              	.LFB66:
+ 274:LPC17xxLib/src/lpc17xx_qei.c **** 	}
+ 275:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 276:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 277:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 278:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Get current timer counter in QEI peripheral
+ 279:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 280:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		Current timer counter in QEI peripheral
+ 281:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 282:LPC17xxLib/src/lpc17xx_qei.c **** uint32_t QEI_GetTimer(LPC_QEI_TypeDef *QEIx)
+ 283:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 471              	 .loc 1 283 0
+ 472              	 .cfi_startproc
+ 473              	 
+ 474              	 
+ 475              	 
+ 476              	.LVL27:
+ 284:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 285:LPC17xxLib/src/lpc17xx_qei.c **** 	return (QEIx->QEITIME);
+ 477              	 .loc 1 285 0
+ 478 0000 C06A     	 ldr r0,[r0,#44]
+ 479              	.LVL28:
+ 286:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 480              	 .loc 1 286 0
+ 481 0002 7047     	 bx lr
+ 482              	 .cfi_endproc
+ 483              	.LFE66:
+ 485              	 .section .text.QEI_GetVelocity,"ax",%progbits
+ 486              	 .align 1
+ 487              	 .global QEI_GetVelocity
+ 488              	 .syntax unified
+ 489              	 .thumb
+ 490              	 .thumb_func
+ 491              	 .fpu softvfp
+ 493              	QEI_GetVelocity:
+ 494              	.LFB67:
+ 287:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 288:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 289:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Get current velocity pulse counter in current time period
+ 290:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 291:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		Current velocity pulse counter value
+ 292:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 293:LPC17xxLib/src/lpc17xx_qei.c **** uint32_t QEI_GetVelocity(LPC_QEI_TypeDef *QEIx)
+ 294:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 495              	 .loc 1 294 0
+ 496              	 .cfi_startproc
+ 497              	 
+ 498              	 
+ 499              	 
+ 500              	.LVL29:
+ 295:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 296:LPC17xxLib/src/lpc17xx_qei.c **** 	return (QEIx->QEIVEL);
+ 501              	 .loc 1 296 0
+ 502 0000 006B     	 ldr r0,[r0,#48]
+ 503              	.LVL30:
+ 297:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 504              	 .loc 1 297 0
+ 505 0002 7047     	 bx lr
+ 506              	 .cfi_endproc
+ 507              	.LFE67:
+ 509              	 .section .text.QEI_GetVelocityCap,"ax",%progbits
+ 510              	 .align 1
+ 511              	 .global QEI_GetVelocityCap
+ 512              	 .syntax unified
+ 513              	 .thumb
+ 514              	 .thumb_func
+ 515              	 .fpu softvfp
+ 517              	QEI_GetVelocityCap:
+ 518              	.LFB68:
+ 298:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 299:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 300:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Get the most recently measured velocity of the QEI. When
+ 301:LPC17xxLib/src/lpc17xx_qei.c ****  * 				the Velocity timer in QEI is over-flow, the current velocity
+ 302:LPC17xxLib/src/lpc17xx_qei.c ****  * 				value will be loaded into Velocity Capture register.
+ 303:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 304:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		The most recently measured velocity value
+ 305:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 306:LPC17xxLib/src/lpc17xx_qei.c **** uint32_t QEI_GetVelocityCap(LPC_QEI_TypeDef *QEIx)
+ 307:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 519              	 .loc 1 307 0
+ 520              	 .cfi_startproc
+ 521              	 
+ 522              	 
+ 523              	 
+ 524              	.LVL31:
+ 308:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 309:LPC17xxLib/src/lpc17xx_qei.c **** 	return (QEIx->QEICAP);
+ 525              	 .loc 1 309 0
+ 526 0000 406B     	 ldr r0,[r0,#52]
+ 527              	.LVL32:
+ 310:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 528              	 .loc 1 310 0
+ 529 0002 7047     	 bx lr
+ 530              	 .cfi_endproc
+ 531              	.LFE68:
+ 533              	 .section .text.QEI_SetVelocityComp,"ax",%progbits
+ 534              	 .align 1
+ 535              	 .global QEI_SetVelocityComp
+ 536              	 .syntax unified
+ 537              	 .thumb
+ 538              	 .thumb_func
+ 539              	 .fpu softvfp
+ 541              	QEI_SetVelocityComp:
+ 542              	.LFB69:
+ 311:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 312:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 313:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Set Velocity Compare value for QEI peripheral
+ 314:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 315:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulVelComp		Compare Velocity value to set
+ 316:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 317:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 318:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_SetVelocityComp(LPC_QEI_TypeDef *QEIx, uint32_t ulVelComp)
+ 319:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 543              	 .loc 1 319 0
+ 544              	 .cfi_startproc
+ 545              	 
+ 546              	 
+ 547              	 
+ 548              	.LVL33:
+ 320:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 321:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->VELCOMP = ulVelComp;
+ 549              	 .loc 1 321 0
+ 550 0000 8163     	 str r1,[r0,#56]
+ 551 0002 7047     	 bx lr
+ 552              	 .cfi_endproc
+ 553              	.LFE69:
+ 555              	 .section .text.QEI_SetDigiFilter,"ax",%progbits
+ 556              	 .align 1
+ 557              	 .global QEI_SetDigiFilter
+ 558              	 .syntax unified
+ 559              	 .thumb
+ 560              	 .thumb_func
+ 561              	 .fpu softvfp
+ 563              	QEI_SetDigiFilter:
+ 564              	.LFB70:
+ 322:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 323:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 324:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 325:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Set value of sampling count for the digital filter in
+ 326:LPC17xxLib/src/lpc17xx_qei.c ****  * 				QEI peripheral
+ 327:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 328:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulSamplingPulse	Value of sampling count to set
+ 329:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 330:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 331:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_SetDigiFilter(LPC_QEI_TypeDef *QEIx, uint32_t ulSamplingPulse)
+ 332:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 565              	 .loc 1 332 0
+ 566              	 .cfi_startproc
+ 567              	 
+ 568              	 
+ 569              	 
+ 570              	.LVL34:
+ 333:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 334:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->FILTER = ulSamplingPulse;
+ 571              	 .loc 1 334 0
+ 572 0000 C163     	 str r1,[r0,#60]
+ 573 0002 7047     	 bx lr
+ 574              	 .cfi_endproc
+ 575              	.LFE70:
+ 577              	 .section .text.QEI_GetIntStatus,"ax",%progbits
+ 578              	 .align 1
+ 579              	 .global QEI_GetIntStatus
+ 580              	 .syntax unified
+ 581              	 .thumb
+ 582              	 .thumb_func
+ 583              	 .fpu softvfp
+ 585              	QEI_GetIntStatus:
+ 586              	.LFB71:
+ 335:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 336:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 337:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 338:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Check whether if specified interrupt flag status in QEI
+ 339:LPC17xxLib/src/lpc17xx_qei.c ****  * 				peripheral is set or not
+ 340:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 341:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulIntType		Interrupt Flag Status type, should be:
+ 342:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_INX_Int: index pulse was detected interrupt
+ 343:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_TIM_Int: Velocity timer over flow interrupt
+ 344:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_VELC_Int: Capture velocity is less than compare interrupt
+ 345:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_DIR_Int: Change of direction interrupt
+ 346:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_ERR_Int: An encoder phase error interrupt
+ 347:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_ENCLK_Int: An encoder clock pulse was detected interrupt
+ 348:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS0_Int: position 0 compare value is equal to the
+ 349:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 350:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS1_Int: position 1 compare value is equal to the
+ 351:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 352:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS2_Int: position 2 compare value is equal to the
+ 353:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 354:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_REV_Int: Index compare value is equal to the current
+ 355:LPC17xxLib/src/lpc17xx_qei.c **** 														index count interrupt
+ 356:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS0REV_Int: Combined position 0 and revolution count interrupt
+ 357:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS1REV_Int: Combined position 1 and revolution count interrupt
+ 358:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
+ 359:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		New State of specified interrupt flag status (SET or RESET)
+ 360:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 361:LPC17xxLib/src/lpc17xx_qei.c **** FlagStatus QEI_GetIntStatus(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType)
+ 362:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 587              	 .loc 1 362 0
+ 588              	 .cfi_startproc
+ 589              	 
+ 590              	 
+ 591              	 
+ 592              	.LVL35:
+ 363:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 364:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
+ 365:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 366:LPC17xxLib/src/lpc17xx_qei.c **** 	return((QEIx->QEIINTSTAT & ulIntType) ? SET : RESET);
+ 593              	 .loc 1 366 0
+ 594 0000 D0F8E03F 	 ldr r3,[r0,#4064]
+ 595 0004 0B42     	 tst r3,r1
+ 367:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 596              	 .loc 1 367 0
+ 597 0006 14BF     	 ite ne
+ 598 0008 0120     	 movne r0,#1
+ 599              	.LVL36:
+ 600 000a 0020     	 moveq r0,#0
+ 601 000c 7047     	 bx lr
+ 602              	 .cfi_endproc
+ 603              	.LFE71:
+ 605              	 .section .text.QEI_IntCmd,"ax",%progbits
+ 606              	 .align 1
+ 607              	 .global QEI_IntCmd
+ 608              	 .syntax unified
+ 609              	 .thumb
+ 610              	 .thumb_func
+ 611              	 .fpu softvfp
+ 613              	QEI_IntCmd:
+ 614              	.LFB72:
+ 368:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 369:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 370:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Enable/Disable specified interrupt in QEI peripheral
+ 371:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 372:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulIntType		Interrupt Flag Status type, should be:
+ 373:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_INTFLAG_INX_Int: index pulse was detected interrupt
+ 374:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_TIM_Int: Velocity timer over flow interrupt
+ 375:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_VELC_Int: Capture velocity is less than compare interrupt
+ 376:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_INTFLAG_DIR_Int: Change of direction interrupt
+ 377:LPC17xxLib/src/lpc17xx_qei.c ****  *  							- QEI_INTFLAG_ERR_Int: An encoder phase error interrupt
+ 378:LPC17xxLib/src/lpc17xx_qei.c ****  * 								- QEI_INTFLAG_ENCLK_Int: An encoder clock pulse was detected interrupt
+ 379:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_POS0_Int: position 0 compare value is equal to the
+ 380:LPC17xxLib/src/lpc17xx_qei.c ****  *														current position interrupt
+ 381:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_POS1_Int: position 1 compare value is equal to the
+ 382:LPC17xxLib/src/lpc17xx_qei.c ****  *														current position interrupt
+ 383:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_POS2_Int: position 2 compare value is equal to the
+ 384:LPC17xxLib/src/lpc17xx_qei.c ****  *														current position interrupt
+ 385:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_REV_Int: Index compare value is equal to the current
+ 386:LPC17xxLib/src/lpc17xx_qei.c ****  *														index count interrupt
+ 387:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_POS0REV_Int: Combined position 0 and revolution count interrupt
+ 388:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_POS1REV_Int: Combined position 1 and revolution count interrupt
+ 389:LPC17xxLib/src/lpc17xx_qei.c ****  *								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
+ 390:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	NewState		New function state, should be:
+ 391:LPC17xxLib/src/lpc17xx_qei.c ****  *								- DISABLE
+ 392:LPC17xxLib/src/lpc17xx_qei.c ****  *								- ENABLE
+ 393:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 394:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 395:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_IntCmd(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType, FunctionalState NewState)
+ 396:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 615              	 .loc 1 396 0
+ 616              	 .cfi_startproc
+ 617              	 
+ 618              	 
+ 619              	 
+ 620              	.LVL37:
+ 397:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 398:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
+ 399:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 400:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 401:LPC17xxLib/src/lpc17xx_qei.c **** 	if (NewState == ENABLE) {
+ 621              	 .loc 1 401 0
+ 622 0000 012A     	 cmp r2,#1
+ 402:LPC17xxLib/src/lpc17xx_qei.c **** 		QEIx->QEIIES = ulIntType;
+ 623              	 .loc 1 402 0
+ 624 0002 0CBF     	 ite eq
+ 625 0004 C0F8DC1F 	 streq r1,[r0,#4060]
+ 403:LPC17xxLib/src/lpc17xx_qei.c **** 	} else {
+ 404:LPC17xxLib/src/lpc17xx_qei.c **** 		QEIx->QEIIEC = ulIntType;
+ 626              	 .loc 1 404 0
+ 627 0008 C0F8D81F 	 strne r1,[r0,#4056]
+ 628 000c 7047     	 bx lr
+ 629              	 .cfi_endproc
+ 630              	.LFE72:
+ 632              	 .section .text.QEI_IntSet,"ax",%progbits
+ 633              	 .align 1
+ 634              	 .global QEI_IntSet
+ 635              	 .syntax unified
+ 636              	 .thumb
+ 637              	 .thumb_func
+ 638              	 .fpu softvfp
+ 640              	QEI_IntSet:
+ 641              	.LFB73:
+ 405:LPC17xxLib/src/lpc17xx_qei.c **** 	}
+ 406:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 407:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 408:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 409:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 410:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Sets (forces) specified interrupt in QEI peripheral
+ 411:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 412:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulIntType		Interrupt Flag Status type, should be:
+ 413:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_INX_Int: index pulse was detected interrupt
+ 414:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_TIM_Int: Velocity timer over flow interrupt
+ 415:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_VELC_Int: Capture velocity is less than compare interrupt
+ 416:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_DIR_Int: Change of direction interrupt
+ 417:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_ERR_Int: An encoder phase error interrupt
+ 418:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_ENCLK_Int: An encoder clock pulse was detected interrupt
+ 419:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS0_Int: position 0 compare value is equal to the
+ 420:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 421:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS1_Int: position 1 compare value is equal to the
+ 422:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 423:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS2_Int: position 2 compare value is equal to the
+ 424:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 425:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_REV_Int: Index compare value is equal to the current
+ 426:LPC17xxLib/src/lpc17xx_qei.c **** 														index count interrupt
+ 427:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS0REV_Int: Combined position 0 and revolution count interrupt
+ 428:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS1REV_Int: Combined position 1 and revolution count interrupt
+ 429:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
+ 430:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 431:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 432:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_IntSet(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType)
+ 433:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 642              	 .loc 1 433 0
+ 643              	 .cfi_startproc
+ 644              	 
+ 645              	 
+ 646              	 
+ 647              	.LVL38:
+ 434:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 435:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
+ 436:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 437:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEISET = ulIntType;
+ 648              	 .loc 1 437 0
+ 649 0000 C0F8EC1F 	 str r1,[r0,#4076]
+ 650 0004 7047     	 bx lr
+ 651              	 .cfi_endproc
+ 652              	.LFE73:
+ 654              	 .section .text.QEI_IntClear,"ax",%progbits
+ 655              	 .align 1
+ 656              	 .global QEI_IntClear
+ 657              	 .syntax unified
+ 658              	 .thumb
+ 659              	 .thumb_func
+ 660              	 .fpu softvfp
+ 662              	QEI_IntClear:
+ 663              	.LFB74:
+ 438:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 439:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 440:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 441:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Clear (force) specified interrupt (pending) in QEI peripheral
+ 442:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 443:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulIntType		Interrupt Flag Status type, should be:
+ 444:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_INX_Int: index pulse was detected interrupt
+ 445:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_TIM_Int: Velocity timer over flow interrupt
+ 446:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_VELC_Int: Capture velocity is less than compare interrupt
+ 447:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_DIR_Int: Change of direction interrupt
+ 448:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_ERR_Int: An encoder phase error interrupt
+ 449:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_ENCLK_Int: An encoder clock pulse was detected interrupt
+ 450:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS0_Int: position 0 compare value is equal to the
+ 451:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 452:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS1_Int: position 1 compare value is equal to the
+ 453:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 454:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS2_Int: position 2 compare value is equal to the
+ 455:LPC17xxLib/src/lpc17xx_qei.c **** 														current position interrupt
+ 456:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_REV_Int: Index compare value is equal to the current
+ 457:LPC17xxLib/src/lpc17xx_qei.c **** 														index count interrupt
+ 458:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS0REV_Int: Combined position 0 and revolution count interrupt
+ 459:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS1REV_Int: Combined position 1 and revolution count interrupt
+ 460:LPC17xxLib/src/lpc17xx_qei.c **** 								- QEI_INTFLAG_POS2REV_Int: Combined position 2 and revolution count interrupt
+ 461:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		None
+ 462:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 463:LPC17xxLib/src/lpc17xx_qei.c **** void QEI_IntClear(LPC_QEI_TypeDef *QEIx, uint32_t ulIntType)
+ 464:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 664              	 .loc 1 464 0
+ 665              	 .cfi_startproc
+ 666              	 
+ 667              	 
+ 668              	 
+ 669              	.LVL39:
+ 465:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEIx(QEIx));
+ 466:LPC17xxLib/src/lpc17xx_qei.c **** 	CHECK_PARAM(PARAM_QEI_INTFLAG(ulIntType));
+ 467:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 468:LPC17xxLib/src/lpc17xx_qei.c **** 	QEIx->QEICLR = ulIntType;
+ 670              	 .loc 1 468 0
+ 671 0000 C0F8E81F 	 str r1,[r0,#4072]
+ 672 0004 7047     	 bx lr
+ 673              	 .cfi_endproc
+ 674              	.LFE74:
+ 676              	 .section .text.QEI_CalculateRPM,"ax",%progbits
+ 677              	 .align 1
+ 678              	 .global QEI_CalculateRPM
+ 679              	 .syntax unified
+ 680              	 .thumb
+ 681              	 .thumb_func
+ 682              	 .fpu softvfp
+ 684              	QEI_CalculateRPM:
+ 685              	.LFB75:
+ 469:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 470:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 471:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 472:LPC17xxLib/src/lpc17xx_qei.c **** /*********************************************************************//**
+ 473:LPC17xxLib/src/lpc17xx_qei.c ****  * @brief		Calculates the actual velocity in RPM passed via velocity
+ 474:LPC17xxLib/src/lpc17xx_qei.c ****  * 				capture value and Pulse Per Round (of the encoder) value
+ 475:LPC17xxLib/src/lpc17xx_qei.c ****  * 				parameter input.
+ 476:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	QEIx			QEI peripheral, should be LPC_QEI
+ 477:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulVelCapValue	Velocity capture input value that can
+ 478:LPC17xxLib/src/lpc17xx_qei.c ****  * 								be got from QEI_GetVelocityCap() function
+ 479:LPC17xxLib/src/lpc17xx_qei.c ****  * @param[in]	ulPPR			Pulse per round of encoder
+ 480:LPC17xxLib/src/lpc17xx_qei.c ****  * @return		The actual value of velocity in RPM (Round per minute)
+ 481:LPC17xxLib/src/lpc17xx_qei.c ****  **********************************************************************/
+ 482:LPC17xxLib/src/lpc17xx_qei.c **** uint32_t QEI_CalculateRPM(LPC_QEI_TypeDef *QEIx, uint32_t ulVelCapValue, uint32_t ulPPR)
+ 483:LPC17xxLib/src/lpc17xx_qei.c **** {
+ 686              	 .loc 1 483 0
+ 687              	 .cfi_startproc
+ 688              	 
+ 689              	 
+ 690              	.LVL40:
+ 691 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 692              	 .cfi_def_cfa_offset 24
+ 693              	 .cfi_offset 4,-24
+ 694              	 .cfi_offset 5,-20
+ 695              	 .cfi_offset 6,-16
+ 696              	 .cfi_offset 7,-12
+ 697              	 .cfi_offset 8,-8
+ 698              	 .cfi_offset 14,-4
+ 699              	 .loc 1 483 0
+ 700 0004 0546     	 mov r5,r0
+ 484:LPC17xxLib/src/lpc17xx_qei.c **** 	uint64_t rpm, clock, Load, edges;
+ 485:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 486:LPC17xxLib/src/lpc17xx_qei.c **** 	// Get current Clock rate for timer input
+ 487:LPC17xxLib/src/lpc17xx_qei.c **** 	clock = (uint64_t)CLKPWR_GetPCLK(CLKPWR_PCLKSEL_QEI);
+ 701              	 .loc 1 487 0
+ 702 0006 104B     	 ldr r3,.L34
+ 703 0008 2020     	 movs r0,#32
+ 704              	.LVL41:
+ 483:LPC17xxLib/src/lpc17xx_qei.c **** 	uint64_t rpm, clock, Load, edges;
+ 705              	 .loc 1 483 0
+ 706 000a 9046     	 mov r8,r2
+ 707 000c 0E46     	 mov r6,r1
+ 708              	 .loc 1 487 0
+ 709 000e 9847     	 blx r3
+ 710              	.LVL42:
+ 488:LPC17xxLib/src/lpc17xx_qei.c **** 	// Get Timer load value (velocity capture period)
+ 489:LPC17xxLib/src/lpc17xx_qei.c **** 	Load  = (uint64_t)(QEIx->QEILOAD + 1);
+ 490:LPC17xxLib/src/lpc17xx_qei.c **** 	// Get Edge
+ 491:LPC17xxLib/src/lpc17xx_qei.c **** 	edges = (uint64_t)((QEIx->QEICONF & QEI_CONF_CAPMODE) ? 4 : 2);
+ 492:LPC17xxLib/src/lpc17xx_qei.c **** 	// Calculate RPM
+ 493:LPC17xxLib/src/lpc17xx_qei.c **** 	rpm = ((clock * ulVelCapValue * 60) / (Load * ulPPR * edges));
+ 711              	 .loc 1 493 0
+ 712 0010 3C21     	 movs r1,#60
+ 489:LPC17xxLib/src/lpc17xx_qei.c **** 	// Get Edge
+ 713              	 .loc 1 489 0
+ 714 0012 AC6A     	 ldr r4,[r5,#40]
+ 491:LPC17xxLib/src/lpc17xx_qei.c **** 	// Calculate RPM
+ 715              	 .loc 1 491 0
+ 716 0014 AA68     	 ldr r2,[r5,#8]
+ 487:LPC17xxLib/src/lpc17xx_qei.c **** 	// Get Timer load value (velocity capture period)
+ 717              	 .loc 1 487 0
+ 718 0016 0346     	 mov r3,r0
+ 719              	.LVL43:
+ 491:LPC17xxLib/src/lpc17xx_qei.c **** 	// Calculate RPM
+ 720              	 .loc 1 491 0
+ 721 0018 12F0040F 	 tst r2,#4
+ 722 001c 14BF     	 ite ne
+ 723 001e 4FF0040E 	 movne lr,#4
+ 724 0022 4FF0020E 	 moveq lr,#2
+ 725              	 .loc 1 493 0
+ 726 0026 A6FB0167 	 umull r6,r7,r6,r1
+ 727              	.LVL44:
+ 489:LPC17xxLib/src/lpc17xx_qei.c **** 	// Get Edge
+ 728              	 .loc 1 489 0
+ 729 002a 0134     	 adds r4,r4,#1
+ 730              	.LVL45:
+ 731              	 .loc 1 493 0
+ 732 002c A4FB0845 	 umull r4,r5,r4,r8
+ 733              	.LVL46:
+ 734 0030 A6FB0001 	 umull r0,r1,r6,r0
+ 735              	.LVL47:
+ 736 0034 03FB0711 	 mla r1,r3,r7,r1
+ 737 0038 A4FB0E23 	 umull r2,r3,r4,lr
+ 738 003c 034C     	 ldr r4,.L34+4
+ 739 003e 0EFB0533 	 mla r3,lr,r5,r3
+ 740              	.LVL48:
+ 741 0042 A047     	 blx r4
+ 742              	.LVL49:
+ 494:LPC17xxLib/src/lpc17xx_qei.c **** 
+ 495:LPC17xxLib/src/lpc17xx_qei.c **** 	return (uint32_t)(rpm);
+ 496:LPC17xxLib/src/lpc17xx_qei.c **** }
+ 743              	 .loc 1 496 0
+ 744 0044 BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 745              	.LVL50:
+ 746              	.L35:
+ 747              	 .align 2
+ 748              	.L34:
+ 749 0048 00000000 	 .word CLKPWR_GetPCLK
+ 750 004c 00000000 	 .word __aeabi_uldivmod
+ 751              	 .cfi_endproc
+ 752              	.LFE75:
+ 754              	 .text
+ 755              	.Letext0:
+ 756              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 757              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 758              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 759              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 760              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 761              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 762              	 .file 8 "LPC17xxLib/inc/lpc17xx_qei.h"
+ 763              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_qei.c
+    {standard input}:16     .text.QEI_Reset:0000000000000000 $t
+    {standard input}:23     .text.QEI_Reset:0000000000000000 QEI_Reset
+    {standard input}:39     .text.QEI_Init:0000000000000000 $t
+    {standard input}:46     .text.QEI_Init:0000000000000000 QEI_Init
+    {standard input}:189    .text.QEI_Init:0000000000000138 $d
+    {standard input}:195    .text.QEI_DeInit:0000000000000000 $t
+    {standard input}:202    .text.QEI_DeInit:0000000000000000 QEI_DeInit
+    {standard input}:220    .text.QEI_DeInit:000000000000000c $d
+    {standard input}:225    .text.QEI_ConfigStructInit:0000000000000000 $t
+    {standard input}:232    .text.QEI_ConfigStructInit:0000000000000000 QEI_ConfigStructInit
+    {standard input}:253    .text.QEI_GetStatus:0000000000000000 $t
+    {standard input}:260    .text.QEI_GetStatus:0000000000000000 QEI_GetStatus
+    {standard input}:281    .text.QEI_GetPosition:0000000000000000 $t
+    {standard input}:288    .text.QEI_GetPosition:0000000000000000 QEI_GetPosition
+    {standard input}:305    .text.QEI_SetMaxPosition:0000000000000000 $t
+    {standard input}:312    .text.QEI_SetMaxPosition:0000000000000000 QEI_SetMaxPosition
+    {standard input}:327    .text.QEI_SetPositionComp:0000000000000000 $t
+    {standard input}:334    .text.QEI_SetPositionComp:0000000000000000 QEI_SetPositionComp
+    {standard input}:351    .text.QEI_GetIndex:0000000000000000 $t
+    {standard input}:358    .text.QEI_GetIndex:0000000000000000 QEI_GetIndex
+    {standard input}:375    .text.QEI_SetIndexComp:0000000000000000 $t
+    {standard input}:382    .text.QEI_SetIndexComp:0000000000000000 QEI_SetIndexComp
+    {standard input}:398    .text.QEI_SetTimerReload:0000000000000000 $t
+    {standard input}:405    .text.QEI_SetTimerReload:0000000000000000 QEI_SetTimerReload
+    {standard input}:455    .text.QEI_SetTimerReload:0000000000000030 $d
+    {standard input}:462    .text.QEI_GetTimer:0000000000000000 $t
+    {standard input}:469    .text.QEI_GetTimer:0000000000000000 QEI_GetTimer
+    {standard input}:486    .text.QEI_GetVelocity:0000000000000000 $t
+    {standard input}:493    .text.QEI_GetVelocity:0000000000000000 QEI_GetVelocity
+    {standard input}:510    .text.QEI_GetVelocityCap:0000000000000000 $t
+    {standard input}:517    .text.QEI_GetVelocityCap:0000000000000000 QEI_GetVelocityCap
+    {standard input}:534    .text.QEI_SetVelocityComp:0000000000000000 $t
+    {standard input}:541    .text.QEI_SetVelocityComp:0000000000000000 QEI_SetVelocityComp
+    {standard input}:556    .text.QEI_SetDigiFilter:0000000000000000 $t
+    {standard input}:563    .text.QEI_SetDigiFilter:0000000000000000 QEI_SetDigiFilter
+    {standard input}:578    .text.QEI_GetIntStatus:0000000000000000 $t
+    {standard input}:585    .text.QEI_GetIntStatus:0000000000000000 QEI_GetIntStatus
+    {standard input}:606    .text.QEI_IntCmd:0000000000000000 $t
+    {standard input}:613    .text.QEI_IntCmd:0000000000000000 QEI_IntCmd
+    {standard input}:633    .text.QEI_IntSet:0000000000000000 $t
+    {standard input}:640    .text.QEI_IntSet:0000000000000000 QEI_IntSet
+    {standard input}:655    .text.QEI_IntClear:0000000000000000 $t
+    {standard input}:662    .text.QEI_IntClear:0000000000000000 QEI_IntClear
+    {standard input}:677    .text.QEI_CalculateRPM:0000000000000000 $t
+    {standard input}:684    .text.QEI_CalculateRPM:0000000000000000 QEI_CalculateRPM
+    {standard input}:749    .text.QEI_CalculateRPM:0000000000000048 $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR
+CLKPWR_SetPCLKDiv
+__aeabi_uldivmod
+CLKPWR_GetPCLK

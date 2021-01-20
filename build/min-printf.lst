@@ -1,0 +1,1122 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "min-printf.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.strlen,"ax",%progbits
+  16              	 .align 1
+  17              	 .global strlen
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	strlen:
+  24              	.LFB0:
+  25              	 .file 1 "min-printf.c"
+   1:min-printf.c  **** /*****************************************************************************
+   2:min-printf.c  ****  *                                                                            *
+   3:min-printf.c  ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:min-printf.c  ****  *                                                                            *
+   5:min-printf.c  ****  * by Triffid Hunter                                                          *
+   6:min-printf.c  ****  *                                                                            *
+   7:min-printf.c  ****  *                                                                            *
+   8:min-printf.c  ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:min-printf.c  ****  *                                                                            *
+  10:min-printf.c  ****  * This program is free software; you can redistribute it and/or modify       *
+  11:min-printf.c  ****  * it under the terms of the GNU General Public License as published by       *
+  12:min-printf.c  ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:min-printf.c  ****  * (at your option) any later version.                                        *
+  14:min-printf.c  ****  *                                                                            *
+  15:min-printf.c  ****  * This program is distributed in the hope that it will be useful,            *
+  16:min-printf.c  ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:min-printf.c  ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:min-printf.c  ****  * GNU General Public License for more details.                               *
+  19:min-printf.c  ****  *                                                                            *
+  20:min-printf.c  ****  * You should have received a copy of the GNU General Public License          *
+  21:min-printf.c  ****  * along with this program; if not, write to the Free Software                *
+  22:min-printf.c  ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:min-printf.c  ****  *                                                                            *
+  24:min-printf.c  ****  *****************************************************************************/
+  25:min-printf.c  **** 
+  26:min-printf.c  **** #include "min-printf.h"
+  27:min-printf.c  **** 
+  28:min-printf.c  **** #undef printf
+  29:min-printf.c  **** 
+  30:min-printf.c  **** int _write(int, const char *, int);
+  31:min-printf.c  **** // int printf(const char *format, ...) __attribute__  ((__format__ (__printf__, 1, 2))));
+  32:min-printf.c  **** 
+  33:min-printf.c  **** #include <stdint.h>
+  34:min-printf.c  **** 
+  35:min-printf.c  **** int strlen(const char *str)
+  36:min-printf.c  **** {
+  26              	 .loc 1 36 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+  32              	 .loc 1 36 0
+  33 0000 0246     	 mov r2,r0
+  37:min-printf.c  **** 	int r;
+  38:min-printf.c  **** 	for (r = 0; str[r]; r++);
+  34              	 .loc 1 38 0
+  35 0002 0346     	 mov r3,r0
+  36              	.LVL1:
+  37              	.L2:
+  38 0004 981A     	 subs r0,r3,r2
+  39              	.LVL2:
+  40              	 .loc 1 38 0 is_stmt 0 discriminator 1
+  41 0006 13F8011B 	 ldrb r1,[r3],#1
+  42 000a 0029     	 cmp r1,#0
+  43 000c FAD1     	 bne .L2
+  39:min-printf.c  **** 	return r;
+  40:min-printf.c  **** }
+  44              	 .loc 1 40 0 is_stmt 1
+  45 000e 7047     	 bx lr
+  46              	 .cfi_endproc
+  47              	.LFE0:
+  49              	 .section .text._puts,"ax",%progbits
+  50              	 .align 1
+  51              	 .global _puts
+  52              	 .syntax unified
+  53              	 .thumb
+  54              	 .thumb_func
+  55              	 .fpu softvfp
+  57              	_puts:
+  58              	.LFB1:
+  41:min-printf.c  **** 
+  42:min-printf.c  **** int _puts(int fd, const char *str)
+  43:min-printf.c  **** {
+  59              	 .loc 1 43 0
+  60              	 .cfi_startproc
+  61              	 
+  62              	 
+  63              	.LVL3:
+  64 0000 70B5     	 push {r4,r5,r6,lr}
+  65              	 .cfi_def_cfa_offset 16
+  66              	 .cfi_offset 4,-16
+  67              	 .cfi_offset 5,-12
+  68              	 .cfi_offset 6,-8
+  69              	 .cfi_offset 14,-4
+  44:min-printf.c  **** 	int length = strlen(str);
+  70              	 .loc 1 44 0
+  71 0002 064B     	 ldr r3,.L5
+  43:min-printf.c  **** 	int length = strlen(str);
+  72              	 .loc 1 43 0
+  73 0004 0646     	 mov r6,r0
+  74              	 .loc 1 44 0
+  75 0006 0846     	 mov r0,r1
+  76              	.LVL4:
+  43:min-printf.c  **** 	int length = strlen(str);
+  77              	 .loc 1 43 0
+  78 0008 0D46     	 mov r5,r1
+  79              	 .loc 1 44 0
+  80 000a 9847     	 blx r3
+  81              	.LVL5:
+  82 000c 0446     	 mov r4,r0
+  83              	.LVL6:
+  45:min-printf.c  **** 	_write(fd, str, length);
+  84              	 .loc 1 45 0
+  85 000e 0246     	 mov r2,r0
+  86 0010 2946     	 mov r1,r5
+  87 0012 3046     	 mov r0,r6
+  88              	.LVL7:
+  89 0014 024B     	 ldr r3,.L5+4
+  90 0016 9847     	 blx r3
+  91              	.LVL8:
+  46:min-printf.c  **** 	return length;
+  47:min-printf.c  **** }
+  92              	 .loc 1 47 0
+  93 0018 2046     	 mov r0,r4
+  94 001a 70BD     	 pop {r4,r5,r6,pc}
+  95              	.LVL9:
+  96              	.L6:
+  97              	 .align 2
+  98              	.L5:
+  99 001c 00000000 	 .word strlen
+ 100 0020 00000000 	 .word _write
+ 101              	 .cfi_endproc
+ 102              	.LFE1:
+ 104              	 .section .text._uint_write,"ax",%progbits
+ 105              	 .align 1
+ 106              	 .global _uint_write
+ 107              	 .syntax unified
+ 108              	 .thumb
+ 109              	 .thumb_func
+ 110              	 .fpu softvfp
+ 112              	_uint_write:
+ 113              	.LFB2:
+  48:min-printf.c  **** 
+  49:min-printf.c  **** int bufp;
+  50:min-printf.c  **** char printf_buf[12];
+  51:min-printf.c  **** 
+  52:min-printf.c  **** int _uint_write(uint32_t i)
+  53:min-printf.c  **** {
+ 114              	 .loc 1 53 0
+ 115              	 .cfi_startproc
+ 116              	 
+ 117              	 
+ 118              	.LVL10:
+ 119 0000 F0B5     	 push {r4,r5,r6,r7,lr}
+ 120              	 .cfi_def_cfa_offset 20
+ 121              	 .cfi_offset 4,-20
+ 122              	 .cfi_offset 5,-16
+ 123              	 .cfi_offset 6,-12
+ 124              	 .cfi_offset 7,-8
+ 125              	 .cfi_offset 14,-4
+ 126              	 .loc 1 53 0
+ 127 0002 0A25     	 movs r5,#10
+ 128 0004 0026     	 movs r6,#0
+  54:min-printf.c  **** 	uint32_t j;
+  55:min-printf.c  **** 	uint32_t k;
+  56:min-printf.c  **** // 	char c;
+  57:min-printf.c  **** 	int length;
+  58:min-printf.c  **** 	for(
+  59:min-printf.c  **** 		length = 0, k = 1000000000;
+  60:min-printf.c  **** 		k;
+  61:min-printf.c  **** 		k /= 10
+ 129              	 .loc 1 61 0
+ 130 0006 2F46     	 mov r7,r5
+  59:min-printf.c  **** 		k;
+ 131              	 .loc 1 59 0
+ 132 0008 3146     	 mov r1,r6
+ 133 000a 104A     	 ldr r2,.L22
+ 134 000c 104B     	 ldr r3,.L22+4
+ 135 000e 1468     	 ldr r4,[r2]
+  62:min-printf.c  **** 	)
+  63:min-printf.c  **** 	{
+  64:min-printf.c  **** 		if ((i >= k) || (k == 1) || length)
+  65:min-printf.c  **** 		{
+  66:min-printf.c  **** 			j = i / k;
+  67:min-printf.c  **** // 			c = j + '0';
+  68:min-printf.c  **** // 			_write(0, &c, 1);
+  69:min-printf.c  **** 			printf_buf[bufp++] = j + '0';
+ 136              	 .loc 1 69 0
+ 137 0010 DFF840E0 	 ldr lr,.L22+8
+ 138              	.LVL11:
+ 139              	.L10:
+  64:min-printf.c  **** 		{
+ 140              	 .loc 1 64 0
+ 141 0014 9842     	 cmp r0,r3
+ 142 0016 02D2     	 bcs .L8
+  64:min-printf.c  **** 		{
+ 143              	 .loc 1 64 0 is_stmt 0 discriminator 1
+ 144 0018 012B     	 cmp r3,#1
+ 145 001a 00D0     	 beq .L8
+  64:min-printf.c  **** 		{
+ 146              	 .loc 1 64 0 discriminator 2
+ 147 001c 51B1     	 cbz r1,.L9
+ 148              	.L8:
+ 149              	.LVL12:
+  66:min-printf.c  **** // 			c = j + '0';
+ 150              	 .loc 1 66 0 is_stmt 1
+ 151 001e B0FBF3F6 	 udiv r6,r0,r3
+ 152              	.LVL13:
+ 153              	 .loc 1 69 0
+ 154 0022 06F1300C 	 add ip,r6,#48
+ 155 0026 03FB1600 	 mls r0,r3,r6,r0
+ 156              	.LVL14:
+  70:min-printf.c  **** 			i -= j * k;
+  71:min-printf.c  **** 			length++;
+ 157              	 .loc 1 71 0
+ 158 002a 0126     	 movs r6,#1
+ 159              	.LVL15:
+  69:min-printf.c  **** 			i -= j * k;
+ 160              	 .loc 1 69 0
+ 161 002c 0EF804C0 	 strb ip,[lr,r4]
+ 162              	 .loc 1 71 0
+ 163 0030 0131     	 adds r1,r1,#1
+ 164              	.LVL16:
+  69:min-printf.c  **** 			i -= j * k;
+ 165              	 .loc 1 69 0
+ 166 0032 0134     	 adds r4,r4,#1
+ 167              	.LVL17:
+ 168              	.L9:
+  58:min-printf.c  **** 		length = 0, k = 1000000000;
+ 169              	 .loc 1 58 0
+ 170 0034 013D     	 subs r5,r5,#1
+  61:min-printf.c  **** 	)
+ 171              	 .loc 1 61 0
+ 172 0036 B3FBF7F3 	 udiv r3,r3,r7
+ 173              	.LVL18:
+  58:min-printf.c  **** 		length = 0, k = 1000000000;
+ 174              	 .loc 1 58 0
+ 175 003a EBD1     	 bne .L10
+ 176 003c 06B1     	 cbz r6,.L11
+ 177 003e 1460     	 str r4,[r2]
+ 178              	.L11:
+  72:min-printf.c  **** 		}
+  73:min-printf.c  **** 	}
+  74:min-printf.c  **** 	printf_buf[bufp] = 0;
+ 179              	 .loc 1 74 0
+ 180 0040 0020     	 movs r0,#0
+ 181              	.LVL19:
+ 182 0042 1368     	 ldr r3,[r2]
+ 183              	.LVL20:
+ 184 0044 034A     	 ldr r2,.L22+8
+ 185 0046 D054     	 strb r0,[r2,r3]
+  75:min-printf.c  **** 	return length;
+  76:min-printf.c  **** }
+ 186              	 .loc 1 76 0
+ 187 0048 0846     	 mov r0,r1
+ 188 004a F0BD     	 pop {r4,r5,r6,r7,pc}
+ 189              	.L23:
+ 190              	 .align 2
+ 191              	.L22:
+ 192 004c 00000000 	 .word bufp
+ 193 0050 00CA9A3B 	 .word 1000000000
+ 194 0054 00000000 	 .word printf_buf
+ 195              	 .cfi_endproc
+ 196              	.LFE2:
+ 198              	 .section .text._int_write,"ax",%progbits
+ 199              	 .align 1
+ 200              	 .global _int_write
+ 201              	 .syntax unified
+ 202              	 .thumb
+ 203              	 .thumb_func
+ 204              	 .fpu softvfp
+ 206              	_int_write:
+ 207              	.LFB3:
+  77:min-printf.c  **** 
+  78:min-printf.c  **** int _int_write(int32_t i)
+  79:min-printf.c  **** {
+ 208              	 .loc 1 79 0
+ 209              	 .cfi_startproc
+ 210              	 
+ 211              	 
+ 212              	.LVL21:
+  80:min-printf.c  **** 	int length = 0;
+  81:min-printf.c  **** 	if (i < 0)
+ 213              	 .loc 1 81 0
+ 214 0000 0028     	 cmp r0,#0
+  79:min-printf.c  **** 	int length = 0;
+ 215              	 .loc 1 79 0
+ 216 0002 10B5     	 push {r4,lr}
+ 217              	 .cfi_def_cfa_offset 8
+ 218              	 .cfi_offset 4,-8
+ 219              	 .cfi_offset 14,-4
+ 220              	 .loc 1 81 0
+ 221 0004 0CDA     	 bge .L26
+  82:min-printf.c  **** 	{
+  83:min-printf.c  **** // 		_write(0, "-", 1);
+  84:min-printf.c  **** 		printf_buf[bufp++] = '-';
+ 222              	 .loc 1 84 0
+ 223 0006 074A     	 ldr r2,.L27
+  85:min-printf.c  **** 		length++;
+ 224              	 .loc 1 85 0
+ 225 0008 0124     	 movs r4,#1
+  84:min-printf.c  **** 		length++;
+ 226              	 .loc 1 84 0
+ 227 000a 1368     	 ldr r3,[r2]
+  86:min-printf.c  **** 		i = -i;
+ 228              	 .loc 1 86 0
+ 229 000c 4042     	 negs r0,r0
+ 230              	.LVL22:
+  84:min-printf.c  **** 		length++;
+ 231              	 .loc 1 84 0
+ 232 000e 591C     	 adds r1,r3,#1
+ 233 0010 1160     	 str r1,[r2]
+ 234 0012 2D21     	 movs r1,#45
+ 235 0014 044A     	 ldr r2,.L27+4
+ 236 0016 D154     	 strb r1,[r2,r3]
+ 237              	.LVL23:
+ 238              	.L25:
+  87:min-printf.c  **** // 		if (min_length)
+  88:min-printf.c  **** // 			min_length--;
+  89:min-printf.c  **** 	}
+  90:min-printf.c  **** 	length += _uint_write((uint32_t) i);
+ 239              	 .loc 1 90 0
+ 240 0018 044B     	 ldr r3,.L27+8
+ 241 001a 9847     	 blx r3
+ 242              	.LVL24:
+  91:min-printf.c  **** // 	this is done in _uint_write
+  92:min-printf.c  **** // 	printf_buf[bufp++] = 0;
+  93:min-printf.c  **** 	return length;
+  94:min-printf.c  **** }
+ 243              	 .loc 1 94 0
+ 244 001c 2044     	 add r0,r0,r4
+ 245              	.LVL25:
+ 246 001e 10BD     	 pop {r4,pc}
+ 247              	.LVL26:
+ 248              	.L26:
+  80:min-printf.c  **** 	if (i < 0)
+ 249              	 .loc 1 80 0
+ 250 0020 0024     	 movs r4,#0
+ 251 0022 F9E7     	 b .L25
+ 252              	.L28:
+ 253              	 .align 2
+ 254              	.L27:
+ 255 0024 00000000 	 .word bufp
+ 256 0028 00000000 	 .word printf_buf
+ 257 002c 00000000 	 .word _uint_write
+ 258              	 .cfi_endproc
+ 259              	.LFE3:
+ 261              	 .section .text._hex_write,"ax",%progbits
+ 262              	 .align 1
+ 263              	 .global _hex_write
+ 264              	 .syntax unified
+ 265              	 .thumb
+ 266              	 .thumb_func
+ 267              	 .fpu softvfp
+ 269              	_hex_write:
+ 270              	.LFB4:
+  95:min-printf.c  **** 
+  96:min-printf.c  **** int _hex_write(uint32_t i)
+  97:min-printf.c  **** {
+ 271              	 .loc 1 97 0
+ 272              	 .cfi_startproc
+ 273              	 
+ 274              	 
+ 275              	.LVL27:
+ 276 0000 F0B5     	 push {r4,r5,r6,r7,lr}
+ 277              	 .cfi_def_cfa_offset 20
+ 278              	 .cfi_offset 4,-20
+ 279              	 .cfi_offset 5,-16
+ 280              	 .cfi_offset 6,-12
+ 281              	 .cfi_offset 7,-8
+ 282              	 .cfi_offset 14,-4
+  98:min-printf.c  **** 	int length = 0;
+  99:min-printf.c  **** 	int q;
+ 100:min-printf.c  **** 	const char *alpha = "0123456789ABCDEF";
+ 101:min-printf.c  **** 	if (i) {
+ 283              	 .loc 1 101 0
+ 284 0002 0346     	 mov r3,r0
+ 285 0004 28B3     	 cbz r0,.L30
+ 286 0006 0024     	 movs r4,#0
+ 287              	.LVL28:
+ 288              	.L31:
+ 102:min-printf.c  **** 		for (q = 0; i && ((i & 0xF0000000) == 0); i <<= 4, q++);
+ 289              	 .loc 1 102 0 discriminator 1
+ 290 0008 13F0704F 	 tst r3,#-268435456
+ 291 000c 16D0     	 beq .L32
+ 292              	 .loc 1 102 0 is_stmt 0
+ 293 000e 0021     	 movs r1,#0
+ 294 0010 0846     	 mov r0,r1
+ 295 0012 144A     	 ldr r2,.L40
+ 103:min-printf.c  **** 		for(
+ 104:min-printf.c  **** 			length = 0;
+ 105:min-printf.c  **** 			i || (q < 8);
+ 106:min-printf.c  **** 			i <<= 4, length++, q++
+ 107:min-printf.c  **** 		)
+ 108:min-printf.c  **** 		{
+ 109:min-printf.c  **** 			printf_buf[bufp++] = alpha[i >> 28];
+ 296              	 .loc 1 109 0 is_stmt 1
+ 297 0014 144D     	 ldr r5,.L40+4
+ 298 0016 1668     	 ldr r6,[r2]
+ 299 0018 DFF850C0 	 ldr ip,.L40+8
+ 300 001c 3544     	 add r5,r5,r6
+ 301              	.LVL29:
+ 302              	.L33:
+ 303 001e 3718     	 adds r7,r6,r0
+ 304              	.LVL30:
+ 103:min-printf.c  **** 		for(
+ 305              	 .loc 1 103 0
+ 306 0020 7BB9     	 cbnz r3,.L34
+ 307 0022 04EB000E 	 add lr,r4,r0
+ 105:min-printf.c  **** 			i <<= 4, length++, q++
+ 308              	 .loc 1 105 0
+ 309 0026 BEF1070F 	 cmp lr,#7
+ 310 002a 0ADD     	 ble .L34
+ 311 002c 01B1     	 cbz r1,.L36
+ 312 002e 1760     	 str r7,[r2]
+ 313              	.LVL31:
+ 314              	.L36:
+ 110:min-printf.c  **** 		}
+ 111:min-printf.c  **** 	}
+ 112:min-printf.c  **** 	else {
+ 113:min-printf.c  **** 		printf_buf[bufp++] = '0';
+ 114:min-printf.c  **** 	}
+ 115:min-printf.c  **** 	printf_buf[bufp] = 0;
+ 315              	 .loc 1 115 0
+ 316 0030 0021     	 movs r1,#0
+ 317 0032 0C4B     	 ldr r3,.L40
+ 318              	.LVL32:
+ 319 0034 0C4A     	 ldr r2,.L40+4
+ 320 0036 1B68     	 ldr r3,[r3]
+ 321 0038 D154     	 strb r1,[r2,r3]
+ 116:min-printf.c  **** 	return length;
+ 117:min-printf.c  **** }
+ 322              	 .loc 1 117 0
+ 323 003a F0BD     	 pop {r4,r5,r6,r7,pc}
+ 324              	.LVL33:
+ 325              	.L32:
+ 102:min-printf.c  **** 		for(
+ 326              	 .loc 1 102 0 discriminator 4
+ 327 003c 1B01     	 lsls r3,r3,#4
+ 328              	.LVL34:
+ 329 003e 0134     	 adds r4,r4,#1
+ 330              	.LVL35:
+ 331 0040 E2E7     	 b .L31
+ 332              	.LVL36:
+ 333              	.L34:
+ 109:min-printf.c  **** 		}
+ 334              	 .loc 1 109 0
+ 335 0042 190F     	 lsrs r1,r3,#28
+ 336 0044 11F80C10 	 ldrb r1,[r1,ip]
+ 106:min-printf.c  **** 		)
+ 337              	 .loc 1 106 0
+ 338 0048 1B01     	 lsls r3,r3,#4
+ 339              	.LVL37:
+ 109:min-printf.c  **** 		}
+ 340              	 .loc 1 109 0
+ 341 004a 2954     	 strb r1,[r5,r0]
+ 106:min-printf.c  **** 		)
+ 342              	 .loc 1 106 0
+ 343 004c 0130     	 adds r0,r0,#1
+ 344              	.LVL38:
+ 345 004e 0121     	 movs r1,#1
+ 346 0050 E5E7     	 b .L33
+ 347              	.LVL39:
+ 348              	.L30:
+ 113:min-printf.c  **** 	}
+ 349              	 .loc 1 113 0
+ 350 0052 0449     	 ldr r1,.L40
+ 351 0054 0A68     	 ldr r2,[r1]
+ 352 0056 501C     	 adds r0,r2,#1
+ 353              	.LVL40:
+ 354 0058 0860     	 str r0,[r1]
+ 355 005a 3020     	 movs r0,#48
+ 356 005c 0249     	 ldr r1,.L40+4
+ 357 005e 8854     	 strb r0,[r1,r2]
+  98:min-printf.c  **** 	int q;
+ 358              	 .loc 1 98 0
+ 359 0060 1846     	 mov r0,r3
+ 360 0062 E5E7     	 b .L36
+ 361              	.L41:
+ 362              	 .align 2
+ 363              	.L40:
+ 364 0064 00000000 	 .word bufp
+ 365 0068 00000000 	 .word printf_buf
+ 366 006c 00000000 	 .word .LC0
+ 367              	 .cfi_endproc
+ 368              	.LFE4:
+ 370              	 .section .text.print0s,"ax",%progbits
+ 371              	 .align 1
+ 372              	 .global print0s
+ 373              	 .syntax unified
+ 374              	 .thumb
+ 375              	 .thumb_func
+ 376              	 .fpu softvfp
+ 378              	print0s:
+ 379              	.LFB5:
+ 118:min-printf.c  **** 
+ 119:min-printf.c  **** void print0s(int num)
+ 120:min-printf.c  **** {
+ 380              	 .loc 1 120 0
+ 381              	 .cfi_startproc
+ 382              	 
+ 383              	 
+ 384              	.LVL41:
+ 385 0000 70B5     	 push {r4,r5,r6,lr}
+ 386              	 .cfi_def_cfa_offset 16
+ 387              	 .cfi_offset 4,-16
+ 388              	 .cfi_offset 5,-12
+ 389              	 .cfi_offset 6,-8
+ 390              	 .cfi_offset 14,-4
+ 121:min-printf.c  **** 	if (num < 1)
+ 391              	 .loc 1 121 0
+ 392 0002 041E     	 subs r4,r0,#0
+ 393 0004 07DD     	 ble .L42
+ 122:min-printf.c  **** 		return;
+ 123:min-printf.c  **** 	for (;num;num--)
+ 124:min-printf.c  **** 		_write(0, "0", 1);
+ 394              	 .loc 1 124 0 discriminator 2
+ 395 0006 044E     	 ldr r6,.L47
+ 396 0008 044D     	 ldr r5,.L47+4
+ 397              	.LVL42:
+ 398              	.L44:
+ 399 000a 0122     	 movs r2,#1
+ 400 000c 3146     	 mov r1,r6
+ 401 000e 0020     	 movs r0,#0
+ 402 0010 A847     	 blx r5
+ 403              	.LVL43:
+ 123:min-printf.c  **** 		_write(0, "0", 1);
+ 404              	 .loc 1 123 0 discriminator 2
+ 405 0012 013C     	 subs r4,r4,#1
+ 406              	.LVL44:
+ 407 0014 F9D1     	 bne .L44
+ 408              	.L42:
+ 409 0016 70BD     	 pop {r4,r5,r6,pc}
+ 410              	.LVL45:
+ 411              	.L48:
+ 412              	 .align 2
+ 413              	.L47:
+ 414 0018 00000000 	 .word .LC1
+ 415 001c 00000000 	 .word _write
+ 416              	 .cfi_endproc
+ 417              	.LFE5:
+ 419              	 .section .text.vfprintf,"ax",%progbits
+ 420              	 .align 1
+ 421              	 .global vfprintf
+ 422              	 .syntax unified
+ 423              	 .thumb
+ 424              	 .thumb_func
+ 425              	 .fpu softvfp
+ 427              	vfprintf:
+ 428              	.LFB6:
+ 125:min-printf.c  **** }
+ 126:min-printf.c  **** 
+ 127:min-printf.c  **** int vfprintf(int fd, const char *format, va_list args)
+ 128:min-printf.c  **** {
+ 429              	 .loc 1 128 0
+ 430              	 .cfi_startproc
+ 431              	 
+ 432              	 
+ 433              	.LVL46:
+ 434 0000 2DE9F347 	 push {r0,r1,r4,r5,r6,r7,r8,r9,r10,lr}
+ 435              	 .cfi_def_cfa_offset 40
+ 436              	 .cfi_offset 4,-32
+ 437              	 .cfi_offset 5,-28
+ 438              	 .cfi_offset 6,-24
+ 439              	 .cfi_offset 7,-20
+ 440              	 .cfi_offset 8,-16
+ 441              	 .cfi_offset 9,-12
+ 442              	 .cfi_offset 10,-8
+ 443              	 .cfi_offset 14,-4
+ 129:min-printf.c  **** // 	va_list args;
+ 130:min-printf.c  **** // 	va_start(args, format);
+ 131:min-printf.c  **** 
+ 132:min-printf.c  **** 	int i = 0;
+ 133:min-printf.c  **** 	char c = 1, j = 0;
+ 134:min-printf.c  **** 
+ 135:min-printf.c  **** 	int length = 0;
+ 444              	 .loc 1 135 0
+ 445 0004 0026     	 movs r6,#0
+ 128:min-printf.c  **** // 	va_list args;
+ 446              	 .loc 1 128 0
+ 447 0006 8046     	 mov r8,r0
+ 448 0008 1546     	 mov r5,r2
+ 449              	.LVL47:
+ 133:min-printf.c  **** 
+ 450              	 .loc 1 133 0
+ 451 000a 3446     	 mov r4,r6
+ 136:min-printf.c  **** // 	int min_length = 0;
+ 137:min-printf.c  **** 
+ 138:min-printf.c  **** 	while ((c = format[i++]))
+ 139:min-printf.c  **** 	{
+ 140:min-printf.c  **** 		if (j)
+ 141:min-printf.c  **** 		{
+ 142:min-printf.c  **** 			bufp = 0;
+ 143:min-printf.c  **** 			switch (c)
+ 144:min-printf.c  **** 			{
+ 145:min-printf.c  **** 				case 's':
+ 146:min-printf.c  **** 				{
+ 147:min-printf.c  **** 					length += _puts(fd, va_arg(args, const char *));
+ 148:min-printf.c  **** 					j = 0;
+ 149:min-printf.c  **** 					break;
+ 150:min-printf.c  **** 				}
+ 151:min-printf.c  **** 				case 'l':
+ 152:min-printf.c  **** 					if (j == 4)
+ 153:min-printf.c  **** 						j = 8;
+ 154:min-printf.c  **** 					else
+ 155:min-printf.c  **** 						j = 4;
+ 156:min-printf.c  **** 					break;
+ 157:min-printf.c  **** 				case 'u':
+ 158:min-printf.c  **** 					if (j <= 4)
+ 159:min-printf.c  **** 						_uint_write(va_arg(args, uint32_t));
+ 160:min-printf.c  **** 					j = 0;
+ 161:min-printf.c  **** 					break;
+ 162:min-printf.c  **** 				case 'd':
+ 163:min-printf.c  **** 					if (j <= 4)
+ 164:min-printf.c  **** 						_int_write(va_arg(args, int32_t));
+ 165:min-printf.c  **** 					j = 0;
+ 166:min-printf.c  **** 					break;
+ 167:min-printf.c  **** 				case 'c':
+ 168:min-printf.c  **** 					c = va_arg(args, int);
+ 169:min-printf.c  **** 					_write(fd, &c, 1);
+ 170:min-printf.c  **** 					length++;
+ 171:min-printf.c  **** 					j = 0;
+ 172:min-printf.c  **** 					break;
+ 173:min-printf.c  **** 				case 'x':
+ 174:min-printf.c  **** 					if (j <= 4)
+ 175:min-printf.c  **** 						_hex_write(va_arg(args, uint32_t));
+ 176:min-printf.c  **** 					j = 0;
+ 177:min-printf.c  **** 					break;
+ 178:min-printf.c  **** 				case 'p':
+ 179:min-printf.c  **** 					_write(0, "0x", 2);
+ 180:min-printf.c  **** 					_hex_write(va_arg(args, uint32_t));
+ 181:min-printf.c  **** 					j = 0;
+ 182:min-printf.c  **** 					break;
+ 183:min-printf.c  **** 				default:
+ 184:min-printf.c  **** 					printf_buf[0] = '%';
+ 185:min-printf.c  **** 					printf_buf[1] = c;
+ 186:min-printf.c  **** 					printf_buf[2] = 0;
+ 187:min-printf.c  **** 					bufp = 2;
+ 188:min-printf.c  **** 					j = 0;
+ 189:min-printf.c  **** 					break;
+ 190:min-printf.c  **** 			}
+ 191:min-printf.c  **** 			if (bufp)
+ 192:min-printf.c  **** 			{
+ 193:min-printf.c  **** 				_write(fd, printf_buf, bufp);
+ 194:min-printf.c  **** 				length += bufp;
+ 195:min-printf.c  **** 				bufp = 0;
+ 196:min-printf.c  **** 			}
+ 197:min-printf.c  **** 		}
+ 198:min-printf.c  **** 		else
+ 199:min-printf.c  **** 		{
+ 200:min-printf.c  **** 			if (c == '%')
+ 201:min-printf.c  **** 				j = 2;
+ 202:min-printf.c  **** 			else
+ 203:min-printf.c  **** 			{
+ 204:min-printf.c  **** 				_write(fd, &c, 1);
+ 452              	 .loc 1 204 0
+ 453 000c DFF8FC90 	 ldr r9,.L75+28
+ 142:min-printf.c  **** 			switch (c)
+ 454              	 .loc 1 142 0
+ 455 0010 374F     	 ldr r7,.L75
+ 456 0012 01F1FF3A 	 add r10,r1,#-1
+ 457              	.LVL48:
+ 458              	.L50:
+ 138:min-printf.c  **** 	{
+ 459              	 .loc 1 138 0
+ 460 0016 1AF8013F 	 ldrb r3,[r10,#1]!
+ 461              	.LVL49:
+ 462 001a 8DF80730 	 strb r3,[sp,#7]
+ 463 001e 1BB9     	 cbnz r3,.L63
+ 205:min-printf.c  **** 				length++;
+ 206:min-printf.c  **** 			}
+ 207:min-printf.c  **** 		}
+ 208:min-printf.c  **** 	}
+ 209:min-printf.c  **** // 	va_end(args);
+ 210:min-printf.c  **** 	return length;
+ 211:min-printf.c  **** }
+ 464              	 .loc 1 211 0
+ 465 0020 3046     	 mov r0,r6
+ 466 0022 02B0     	 add sp,sp,#8
+ 467              	 .cfi_remember_state
+ 468              	 .cfi_def_cfa_offset 32
+ 469              	 
+ 470 0024 BDE8F087 	 pop {r4,r5,r6,r7,r8,r9,r10,pc}
+ 471              	.LVL50:
+ 472              	.L63:
+ 473              	 .cfi_restore_state
+ 140:min-printf.c  **** 		{
+ 474              	 .loc 1 140 0
+ 475 0028 002C     	 cmp r4,#0
+ 476 002a 55D0     	 beq .L51
+ 142:min-printf.c  **** 			switch (c)
+ 477              	 .loc 1 142 0
+ 478 002c 0022     	 movs r2,#0
+ 479              	.LVL51:
+ 480 002e 3A60     	 str r2,[r7]
+ 143:min-printf.c  **** 			{
+ 481              	 .loc 1 143 0
+ 482 0030 A3F16302 	 sub r2,r3,#99
+ 483 0034 152A     	 cmp r2,#21
+ 484 0036 46D8     	 bhi .L52
+ 485 0038 DFE802F0 	 tbb [pc,r2]
+ 486              	.L54:
+ 487 003c 30       	 .byte (.L53-.L54)/2
+ 488 003d 2A       	 .byte (.L55-.L54)/2
+ 489 003e 45       	 .byte (.L52-.L54)/2
+ 490 003f 45       	 .byte (.L52-.L54)/2
+ 491 0040 45       	 .byte (.L52-.L54)/2
+ 492 0041 45       	 .byte (.L52-.L54)/2
+ 493 0042 45       	 .byte (.L52-.L54)/2
+ 494 0043 45       	 .byte (.L52-.L54)/2
+ 495 0044 45       	 .byte (.L52-.L54)/2
+ 496 0045 14       	 .byte (.L56-.L54)/2
+ 497 0046 45       	 .byte (.L52-.L54)/2
+ 498 0047 45       	 .byte (.L52-.L54)/2
+ 499 0048 45       	 .byte (.L52-.L54)/2
+ 500 0049 40       	 .byte (.L57-.L54)/2
+ 501 004a 45       	 .byte (.L52-.L54)/2
+ 502 004b 45       	 .byte (.L52-.L54)/2
+ 503 004c 0B       	 .byte (.L58-.L54)/2
+ 504 004d 45       	 .byte (.L52-.L54)/2
+ 505 004e 23       	 .byte (.L59-.L54)/2
+ 506 004f 45       	 .byte (.L52-.L54)/2
+ 507 0050 45       	 .byte (.L52-.L54)/2
+ 508 0051 3A       	 .byte (.L60-.L54)/2
+ 509              	 .p2align 1
+ 510              	.L58:
+ 147:min-printf.c  **** 					j = 0;
+ 511              	 .loc 1 147 0
+ 512 0052 2968     	 ldr r1,[r5]
+ 513 0054 4046     	 mov r0,r8
+ 514 0056 274B     	 ldr r3,.L75+4
+ 515 0058 9847     	 blx r3
+ 516              	.LVL52:
+ 517 005a 2C1D     	 adds r4,r5,#4
+ 518              	.LVL53:
+ 519 005c 0644     	 add r6,r6,r0
+ 520              	.LVL54:
+ 521              	.L72:
+ 180:min-printf.c  **** 					j = 0;
+ 522              	 .loc 1 180 0
+ 523 005e 2546     	 mov r5,r4
+ 524              	.LVL55:
+ 525              	.L67:
+ 176:min-printf.c  **** 					break;
+ 526              	 .loc 1 176 0
+ 527 0060 0024     	 movs r4,#0
+ 528 0062 03E0     	 b .L61
+ 529              	.LVL56:
+ 530              	.L56:
+ 153:min-printf.c  **** 					else
+ 531              	 .loc 1 153 0
+ 532 0064 042C     	 cmp r4,#4
+ 533 0066 14BF     	 ite ne
+ 534 0068 0424     	 movne r4,#4
+ 535              	.LVL57:
+ 536 006a 0824     	 moveq r4,#8
+ 537              	.L61:
+ 538              	.LVL58:
+ 191:min-printf.c  **** 			{
+ 539              	 .loc 1 191 0
+ 540 006c 3A68     	 ldr r2,[r7]
+ 541 006e 002A     	 cmp r2,#0
+ 542 0070 D1D0     	 beq .L50
+ 193:min-printf.c  **** 				length += bufp;
+ 543              	 .loc 1 193 0
+ 544 0072 2149     	 ldr r1,.L75+8
+ 545 0074 4046     	 mov r0,r8
+ 546 0076 C847     	 blx r9
+ 547              	.LVL59:
+ 194:min-printf.c  **** 				bufp = 0;
+ 548              	 .loc 1 194 0
+ 549 0078 3B68     	 ldr r3,[r7]
+ 550 007a 1E44     	 add r6,r6,r3
+ 551              	.LVL60:
+ 195:min-printf.c  **** 			}
+ 552              	 .loc 1 195 0
+ 553 007c 0023     	 movs r3,#0
+ 554 007e 3B60     	 str r3,[r7]
+ 555 0080 C9E7     	 b .L50
+ 556              	.L59:
+ 158:min-printf.c  **** 						_uint_write(va_arg(args, uint32_t));
+ 557              	 .loc 1 158 0
+ 558 0082 042C     	 cmp r4,#4
+ 559 0084 ECD8     	 bhi .L67
+ 159:min-printf.c  **** 					j = 0;
+ 560              	 .loc 1 159 0
+ 561 0086 2868     	 ldr r0,[r5]
+ 562 0088 1C4B     	 ldr r3,.L75+12
+ 563 008a 2C1D     	 adds r4,r5,#4
+ 564              	.LVL61:
+ 565              	.L73:
+ 180:min-printf.c  **** 					j = 0;
+ 566              	 .loc 1 180 0
+ 567 008c 9847     	 blx r3
+ 568              	.LVL62:
+ 569 008e E6E7     	 b .L72
+ 570              	.LVL63:
+ 571              	.L55:
+ 163:min-printf.c  **** 						_int_write(va_arg(args, int32_t));
+ 572              	 .loc 1 163 0
+ 573 0090 042C     	 cmp r4,#4
+ 574 0092 E5D8     	 bhi .L67
+ 164:min-printf.c  **** 					j = 0;
+ 575              	 .loc 1 164 0
+ 576 0094 2C1D     	 adds r4,r5,#4
+ 577              	.LVL64:
+ 578 0096 2868     	 ldr r0,[r5]
+ 579 0098 194B     	 ldr r3,.L75+16
+ 580 009a F7E7     	 b .L73
+ 581              	.LVL65:
+ 582              	.L53:
+ 168:min-printf.c  **** 					_write(fd, &c, 1);
+ 583              	 .loc 1 168 0
+ 584 009c 2B68     	 ldr r3,[r5]
+ 585 009e 02A9     	 add r1,sp,#8
+ 586 00a0 01F8013D 	 strb r3,[r1,#-1]!
+ 169:min-printf.c  **** 					length++;
+ 587              	 .loc 1 169 0
+ 588 00a4 0122     	 movs r2,#1
+ 589 00a6 4046     	 mov r0,r8
+ 168:min-printf.c  **** 					_write(fd, &c, 1);
+ 590              	 .loc 1 168 0
+ 591 00a8 2C1D     	 adds r4,r5,#4
+ 592              	.LVL66:
+ 169:min-printf.c  **** 					length++;
+ 593              	 .loc 1 169 0
+ 594 00aa C847     	 blx r9
+ 595              	.LVL67:
+ 170:min-printf.c  **** 					j = 0;
+ 596              	 .loc 1 170 0
+ 597 00ac 0136     	 adds r6,r6,#1
+ 598              	.LVL68:
+ 599 00ae D6E7     	 b .L72
+ 600              	.LVL69:
+ 601              	.L60:
+ 174:min-printf.c  **** 						_hex_write(va_arg(args, uint32_t));
+ 602              	 .loc 1 174 0
+ 603 00b0 042C     	 cmp r4,#4
+ 604 00b2 D5D8     	 bhi .L67
+ 605              	.L74:
+ 180:min-printf.c  **** 					j = 0;
+ 606              	 .loc 1 180 0
+ 607 00b4 2C1D     	 adds r4,r5,#4
+ 608              	.LVL70:
+ 609 00b6 2868     	 ldr r0,[r5]
+ 610 00b8 124B     	 ldr r3,.L75+20
+ 611 00ba E7E7     	 b .L73
+ 612              	.LVL71:
+ 613              	.L57:
+ 179:min-printf.c  **** 					_hex_write(va_arg(args, uint32_t));
+ 614              	 .loc 1 179 0
+ 615 00bc 0222     	 movs r2,#2
+ 616 00be 1249     	 ldr r1,.L75+24
+ 617 00c0 0020     	 movs r0,#0
+ 618 00c2 C847     	 blx r9
+ 619              	.LVL72:
+ 620 00c4 F6E7     	 b .L74
+ 621              	.L52:
+ 184:min-printf.c  **** 					printf_buf[1] = c;
+ 622              	 .loc 1 184 0
+ 623 00c6 0C4A     	 ldr r2,.L75+8
+ 624 00c8 2521     	 movs r1,#37
+ 185:min-printf.c  **** 					printf_buf[2] = 0;
+ 625              	 .loc 1 185 0
+ 626 00ca 5370     	 strb r3,[r2,#1]
+ 186:min-printf.c  **** 					bufp = 2;
+ 627              	 .loc 1 186 0
+ 628 00cc 0024     	 movs r4,#0
+ 629              	.LVL73:
+ 187:min-printf.c  **** 					j = 0;
+ 630              	 .loc 1 187 0
+ 631 00ce 0223     	 movs r3,#2
+ 184:min-printf.c  **** 					printf_buf[1] = c;
+ 632              	 .loc 1 184 0
+ 633 00d0 1170     	 strb r1,[r2]
+ 186:min-printf.c  **** 					bufp = 2;
+ 634              	 .loc 1 186 0
+ 635 00d2 9470     	 strb r4,[r2,#2]
+ 187:min-printf.c  **** 					j = 0;
+ 636              	 .loc 1 187 0
+ 637 00d4 3B60     	 str r3,[r7]
+ 638              	.LVL74:
+ 189:min-printf.c  **** 			}
+ 639              	 .loc 1 189 0
+ 640 00d6 C9E7     	 b .L61
+ 641              	.LVL75:
+ 642              	.L51:
+ 200:min-printf.c  **** 				j = 2;
+ 643              	 .loc 1 200 0
+ 644 00d8 252B     	 cmp r3,#37
+ 645 00da 06D0     	 beq .L68
+ 204:min-printf.c  **** 				length++;
+ 646              	 .loc 1 204 0
+ 647 00dc 0122     	 movs r2,#1
+ 648              	.LVL76:
+ 649 00de 0DF10701 	 add r1,sp,#7
+ 650 00e2 4046     	 mov r0,r8
+ 651 00e4 C847     	 blx r9
+ 652              	.LVL77:
+ 205:min-printf.c  **** 			}
+ 653              	 .loc 1 205 0
+ 654 00e6 0136     	 adds r6,r6,#1
+ 655              	.LVL78:
+ 656 00e8 95E7     	 b .L50
+ 657              	.LVL79:
+ 658              	.L68:
+ 201:min-printf.c  **** 			else
+ 659              	 .loc 1 201 0
+ 660 00ea 0224     	 movs r4,#2
+ 661              	.LVL80:
+ 662 00ec 93E7     	 b .L50
+ 663              	.L76:
+ 664 00ee 00BF     	 .align 2
+ 665              	.L75:
+ 666 00f0 00000000 	 .word bufp
+ 667 00f4 00000000 	 .word _puts
+ 668 00f8 00000000 	 .word printf_buf
+ 669 00fc 00000000 	 .word _uint_write
+ 670 0100 00000000 	 .word _int_write
+ 671 0104 00000000 	 .word _hex_write
+ 672 0108 00000000 	 .word .LC2
+ 673 010c 00000000 	 .word _write
+ 674              	 .cfi_endproc
+ 675              	.LFE6:
+ 677              	 .section .text.fprintf,"ax",%progbits
+ 678              	 .align 1
+ 679              	 .global fprintf
+ 680              	 .syntax unified
+ 681              	 .thumb
+ 682              	 .thumb_func
+ 683              	 .fpu softvfp
+ 685              	fprintf:
+ 686              	.LFB7:
+ 212:min-printf.c  **** 
+ 213:min-printf.c  **** int fprintf(int fd, const char *format, ...)
+ 214:min-printf.c  **** {
+ 687              	 .loc 1 214 0
+ 688              	 .cfi_startproc
+ 689              	 
+ 690              	 
+ 691              	.LVL81:
+ 692 0000 0EB4     	 push {r1,r2,r3}
+ 693              	 .cfi_def_cfa_offset 12
+ 694              	 .cfi_offset 1,-12
+ 695              	 .cfi_offset 2,-8
+ 696              	 .cfi_offset 3,-4
+ 697 0002 03B5     	 push {r0,r1,lr}
+ 698              	 .cfi_def_cfa_offset 24
+ 699              	 .cfi_offset 14,-16
+ 700              	 .loc 1 214 0
+ 701 0004 03AA     	 add r2,sp,#12
+ 702 0006 52F8041B 	 ldr r1,[r2],#4
+ 215:min-printf.c  **** 	va_list args;
+ 216:min-printf.c  **** 	va_start(args, format);
+ 217:min-printf.c  **** 	int r = vfprintf(fd, format, args);
+ 703              	 .loc 1 217 0
+ 704 000a 044B     	 ldr r3,.L78
+ 216:min-printf.c  **** 	int r = vfprintf(fd, format, args);
+ 705              	 .loc 1 216 0
+ 706 000c 0192     	 str r2,[sp,#4]
+ 707              	 .loc 1 217 0
+ 708 000e 9847     	 blx r3
+ 709              	.LVL82:
+ 218:min-printf.c  **** 	va_end(args);
+ 219:min-printf.c  **** 	return r;
+ 220:min-printf.c  **** }
+ 710              	 .loc 1 220 0
+ 711 0010 02B0     	 add sp,sp,#8
+ 712              	 .cfi_def_cfa_offset 16
+ 713              	 
+ 714 0012 5DF804EB 	 ldr lr,[sp],#4
+ 715              	 .cfi_restore 14
+ 716              	 .cfi_def_cfa_offset 12
+ 717 0016 03B0     	 add sp,sp,#12
+ 718              	 .cfi_restore 3
+ 719              	 .cfi_restore 2
+ 720              	 .cfi_restore 1
+ 721              	 .cfi_def_cfa_offset 0
+ 722 0018 7047     	 bx lr
+ 723              	.L79:
+ 724 001a 00BF     	 .align 2
+ 725              	.L78:
+ 726 001c 00000000 	 .word vfprintf
+ 727              	 .cfi_endproc
+ 728              	.LFE7:
+ 730              	 .section .text.printf,"ax",%progbits
+ 731              	 .align 1
+ 732              	 .global printf
+ 733              	 .syntax unified
+ 734              	 .thumb
+ 735              	 .thumb_func
+ 736              	 .fpu softvfp
+ 738              	printf:
+ 739              	.LFB8:
+ 221:min-printf.c  **** 
+ 222:min-printf.c  **** #undef printf
+ 223:min-printf.c  **** int printf(const char *format, ...)
+ 224:min-printf.c  **** {
+ 740              	 .loc 1 224 0
+ 741              	 .cfi_startproc
+ 742              	 
+ 743              	 
+ 744              	.LVL83:
+ 745 0000 0FB4     	 push {r0,r1,r2,r3}
+ 746              	 .cfi_def_cfa_offset 16
+ 747              	 .cfi_offset 0,-16
+ 748              	 .cfi_offset 1,-12
+ 749              	 .cfi_offset 2,-8
+ 750              	 .cfi_offset 3,-4
+ 751 0002 07B5     	 push {r0,r1,r2,lr}
+ 752              	 .cfi_def_cfa_offset 32
+ 753              	 .cfi_offset 14,-20
+ 754              	 .loc 1 224 0
+ 755 0004 04AA     	 add r2,sp,#16
+ 756 0006 52F8041B 	 ldr r1,[r2],#4
+ 225:min-printf.c  **** 	va_list args;
+ 226:min-printf.c  **** 	va_start(args, format);
+ 227:min-printf.c  **** 	int r = vfprintf(0, format, args);
+ 757              	 .loc 1 227 0
+ 758 000a 044B     	 ldr r3,.L81
+ 226:min-printf.c  **** 	int r = vfprintf(0, format, args);
+ 759              	 .loc 1 226 0
+ 760 000c 0192     	 str r2,[sp,#4]
+ 761              	 .loc 1 227 0
+ 762 000e 0020     	 movs r0,#0
+ 763 0010 9847     	 blx r3
+ 764              	.LVL84:
+ 228:min-printf.c  **** 	va_end(args);
+ 229:min-printf.c  **** 	return r;
+ 230:min-printf.c  **** }
+ 765              	 .loc 1 230 0
+ 766 0012 03B0     	 add sp,sp,#12
+ 767              	 .cfi_def_cfa_offset 20
+ 768              	 
+ 769 0014 5DF804EB 	 ldr lr,[sp],#4
+ 770              	 .cfi_restore 14
+ 771              	 .cfi_def_cfa_offset 16
+ 772 0018 04B0     	 add sp,sp,#16
+ 773              	 .cfi_restore 3
+ 774              	 .cfi_restore 2
+ 775              	 .cfi_restore 1
+ 776              	 .cfi_restore 0
+ 777              	 .cfi_def_cfa_offset 0
+ 778 001a 7047     	 bx lr
+ 779              	.L82:
+ 780              	 .align 2
+ 781              	.L81:
+ 782 001c 00000000 	 .word vfprintf
+ 783              	 .cfi_endproc
+ 784              	.LFE8:
+ 786              	 .comm printf_buf,12,1
+ 787              	 .comm bufp,4,4
+ 788              	 .section .rodata._hex_write.str1.1,"aMS",%progbits,1
+ 789              	.LC0:
+ 790 0000 30313233 	 .ascii "0123456789ABCDEF\000"
+ 790      34353637 
+ 790      38394142 
+ 790      43444546 
+ 790      00
+ 791              	 .section .rodata.print0s.str1.1,"aMS",%progbits,1
+ 792              	.LC1:
+ 793 0000 3000     	 .ascii "0\000"
+ 794              	 .section .rodata.vfprintf.str1.1,"aMS",%progbits,1
+ 795              	.LC2:
+ 796 0000 307800   	 .ascii "0x\000"
+ 797              	 .text
+ 798              	.Letext0:
+ 799              	 .file 2 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stdarg.h"
+ 800              	 .file 3 "/usr/include/newlib/machine/_default_types.h"
+ 801              	 .file 4 "/usr/include/newlib/sys/_stdint.h"
+ 802              	 .file 5 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 min-printf.c
+    {standard input}:16     .text.strlen:0000000000000000 $t
+    {standard input}:23     .text.strlen:0000000000000000 strlen
+    {standard input}:50     .text._puts:0000000000000000 $t
+    {standard input}:57     .text._puts:0000000000000000 _puts
+    {standard input}:99     .text._puts:000000000000001c $d
+    {standard input}:105    .text._uint_write:0000000000000000 $t
+    {standard input}:112    .text._uint_write:0000000000000000 _uint_write
+    {standard input}:192    .text._uint_write:000000000000004c $d
+                            *COM*:0000000000000004 bufp
+                            *COM*:000000000000000c printf_buf
+    {standard input}:199    .text._int_write:0000000000000000 $t
+    {standard input}:206    .text._int_write:0000000000000000 _int_write
+    {standard input}:255    .text._int_write:0000000000000024 $d
+    {standard input}:262    .text._hex_write:0000000000000000 $t
+    {standard input}:269    .text._hex_write:0000000000000000 _hex_write
+    {standard input}:364    .text._hex_write:0000000000000064 $d
+    {standard input}:371    .text.print0s:0000000000000000 $t
+    {standard input}:378    .text.print0s:0000000000000000 print0s
+    {standard input}:414    .text.print0s:0000000000000018 $d
+    {standard input}:420    .text.vfprintf:0000000000000000 $t
+    {standard input}:427    .text.vfprintf:0000000000000000 vfprintf
+    {standard input}:487    .text.vfprintf:000000000000003c $d
+    {standard input}:509    .text.vfprintf:0000000000000052 $t
+    {standard input}:666    .text.vfprintf:00000000000000f0 $d
+    {standard input}:678    .text.fprintf:0000000000000000 $t
+    {standard input}:685    .text.fprintf:0000000000000000 fprintf
+    {standard input}:726    .text.fprintf:000000000000001c $d
+    {standard input}:731    .text.printf:0000000000000000 $t
+    {standard input}:738    .text.printf:0000000000000000 printf
+    {standard input}:782    .text.printf:000000000000001c $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+_write

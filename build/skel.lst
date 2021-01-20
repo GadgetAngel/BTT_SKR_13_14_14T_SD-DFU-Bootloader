@@ -1,0 +1,1166 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "skel.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text._exit,"ax",%progbits
+  16              	 .align 1
+  17              	 .weak _exit
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	_exit:
+  24              	.LFB56:
+  25              	 .file 1 "skel.c"
+   1:skel.c        **** /*****************************************************************************
+   2:skel.c        ****  *                                                                            *
+   3:skel.c        ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:skel.c        ****  *                                                                            *
+   5:skel.c        ****  * by Triffid Hunter                                                          *
+   6:skel.c        ****  *                                                                            *
+   7:skel.c        ****  *                                                                            *
+   8:skel.c        ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:skel.c        ****  *                                                                            *
+  10:skel.c        ****  * This program is free software; you can redistribute it and/or modify       *
+  11:skel.c        ****  * it under the terms of the GNU General Public License as published by       *
+  12:skel.c        ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:skel.c        ****  * (at your option) any later version.                                        *
+  14:skel.c        ****  *                                                                            *
+  15:skel.c        ****  * This program is distributed in the hope that it will be useful,            *
+  16:skel.c        ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:skel.c        ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:skel.c        ****  * GNU General Public License for more details.                               *
+  19:skel.c        ****  *                                                                            *
+  20:skel.c        ****  * You should have received a copy of the GNU General Public License          *
+  21:skel.c        ****  * along with this program; if not, write to the Free Software                *
+  22:skel.c        ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:skel.c        ****  *                                                                            *
+  24:skel.c        ****  *****************************************************************************/
+  25:skel.c        **** 
+  26:skel.c        **** #include <stdlib.h>
+  27:skel.c        **** #include <stdio.h>
+  28:skel.c        **** 
+  29:skel.c        **** #define WEAK __attribute__ ((weak))
+  30:skel.c        **** 
+  31:skel.c        **** #include "LPC17xx.h"
+  32:skel.c        **** 
+  33:skel.c        **** void WEAK _exit(int i) {
+  26              	 .loc 1 33 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	 
+  32              	.LVL0:
+  33              	.L2:
+  34 0000 FEE7     	 b .L2
+  35              	 .cfi_endproc
+  36              	.LFE56:
+  38              	 .section .text._kill,"ax",%progbits
+  39              	 .align 1
+  40              	 .weak _kill
+  41              	 .syntax unified
+  42              	 .thumb
+  43              	 .thumb_func
+  44              	 .fpu softvfp
+  46              	_kill:
+  47              	.LFB57:
+  34:skel.c        **** 	while (1);
+  35:skel.c        **** }
+  36:skel.c        **** 
+  37:skel.c        **** int WEAK _kill(int pid, int signal) {
+  48              	 .loc 1 37 0
+  49              	 .cfi_startproc
+  50              	 
+  51              	 
+  52              	 
+  53              	.LVL1:
+  38:skel.c        **** 	return 0;
+  39:skel.c        **** }
+  54              	 .loc 1 39 0
+  55 0000 0020     	 movs r0,#0
+  56              	.LVL2:
+  57 0002 7047     	 bx lr
+  58              	 .cfi_endproc
+  59              	.LFE57:
+  61              	 .section .text._getpid,"ax",%progbits
+  62              	 .align 1
+  63              	 .weak _getpid
+  64              	 .syntax unified
+  65              	 .thumb
+  66              	 .thumb_func
+  67              	 .fpu softvfp
+  69              	_getpid:
+  70              	.LFB58:
+  40:skel.c        **** 
+  41:skel.c        **** int WEAK _getpid() {
+  71              	 .loc 1 41 0
+  72              	 .cfi_startproc
+  73              	 
+  74              	 
+  75              	 
+  42:skel.c        **** 	return 0;
+  43:skel.c        **** }
+  76              	 .loc 1 43 0
+  77 0000 0020     	 movs r0,#0
+  78 0002 7047     	 bx lr
+  79              	 .cfi_endproc
+  80              	.LFE58:
+  82              	 .section .text.__aeabi_atexit,"ax",%progbits
+  83              	 .align 1
+  84              	 .weak __aeabi_atexit
+  85              	 .syntax unified
+  86              	 .thumb
+  87              	 .thumb_func
+  88              	 .fpu softvfp
+  90              	__aeabi_atexit:
+  91              	.LFB59:
+  44:skel.c        **** 
+  45:skel.c        **** int WEAK __aeabi_atexit(void *object, void (*destructor)(void *), void *dso_handle) {
+  92              	 .loc 1 45 0
+  93              	 .cfi_startproc
+  94              	 
+  95              	 
+  96              	 
+  97              	.LVL3:
+  46:skel.c        **** 	return 0;
+  47:skel.c        **** }
+  98              	 .loc 1 47 0
+  99 0000 0020     	 movs r0,#0
+ 100              	.LVL4:
+ 101 0002 7047     	 bx lr
+ 102              	 .cfi_endproc
+ 103              	.LFE59:
+ 105              	 .section .text._write,"ax",%progbits
+ 106              	 .align 1
+ 107              	 .weak _write
+ 108              	 .syntax unified
+ 109              	 .thumb
+ 110              	 .thumb_func
+ 111              	 .fpu softvfp
+ 113              	_write:
+ 114              	.LFB60:
+  48:skel.c        **** 
+  49:skel.c        **** int WEAK _write(int fd, uint8_t *buf, size_t buflen) {
+ 115              	 .loc 1 49 0
+ 116              	 .cfi_startproc
+ 117              	 
+ 118              	 
+ 119              	 
+ 120              	.LVL5:
+  50:skel.c        **** // 		_dbg_init();
+  51:skel.c        **** // 		dbg->send((uint8_t *) buf, buflen);
+  52:skel.c        **** 	return buflen;
+  53:skel.c        **** }
+ 121              	 .loc 1 53 0
+ 122 0000 1046     	 mov r0,r2
+ 123              	.LVL6:
+ 124 0002 7047     	 bx lr
+ 125              	 .cfi_endproc
+ 126              	.LFE60:
+ 128              	 .section .text._close,"ax",%progbits
+ 129              	 .align 1
+ 130              	 .weak _close
+ 131              	 .syntax unified
+ 132              	 .thumb
+ 133              	 .thumb_func
+ 134              	 .fpu softvfp
+ 136              	_close:
+ 137              	.LFB61:
+  54:skel.c        **** 
+  55:skel.c        **** int WEAK _close(int fd) {
+ 138              	 .loc 1 55 0
+ 139              	 .cfi_startproc
+ 140              	 
+ 141              	 
+ 142              	 
+ 143              	.LVL7:
+  56:skel.c        **** 	return 0;
+  57:skel.c        **** }
+ 144              	 .loc 1 57 0
+ 145 0000 0020     	 movs r0,#0
+ 146              	.LVL8:
+ 147 0002 7047     	 bx lr
+ 148              	 .cfi_endproc
+ 149              	.LFE61:
+ 151              	 .section .text._lseek,"ax",%progbits
+ 152              	 .align 1
+ 153              	 .weak _lseek
+ 154              	 .syntax unified
+ 155              	 .thumb
+ 156              	 .thumb_func
+ 157              	 .fpu softvfp
+ 159              	_lseek:
+ 160              	.LFB62:
+  58:skel.c        **** 
+  59:skel.c        **** int WEAK _lseek(int file, int ptr, int dir) {
+ 161              	 .loc 1 59 0
+ 162              	 .cfi_startproc
+ 163              	 
+ 164              	 
+ 165              	 
+ 166              	.LVL9:
+  60:skel.c        **** 	return ptr;
+  61:skel.c        **** }
+ 167              	 .loc 1 61 0
+ 168 0000 0846     	 mov r0,r1
+ 169              	.LVL10:
+ 170 0002 7047     	 bx lr
+ 171              	 .cfi_endproc
+ 172              	.LFE62:
+ 174              	 .section .text._read,"ax",%progbits
+ 175              	 .align 1
+ 176              	 .weak _read
+ 177              	 .syntax unified
+ 178              	 .thumb
+ 179              	 .thumb_func
+ 180              	 .fpu softvfp
+ 182              	_read:
+ 183              	.LFB63:
+  62:skel.c        **** 
+  63:skel.c        **** int WEAK _read(int file, char *buf, int len) {
+ 184              	 .loc 1 63 0
+ 185              	 .cfi_startproc
+ 186              	 
+ 187              	 
+ 188              	 
+ 189              	.LVL11:
+  64:skel.c        **** // 		_dbg_init();
+  65:skel.c        **** // 		return dbg->recv((uint8_t *) buf, len);
+  66:skel.c        **** 	return 0;
+  67:skel.c        **** }
+ 190              	 .loc 1 67 0
+ 191 0000 0020     	 movs r0,#0
+ 192              	.LVL12:
+ 193 0002 7047     	 bx lr
+ 194              	 .cfi_endproc
+ 195              	.LFE63:
+ 197              	 .section .text._sbrk,"ax",%progbits
+ 198              	 .align 1
+ 199              	 .weak _sbrk
+ 200              	 .syntax unified
+ 201              	 .thumb
+ 202              	 .thumb_func
+ 203              	 .fpu softvfp
+ 205              	_sbrk:
+ 206              	.LFB64:
+  68:skel.c        **** 
+  69:skel.c        **** void* WEAK _sbrk(int incr) {
+ 207              	 .loc 1 69 0
+ 208              	 .cfi_startproc
+ 209              	 
+ 210              	 
+ 211              	 
+ 212              	.LVL13:
+  70:skel.c        **** 
+  71:skel.c        **** 	extern char _ebss; // Defined by the linker
+  72:skel.c        **** 	static char *heap_end;
+  73:skel.c        **** 	char *prev_heap_end;
+  74:skel.c        **** 
+  75:skel.c        **** 	if (heap_end == 0) {
+ 213              	 .loc 1 75 0
+ 214 0000 074B     	 ldr r3,.L14
+ 215 0002 1A68     	 ldr r2,[r3]
+ 216 0004 0AB9     	 cbnz r2,.L11
+  76:skel.c        **** 		heap_end = &_ebss;
+ 217              	 .loc 1 76 0
+ 218 0006 074A     	 ldr r2,.L14+4
+ 219 0008 1A60     	 str r2,[r3]
+ 220              	.L11:
+  77:skel.c        **** 	}
+  78:skel.c        **** 	prev_heap_end = heap_end;
+ 221              	 .loc 1 78 0
+ 222 000a 1A68     	 ldr r2,[r3]
+ 223              	.LVL14:
+ 224              	.LBB4:
+ 225              	.LBB5:
+ 226              	 .file 2 "CMSISv2p00_LPC17xx/inc/core_cmFunc.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @file     core_cmFunc.h
+   3:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @brief    CMSIS Cortex-M Core Function Access Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M 
+  12:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * processor based microcontrollers.  This file can be freely distributed 
+  13:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * within development tools that are supporting such ARM based processors. 
+  14:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  24:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #ifndef __CORE_CMFUNC_H__
+  25:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __CORE_CMFUNC_H__
+  26:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ###########################  Core Function Access  ########################### */
+  28:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \ingroup  CMSIS_Core_FunctionInterface   
+  29:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+  30:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   @{
+  31:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  32:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  33:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined ( __CC_ARM   ) /*------------------ RealView Compiler ----------------*/
+  34:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ARM armcc specific functions */
+  35:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  36:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __enable_irq();     */
+  37:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __disable_irq();    */
+  38:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  39:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Control Register
+  40:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  41:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the Control Register.
+  42:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  43:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Control Register value
+  44:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  45:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  46:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_CONTROL(void);
+  47:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  48:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_CONTROL(void)
+  49:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  50:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  51:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regControl);
+  52:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  53:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  54:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  56:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Control Register
+  57:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  58:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function writes the given value to the Control Register.
+  59:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  60:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+  61:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  62:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  63:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_CONTROL(uint32_t control);
+  64:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  65:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_CONTROL(uint32_t control)
+  66:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  67:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  68:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regControl = control;
+  69:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  70:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  71:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  72:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  73:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+  74:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  75:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+  76:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+  78:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  79:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  80:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_IPSR(void);
+  81:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  82:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_IPSR(void)
+  83:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  84:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regIPSR          __ASM("ipsr");
+  85:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regIPSR);
+  86:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  87:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  88:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  89:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  90:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+  91:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  92:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+  93:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  94:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+  95:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  96:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  97:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_APSR(void);
+  98:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  99:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_APSR(void)
+ 100:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 101:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regAPSR          __ASM("apsr");
+ 102:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regAPSR);
+ 103:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 104:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 105:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 106:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 107:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 108:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 109:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 110:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 111:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 112:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 113:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 114:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_xPSR(void);
+ 115:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 116:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_xPSR(void)
+ 117:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 118:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regXPSR          __ASM("xpsr");
+ 119:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regXPSR);
+ 120:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 121:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 122:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 123:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 124:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 125:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 126:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 127:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 128:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 129:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 130:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 131:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PSP(void);
+ 132:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 133:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PSP(void)
+ 134:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 135:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 136:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regProcessStackPointer);
+ 137:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 138:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 139:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 140:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 142:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 143:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 144:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 145:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 146:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 147:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 148:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PSP(uint32_t topOfProcStack);
+ 149:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 150:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PSP(uint32_t topOfProcStack)
+ 151:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 152:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 153:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regProcessStackPointer = topOfProcStack;
+ 154:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 155:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 156:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 157:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 158:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 159:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 160:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 161:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 162:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 163:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 164:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 165:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_MSP(void);
+ 166:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 167:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_MSP(void)
+ 168:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 169:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 170:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regMainStackPointer);
+ 171:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 172:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 173:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 174:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 175:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 176:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 177:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 178:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 179:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 180:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 181:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 182:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_MSP(uint32_t topOfMainStack);
+ 183:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 184:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_MSP(uint32_t topOfMainStack)
+ 185:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 186:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 187:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regMainStackPointer = topOfMainStack;
+ 188:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 189:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 190:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 191:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 192:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Priority Mask
+ 193:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 194:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current state of the priority mask bit from the Priority Mask Registe
+ 195:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 196:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Priority Mask value
+ 197:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 198:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 199:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PRIMASK(void);
+ 200:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 201:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PRIMASK(void)
+ 202:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 203:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 204:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regPriMask);
+ 205:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 206:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 207:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 208:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 209:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Priority Mask
+ 210:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 211:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Priority Mask Register.
+ 212:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 213:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    priMask  Priority Mask
+ 214:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 215:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 216:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PRIMASK(uint32_t priMask);
+ 217:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 218:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PRIMASK(uint32_t priMask)
+ 219:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 220:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 221:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regPriMask = (priMask);
+ 222:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 223:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 224:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 225:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 226:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 227:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 228:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 229:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 230:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 231:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 232:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 233:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_fault_irq                __enable_fiq
+ 234:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 235:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 236:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 237:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 238:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 239:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 240:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 241:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_fault_irq               __disable_fiq
+ 242:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 243:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 244:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Base Priority
+ 245:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 246:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Base Priority register.
+ 247:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 248:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Base Priority register value
+ 249:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 250:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 251:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_BASEPRI(void);
+ 252:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 253:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t  __get_BASEPRI(void)
+ 254:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 255:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 256:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regBasePri);
+ 257:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 258:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 259:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 260:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 261:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Base Priority
+ 262:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 263:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Base Priority register.
+ 264:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 265:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    basePri  Base Priority value to set
+ 266:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 267:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 268:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_BASEPRI(uint32_t basePri);
+ 269:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 270:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_BASEPRI(uint32_t basePri)
+ 271:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 272:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 273:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regBasePri = (basePri & 0xff);
+ 274:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 275:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 276:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 277:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 278:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Fault Mask
+ 279:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Fault Mask register.
+ 281:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 282:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Fault Mask register value
+ 283:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 284:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 285:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_FAULTMASK(void);
+ 286:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 287:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FAULTMASK(void)
+ 288:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 289:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 290:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regFaultMask);
+ 291:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 292:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 293:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 294:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 295:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Fault Mask
+ 296:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 297:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Fault Mask register.
+ 298:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 299:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    faultMask  Fault Mask value to set
+ 300:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 301:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 302:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_FAULTMASK(uint32_t faultMask);
+ 303:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 304:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FAULTMASK(uint32_t faultMask)
+ 305:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 306:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 307:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regFaultMask = (faultMask & 1);
+ 308:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 309:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 310:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 311:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 312:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 313:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 314:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 315:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 316:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 317:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 319:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 320:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 321:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 322:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FPSCR(void)
+ 323:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 324:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 325:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 326:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regfpscr);
+ 327:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 328:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****    return(0);
+ 329:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 330:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 331:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 332:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 333:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 334:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 335:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 336:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 337:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 338:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 339:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FPSCR(uint32_t fpscr)
+ 340:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 341:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 342:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 343:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regfpscr = (fpscr);
+ 344:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 345:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 346:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 347:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 348:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 349:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 350:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  #elif (defined (__ICCARM__)) /*---------------- ICC Compiler ---------------------*/
+ 351:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* IAR iccarm specific functions */
+ 352:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined (__ICCARM__)
+ 354:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   #include <intrinsics.h>                     /* IAR Intrinsics   */
+ 355:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 356:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 357:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_suppress=Pe940
+ 358:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 359:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 360:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 361:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 362:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 363:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 364:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_irq                              __enable_interrupt
+ 365:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 367:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 368:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 369:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 370:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 371:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 372:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_irq                             __disable_interrupt
+ 373:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 374:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_CONTROL( void ); (see intrinsic.h) */
+ 376:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_CONTROL( unsigned long ); (see intrinsic.h) */
+ 377:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 378:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 379:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+ 380:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 381:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+ 382:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 383:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+ 384:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 385:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_IPSR(void)
+ 386:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 387:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, ipsr");
+ 388:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 389:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 390:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 391:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+ 392:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 394:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 395:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+ 396:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 397:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_APSR(void)
+ 398:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 399:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, apsr");
+ 400:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 401:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 402:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 403:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 404:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 405:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 406:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 407:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 408:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 409:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_xPSR(void)
+ 410:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 411:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psr");           // assembler does not know "xpsr"
+ 412:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 413:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 414:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 415:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 416:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 417:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 418:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 420:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 421:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_PSP(void)
+ 422:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 423:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psp");
+ 424:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 425:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 426:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 427:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 428:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 429:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 430:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 431:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 432:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 433:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_PSP(uint32_t topOfProcStack)
+ 434:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 435:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr psp, r0");
+ 436:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 437:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 438:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 439:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 440:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 441:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 442:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 443:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 444:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 445:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_MSP(void)
+ 446:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 447:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, msp");
+ 448:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 449:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 450:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 451:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 452:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 453:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 454:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 455:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 456:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 457:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_MSP(uint32_t topOfMainStack)
+ 458:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 459:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr msp, r0");
+ 460:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 461:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 462:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 463:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_PRIMASK( void ); (see intrinsic.h) */
+ 464:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_PRIMASK( unsigned long ); (see intrinsic.h) */
+ 465:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 466:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 467:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 468:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 469:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 470:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 471:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 472:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 473:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 474:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __enable_fault_irq(void)
+ 475:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 476:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsie f");
+ 477:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 478:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 479:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 480:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 481:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 482:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 483:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 484:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 485:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __disable_fault_irq(void)
+ 486:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 487:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsid f");
+ 488:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 489:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 491:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_BASEPRI( void );   (see intrinsic.h) */
+ 492:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_BASEPRI( unsigned long );   (see intrinsic.h) */
+ 493:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_FAULTMASK( void ); (see intrinsic.h) */
+ 494:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_FAULTMASK(unsigned long);   (see intrinsic.h) */
+ 495:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 496:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 497:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 498:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 499:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 500:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 501:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 502:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 503:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 504:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 505:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 506:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 507:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_FPSCR(void)
+ 508:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 509:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 510:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmrs r0, fpscr"); 
+ 511:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 512:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(0);
+ 513:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 514:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 515:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 516:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 517:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 518:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 519:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 520:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 521:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 522:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 523:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_FPSCR(uint32_t fpscr)
+ 524:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 525:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 526:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmsr fpscr, r0");
+ 527:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 528:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 529:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 530:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 531:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 532:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_default=Pe940
+ 533:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 534:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 535:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 536:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* GNU gcc specific functions */
+ 537:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 538:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 539:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 540:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 541:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 542:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 543:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __enable_irq(void)
+ 544:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsie i");
+ 546:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 547:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 548:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 549:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 550:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 551:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 552:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 553:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 554:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __disable_irq(void)
+ 555:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 556:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsid i");
+ 557:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 558:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 559:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 560:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Control Register
+ 561:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 562:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the Control Register.
+ 563:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 564:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Control Register value
+ 565:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 566:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_CONTROL(void)
+ 567:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 568:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 569:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 570:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 571:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 572:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 573:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 574:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 575:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Control Register
+ 576:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 577:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function writes the given value to the Control Register.
+ 578:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 579:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+ 580:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 581:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __set_CONTROL(uint32_t control)
+ 582:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 583:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) );
+ 584:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 585:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 586:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 587:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+ 588:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 589:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+ 590:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 591:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+ 592:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 593:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_IPSR(void)
+ 594:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 595:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 596:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 597:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 598:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 599:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 600:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 601:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 602:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+ 603:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 604:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 605:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 606:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+ 607:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 608:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_APSR(void)
+ 609:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 610:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 611:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 612:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 613:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 614:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 615:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 616:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 617:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 618:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 619:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 620:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 621:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 622:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 623:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_xPSR(void)
+ 624:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 625:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   uint32_t result;
+ 626:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 627:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 628:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 629:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 630:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 631:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 632:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 633:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 634:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 635:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 636:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 637:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 638:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_PSP(void)
+ 639:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 640:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t result;
+ 641:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 642:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, psp\n"  : "=r" (result) );
+ 643:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(result);
+ 644:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 645:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 646:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 647:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 648:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 649:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 650:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 651:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 652:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 653:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __set_PSP(uint32_t topOfProcStack)
+ 654:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 655:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack) );
+ 656:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 657:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 658:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 659:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 660:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 661:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 662:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 663:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 664:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 665:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE uint32_t __get_MSP(void)
+ 666:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 667:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t result;
+ 668:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 669:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("MRS %0, msp\n" : "=r" (result) );
+ 227              	 .loc 2 669 0
+ 228              	 .syntax unified
+ 229              	
+ 230 000c EFF30881 	 MRS r1,msp
+ 231              	
+ 232              	
+ 233              	 .thumb
+ 234              	 .syntax unified
+ 235              	.LBE5:
+ 236              	.LBE4:
+  79:skel.c        **** 
+  80:skel.c        **** 	char * stack = (char*) __get_MSP();
+  81:skel.c        **** 	if (heap_end + incr >  stack)
+ 237              	 .loc 1 81 0
+ 238 0010 1044     	 add r0,r0,r2
+ 239              	.LVL15:
+ 240 0012 8842     	 cmp r0,r1
+  82:skel.c        **** 	{
+  83:skel.c        **** 		//_write (STDERR_FILENO, "Heap and stack collision\n", 25);
+  84:skel.c        **** 		//errno = ENOMEM;
+  85:skel.c        **** 		return  (void *) -1;
+  86:skel.c        **** 		//abort ();
+  87:skel.c        **** 	}
+  88:skel.c        **** 
+  89:skel.c        **** 	heap_end += incr;
+ 241              	 .loc 1 89 0
+ 242 0014 9ABF     	 itte ls
+ 243 0016 1860     	 strls r0,[r3]
+  90:skel.c        **** 	return prev_heap_end;
+ 244              	 .loc 1 90 0
+ 245 0018 1046     	 movls r0,r2
+  85:skel.c        **** 		//abort ();
+ 246              	 .loc 1 85 0
+ 247 001a 4FF0FF30 	 movhi r0,#-1
+  91:skel.c        **** }
+ 248              	 .loc 1 91 0
+ 249 001e 7047     	 bx lr
+ 250              	.L15:
+ 251              	 .align 2
+ 252              	.L14:
+ 253 0020 00000000 	 .word .LANCHOR0
+ 254 0024 00000000 	 .word _ebss
+ 255              	 .cfi_endproc
+ 256              	.LFE64:
+ 258              	 .section .text._fstat,"ax",%progbits
+ 259              	 .align 1
+ 260              	 .weak _fstat
+ 261              	 .syntax unified
+ 262              	 .thumb
+ 263              	 .thumb_func
+ 264              	 .fpu softvfp
+ 266              	_fstat:
+ 267              	.LFB65:
+  92:skel.c        **** 
+  93:skel.c        **** int WEAK _fstat(int file, void *st) {
+ 268              	 .loc 1 93 0
+ 269              	 .cfi_startproc
+ 270              	 
+ 271              	 
+ 272              	 
+ 273              	.LVL16:
+  94:skel.c        **** 	return 0;
+  95:skel.c        **** }
+ 274              	 .loc 1 95 0
+ 275 0000 0020     	 movs r0,#0
+ 276              	.LVL17:
+ 277 0002 7047     	 bx lr
+ 278              	 .cfi_endproc
+ 279              	.LFE65:
+ 281              	 .section .text._isatty,"ax",%progbits
+ 282              	 .align 1
+ 283              	 .weak _isatty
+ 284              	 .syntax unified
+ 285              	 .thumb
+ 286              	 .thumb_func
+ 287              	 .fpu softvfp
+ 289              	_isatty:
+ 290              	.LFB66:
+  96:skel.c        **** 
+  97:skel.c        **** int WEAK _isatty(int fd) {
+ 291              	 .loc 1 97 0
+ 292              	 .cfi_startproc
+ 293              	 
+ 294              	 
+ 295              	 
+ 296              	.LVL18:
+  98:skel.c        **** 	if (fd <= 2)
+  99:skel.c        **** 		return 1;
+ 100:skel.c        **** 	return 0;
+ 101:skel.c        **** }
+ 297              	 .loc 1 101 0
+ 298 0000 0228     	 cmp r0,#2
+ 299 0002 CCBF     	 ite gt
+ 300 0004 0020     	 movgt r0,#0
+ 301              	.LVL19:
+ 302 0006 0120     	 movle r0,#1
+ 303 0008 7047     	 bx lr
+ 304              	 .cfi_endproc
+ 305              	.LFE66:
+ 307              	 .section .text.__aeabi_unwind_cpp_pr0,"ax",%progbits
+ 308              	 .align 1
+ 309              	 .global __aeabi_unwind_cpp_pr0
+ 310              	 .syntax unified
+ 311              	 .thumb
+ 312              	 .thumb_func
+ 313              	 .fpu softvfp
+ 315              	__aeabi_unwind_cpp_pr0:
+ 316              	.LFB71:
+ 317              	 .cfi_startproc
+ 318              	 
+ 319              	 
+ 320              	 
+ 321 0000 7047     	 bx lr
+ 322              	 .cfi_endproc
+ 323              	.LFE71:
+ 325              	 .section .text.__libc_init_array,"ax",%progbits
+ 326              	 .align 1
+ 327              	 .global __libc_init_array
+ 328              	 .syntax unified
+ 329              	 .thumb
+ 330              	 .thumb_func
+ 331              	 .fpu softvfp
+ 333              	__libc_init_array:
+ 334              	.LFB68:
+ 102:skel.c        **** 
+ 103:skel.c        **** void __aeabi_unwind_cpp_pr0(void){}
+ 104:skel.c        **** void __libc_init_array(void){}
+ 335              	 .loc 1 104 0
+ 336              	 .cfi_startproc
+ 337              	 
+ 338              	 
+ 339              	 
+ 340 0000 7047     	 bx lr
+ 341              	 .cfi_endproc
+ 342              	.LFE68:
+ 344              	 .section .text.atexit,"ax",%progbits
+ 345              	 .align 1
+ 346              	 .global atexit
+ 347              	 .syntax unified
+ 348              	 .thumb
+ 349              	 .thumb_func
+ 350              	 .fpu softvfp
+ 352              	atexit:
+ 353              	.LFB69:
+ 105:skel.c        **** int atexit(void(*f)(void)){ return 0; }
+ 354              	 .loc 1 105 0
+ 355              	 .cfi_startproc
+ 356              	 
+ 357              	 
+ 358              	 
+ 359              	.LVL20:
+ 360              	 .loc 1 105 0
+ 361 0000 0020     	 movs r0,#0
+ 362              	.LVL21:
+ 363 0002 7047     	 bx lr
+ 364              	 .cfi_endproc
+ 365              	.LFE69:
+ 367              	 .section .bss.heap_end.6669,"aw",%nobits
+ 368              	 .align 2
+ 369              	 .set .LANCHOR0,.+0
+ 372              	heap_end.6669:
+ 373 0000 00000000 	 .space 4
+ 374              	 .text
+ 375              	.Letext0:
+ 376              	 .file 3 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 377              	 .file 4 "/usr/include/newlib/machine/_default_types.h"
+ 378              	 .file 5 "/usr/include/newlib/sys/lock.h"
+ 379              	 .file 6 "/usr/include/newlib/sys/_types.h"
+ 380              	 .file 7 "/usr/include/newlib/sys/reent.h"
+ 381              	 .file 8 "/usr/include/newlib/stdlib.h"
+ 382              	 .file 9 "/usr/include/newlib/sys/_stdint.h"
+ 383              	 .file 10 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 384              	 .file 11 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 skel.c
+    {standard input}:16     .text._exit:0000000000000000 $t
+    {standard input}:23     .text._exit:0000000000000000 _exit
+    {standard input}:39     .text._kill:0000000000000000 $t
+    {standard input}:46     .text._kill:0000000000000000 _kill
+    {standard input}:62     .text._getpid:0000000000000000 $t
+    {standard input}:69     .text._getpid:0000000000000000 _getpid
+    {standard input}:83     .text.__aeabi_atexit:0000000000000000 $t
+    {standard input}:90     .text.__aeabi_atexit:0000000000000000 __aeabi_atexit
+    {standard input}:106    .text._write:0000000000000000 $t
+    {standard input}:113    .text._write:0000000000000000 _write
+    {standard input}:129    .text._close:0000000000000000 $t
+    {standard input}:136    .text._close:0000000000000000 _close
+    {standard input}:152    .text._lseek:0000000000000000 $t
+    {standard input}:159    .text._lseek:0000000000000000 _lseek
+    {standard input}:175    .text._read:0000000000000000 $t
+    {standard input}:182    .text._read:0000000000000000 _read
+    {standard input}:198    .text._sbrk:0000000000000000 $t
+    {standard input}:205    .text._sbrk:0000000000000000 _sbrk
+    {standard input}:253    .text._sbrk:0000000000000020 $d
+    {standard input}:259    .text._fstat:0000000000000000 $t
+    {standard input}:266    .text._fstat:0000000000000000 _fstat
+    {standard input}:282    .text._isatty:0000000000000000 $t
+    {standard input}:289    .text._isatty:0000000000000000 _isatty
+    {standard input}:308    .text.__aeabi_unwind_cpp_pr0:0000000000000000 $t
+    {standard input}:315    .text.__aeabi_unwind_cpp_pr0:0000000000000000 __aeabi_unwind_cpp_pr0
+    {standard input}:326    .text.__libc_init_array:0000000000000000 $t
+    {standard input}:333    .text.__libc_init_array:0000000000000000 __libc_init_array
+    {standard input}:345    .text.atexit:0000000000000000 $t
+    {standard input}:352    .text.atexit:0000000000000000 atexit
+    {standard input}:368    .bss.heap_end.6669:0000000000000000 $d
+    {standard input}:372    .bss.heap_end.6669:0000000000000000 heap_end.6669
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+_ebss

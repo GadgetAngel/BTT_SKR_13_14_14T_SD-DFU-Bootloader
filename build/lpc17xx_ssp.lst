@@ -1,0 +1,1978 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_ssp.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.SSP_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global SSP_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	SSP_Init:
+  24              	.LFB56:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_ssp.c"
+   1:LPC17xxLib/src/lpc17xx_ssp.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_ssp.c **** 
+   3:LPC17xxLib/src/lpc17xx_ssp.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_ssp.c **** * $Id$		lpc17xx_ssp.c				2010-06-18
+   5:LPC17xxLib/src/lpc17xx_ssp.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_ssp.c **** * @file		lpc17xx_ssp.c
+   7:LPC17xxLib/src/lpc17xx_ssp.c **** * @brief	Contains all functions support for SSP firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_ssp.c **** * @version	3.0
+   9:LPC17xxLib/src/lpc17xx_ssp.c **** * @date		18. June. 2010
+  10:LPC17xxLib/src/lpc17xx_ssp.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_ssp.c **** *
+  12:LPC17xxLib/src/lpc17xx_ssp.c **** * Copyright(C) 2010, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_ssp.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_ssp.c **** *
+  15:LPC17xxLib/src/lpc17xx_ssp.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_ssp.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_ssp.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_ssp.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_ssp.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_ssp.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_ssp.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_ssp.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_ssp.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_ssp.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_ssp.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_ssp.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  28:LPC17xxLib/src/lpc17xx_ssp.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_ssp.c **** /** @addtogroup SSP
+  30:LPC17xxLib/src/lpc17xx_ssp.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_ssp.c ****  */
+  32:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  33:LPC17xxLib/src/lpc17xx_ssp.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_ssp.c **** #include "lpc17xx_ssp.h"
+  35:LPC17xxLib/src/lpc17xx_ssp.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  37:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  38:LPC17xxLib/src/lpc17xx_ssp.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  39:LPC17xxLib/src/lpc17xx_ssp.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  40:LPC17xxLib/src/lpc17xx_ssp.c ****  * otherwise the default FW library configuration file must be included instead
+  41:LPC17xxLib/src/lpc17xx_ssp.c ****  */
+  42:LPC17xxLib/src/lpc17xx_ssp.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  43:LPC17xxLib/src/lpc17xx_ssp.c **** #include "lpc17xx_libcfg.h"
+  44:LPC17xxLib/src/lpc17xx_ssp.c **** #else
+  45:LPC17xxLib/src/lpc17xx_ssp.c **** #include "lpc17xx_libcfg_default.h"
+  46:LPC17xxLib/src/lpc17xx_ssp.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  47:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  48:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  49:LPC17xxLib/src/lpc17xx_ssp.c **** #ifdef _SSP
+  50:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  51:LPC17xxLib/src/lpc17xx_ssp.c **** /* Public Functions ----------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_ssp.c **** /** @addtogroup SSP_Public_Functions
+  53:LPC17xxLib/src/lpc17xx_ssp.c ****  * @{
+  54:LPC17xxLib/src/lpc17xx_ssp.c ****  */
+  55:LPC17xxLib/src/lpc17xx_ssp.c **** static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock);
+  56:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  57:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+  58:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief 		Setup clock rate for SSP device
+  59:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in] 	SSPx	SSP peripheral definition, should be:
+  60:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+  61:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+  62:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	target_clock : clock of SSP (Hz)
+  63:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		None
+  64:LPC17xxLib/src/lpc17xx_ssp.c ****  ***********************************************************************/
+  65:LPC17xxLib/src/lpc17xx_ssp.c **** static void setSSPclock (LPC_SSP_TypeDef *SSPx, uint32_t target_clock)
+  66:LPC17xxLib/src/lpc17xx_ssp.c **** {
+  67:LPC17xxLib/src/lpc17xx_ssp.c ****     uint32_t prescale, cr0_div, cmp_clk, ssp_clk;
+  68:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  69:LPC17xxLib/src/lpc17xx_ssp.c ****     CHECK_PARAM(PARAM_SSPx(SSPx));
+  70:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  71:LPC17xxLib/src/lpc17xx_ssp.c ****     /* The SSP clock is derived from the (main system oscillator / 2),
+  72:LPC17xxLib/src/lpc17xx_ssp.c ****        so compute the best divider from that clock */
+  73:LPC17xxLib/src/lpc17xx_ssp.c ****     if (SSPx == LPC_SSP0){
+  74:LPC17xxLib/src/lpc17xx_ssp.c ****     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP0);
+  75:LPC17xxLib/src/lpc17xx_ssp.c ****     } else if (SSPx == LPC_SSP1) {
+  76:LPC17xxLib/src/lpc17xx_ssp.c ****     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP1);
+  77:LPC17xxLib/src/lpc17xx_ssp.c ****     } else {
+  78:LPC17xxLib/src/lpc17xx_ssp.c ****     	return;
+  79:LPC17xxLib/src/lpc17xx_ssp.c ****     }
+  80:LPC17xxLib/src/lpc17xx_ssp.c **** 
+  81:LPC17xxLib/src/lpc17xx_ssp.c **** 	/* Find closest divider to get at or under the target frequency.
+  82:LPC17xxLib/src/lpc17xx_ssp.c **** 	   Use smallest prescale possible and rely on the divider to get
+  83:LPC17xxLib/src/lpc17xx_ssp.c **** 	   the closest target frequency */
+  84:LPC17xxLib/src/lpc17xx_ssp.c **** 	cr0_div = 0;
+  85:LPC17xxLib/src/lpc17xx_ssp.c **** 	cmp_clk = 0xFFFFFFFF;
+  86:LPC17xxLib/src/lpc17xx_ssp.c **** 	prescale = 2;
+  87:LPC17xxLib/src/lpc17xx_ssp.c **** 	while (cmp_clk > target_clock)
+  88:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+  89:LPC17xxLib/src/lpc17xx_ssp.c **** 		cmp_clk = ssp_clk / ((cr0_div + 1) * prescale);
+  90:LPC17xxLib/src/lpc17xx_ssp.c **** 		if (cmp_clk > target_clock)
+  91:LPC17xxLib/src/lpc17xx_ssp.c **** 		{
+  92:LPC17xxLib/src/lpc17xx_ssp.c **** 			cr0_div++;
+  93:LPC17xxLib/src/lpc17xx_ssp.c **** 			if (cr0_div > 0xFF)
+  94:LPC17xxLib/src/lpc17xx_ssp.c **** 			{
+  95:LPC17xxLib/src/lpc17xx_ssp.c **** 				cr0_div = 0;
+  96:LPC17xxLib/src/lpc17xx_ssp.c **** 				prescale += 2;
+  97:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+  98:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+  99:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 100:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 101:LPC17xxLib/src/lpc17xx_ssp.c ****     /* Write computed prescaler and divider back to register */
+ 102:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CR0 &= (~SSP_CR0_SCR(0xFF)) & SSP_CR0_BITMASK;
+ 103:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CR0 |= (SSP_CR0_SCR(cr0_div)) & SSP_CR0_BITMASK;
+ 104:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CPSR = prescale & SSP_CPSR_BITMASK;
+ 105:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 106:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 107:LPC17xxLib/src/lpc17xx_ssp.c **** /**
+ 108:LPC17xxLib/src/lpc17xx_ssp.c ****  * @}
+ 109:LPC17xxLib/src/lpc17xx_ssp.c ****  */
+ 110:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 111:LPC17xxLib/src/lpc17xx_ssp.c **** /* Public Functions ----------------------------------------------------------- */
+ 112:LPC17xxLib/src/lpc17xx_ssp.c **** /** @addtogroup SSP_Public_Functions
+ 113:LPC17xxLib/src/lpc17xx_ssp.c ****  * @{
+ 114:LPC17xxLib/src/lpc17xx_ssp.c ****  */
+ 115:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 116:LPC17xxLib/src/lpc17xx_ssp.c **** /********************************************************************//**
+ 117:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Initializes the SSPx peripheral according to the specified
+ 118:LPC17xxLib/src/lpc17xx_ssp.c **** *               parameters in the SSP_ConfigStruct.
+ 119:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 120:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				 		- LPC_SSP0: SSP0 peripheral
+ 121:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 122:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSP_ConfigStruct Pointer to a SSP_CFG_Type structure
+ 123:LPC17xxLib/src/lpc17xx_ssp.c **** *                    that contains the configuration information for the
+ 124:LPC17xxLib/src/lpc17xx_ssp.c **** *                    specified SSP peripheral.
+ 125:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		None
+ 126:LPC17xxLib/src/lpc17xx_ssp.c ****  *********************************************************************/
+ 127:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_Init(LPC_SSP_TypeDef *SSPx, SSP_CFG_Type *SSP_ConfigStruct)
+ 128:LPC17xxLib/src/lpc17xx_ssp.c **** {
+  26              	 .loc 1 128 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+ 129:LPC17xxLib/src/lpc17xx_ssp.c **** 	uint32_t tmp;
+ 130:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 131:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 132:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 133:LPC17xxLib/src/lpc17xx_ssp.c **** 	if(SSPx == LPC_SSP0) {
+  31              	 .loc 1 133 0
+  32 0000 254B     	 ldr r3,.L15
+ 128:LPC17xxLib/src/lpc17xx_ssp.c **** 	uint32_t tmp;
+  33              	 .loc 1 128 0
+  34 0002 70B5     	 push {r4,r5,r6,lr}
+  35              	 .cfi_def_cfa_offset 16
+  36              	 .cfi_offset 4,-16
+  37              	 .cfi_offset 5,-12
+  38              	 .cfi_offset 6,-8
+  39              	 .cfi_offset 14,-4
+  40              	 .loc 1 133 0
+  41 0004 9842     	 cmp r0,r3
+ 128:LPC17xxLib/src/lpc17xx_ssp.c **** 	uint32_t tmp;
+  42              	 .loc 1 128 0
+  43 0006 0446     	 mov r4,r0
+  44 0008 0D46     	 mov r5,r1
+  45              	 .loc 1 133 0
+  46 000a 29D1     	 bne .L2
+ 134:LPC17xxLib/src/lpc17xx_ssp.c **** 		/* Set up clock and power for SSP0 module */
+ 135:LPC17xxLib/src/lpc17xx_ssp.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP0, ENABLE);
+  47              	 .loc 1 135 0
+  48 000c 0121     	 movs r1,#1
+  49              	.LVL1:
+  50 000e 4FF40010 	 mov r0,#2097152
+  51              	.LVL2:
+  52              	.L13:
+ 136:LPC17xxLib/src/lpc17xx_ssp.c **** 	} else if(SSPx == LPC_SSP1) {
+ 137:LPC17xxLib/src/lpc17xx_ssp.c **** 		/* Set up clock and power for SSP1 module */
+ 138:LPC17xxLib/src/lpc17xx_ssp.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP1, ENABLE);
+  53              	 .loc 1 138 0
+  54 0012 224B     	 ldr r3,.L15+4
+  55 0014 9847     	 blx r3
+  56              	.LVL3:
+ 139:LPC17xxLib/src/lpc17xx_ssp.c **** 	} else {
+ 140:LPC17xxLib/src/lpc17xx_ssp.c **** 		return;
+ 141:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 142:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 143:LPC17xxLib/src/lpc17xx_ssp.c **** 	/* Configure SSP, interrupt is disable, LoopBack mode is disable,
+ 144:LPC17xxLib/src/lpc17xx_ssp.c **** 	 * SSP is disable, Slave output is disable as default
+ 145:LPC17xxLib/src/lpc17xx_ssp.c **** 	 */
+ 146:LPC17xxLib/src/lpc17xx_ssp.c **** 	tmp = ((SSP_ConfigStruct->CPHA) | (SSP_ConfigStruct->CPOL) \
+  57              	 .loc 1 146 0
+  58 0016 AA68     	 ldr r2,[r5,#8]
+  59 0018 6B68     	 ldr r3,[r5,#4]
+  60 001a 1343     	 orrs r3,r3,r2
+ 147:LPC17xxLib/src/lpc17xx_ssp.c **** 		| (SSP_ConfigStruct->FrameFormat) | (SSP_ConfigStruct->Databit))
+  61              	 .loc 1 147 0
+  62 001c 2A69     	 ldr r2,[r5,#16]
+  63 001e 1343     	 orrs r3,r3,r2
+  64 0020 2A68     	 ldr r2,[r5]
+  65 0022 1343     	 orrs r3,r3,r2
+ 146:LPC17xxLib/src/lpc17xx_ssp.c **** 		| (SSP_ConfigStruct->FrameFormat) | (SSP_ConfigStruct->Databit))
+  66              	 .loc 1 146 0
+  67 0024 9BB2     	 uxth r3,r3
+  68              	.LVL4:
+ 148:LPC17xxLib/src/lpc17xx_ssp.c **** 		& SSP_CR0_BITMASK;
+ 149:LPC17xxLib/src/lpc17xx_ssp.c **** 	// write back to SSP control register
+ 150:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSPx->CR0 = tmp;
+  69              	 .loc 1 150 0
+  70 0026 2360     	 str r3,[r4]
+ 151:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 152:LPC17xxLib/src/lpc17xx_ssp.c **** 	tmp = SSP_ConfigStruct->Mode & SSP_CR1_BITMASK;
+  71              	 .loc 1 152 0
+  72 0028 EB68     	 ldr r3,[r5,#12]
+  73              	.LVL5:
+  74 002a 03F00F03 	 and r3,r3,#15
+  75              	.LVL6:
+ 153:LPC17xxLib/src/lpc17xx_ssp.c **** 	// Write back to CR1
+ 154:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSPx->CR1 = tmp;
+  76              	 .loc 1 154 0
+  77 002e 6360     	 str r3,[r4,#4]
+  78              	.LBB28:
+  79              	.LBB29:
+  73:LPC17xxLib/src/lpc17xx_ssp.c ****     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP0);
+  80              	 .loc 1 73 0
+  81 0030 194B     	 ldr r3,.L15
+  82              	.LVL7:
+  83              	.LBE29:
+  84              	.LBE28:
+ 155:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 156:LPC17xxLib/src/lpc17xx_ssp.c **** 	// Set clock rate for SSP peripheral
+ 157:LPC17xxLib/src/lpc17xx_ssp.c **** 	setSSPclock(SSPx, SSP_ConfigStruct->ClockRate);
+  85              	 .loc 1 157 0
+  86 0032 6E69     	 ldr r6,[r5,#20]
+  87              	.LVL8:
+  88              	.LBB32:
+  89              	.LBB30:
+  73:LPC17xxLib/src/lpc17xx_ssp.c ****     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP0);
+  90              	 .loc 1 73 0
+  91 0034 9C42     	 cmp r4,r3
+  92 0036 1AD1     	 bne .L6
+  93              	.LVL9:
+  74:LPC17xxLib/src/lpc17xx_ssp.c ****     } else if (SSPx == LPC_SSP1) {
+  94              	 .loc 1 74 0
+  95 0038 2A20     	 movs r0,#42
+  96              	.LVL10:
+  97              	.L14:
+  76:LPC17xxLib/src/lpc17xx_ssp.c ****     } else {
+  98              	 .loc 1 76 0
+  99 003a 194B     	 ldr r3,.L15+8
+ 100 003c 9847     	 blx r3
+ 101              	.LVL11:
+  85:LPC17xxLib/src/lpc17xx_ssp.c **** 	prescale = 2;
+ 102              	 .loc 1 85 0
+ 103 003e 4FF0FF31 	 mov r1,#-1
+  84:LPC17xxLib/src/lpc17xx_ssp.c **** 	cmp_clk = 0xFFFFFFFF;
+ 104              	 .loc 1 84 0
+ 105 0042 0023     	 movs r3,#0
+  86:LPC17xxLib/src/lpc17xx_ssp.c **** 	while (cmp_clk > target_clock)
+ 106              	 .loc 1 86 0
+ 107 0044 0222     	 movs r2,#2
+ 108              	.LVL12:
+ 109              	.L9:
+  87:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 110              	 .loc 1 87 0
+ 111 0046 8E42     	 cmp r6,r1
+ 112 0048 16D3     	 bcc .L11
+ 102:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CR0 |= (SSP_CR0_SCR(cr0_div)) & SSP_CR0_BITMASK;
+ 113              	 .loc 1 102 0
+ 114 004a 2168     	 ldr r1,[r4]
+ 115              	.LVL13:
+ 103:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CPSR = prescale & SSP_CPSR_BITMASK;
+ 116              	 .loc 1 103 0
+ 117 004c 1B02     	 lsls r3,r3,#8
+ 118              	.LVL14:
+ 102:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CR0 |= (SSP_CR0_SCR(cr0_div)) & SSP_CR0_BITMASK;
+ 119              	 .loc 1 102 0
+ 120 004e C9B2     	 uxtb r1,r1
+ 121 0050 2160     	 str r1,[r4]
+ 103:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CPSR = prescale & SSP_CPSR_BITMASK;
+ 122              	 .loc 1 103 0
+ 123 0052 2168     	 ldr r1,[r4]
+ 124 0054 9BB2     	 uxth r3,r3
+ 125 0056 0B43     	 orrs r3,r3,r1
+ 104:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 126              	 .loc 1 104 0
+ 127 0058 D2B2     	 uxtb r2,r2
+ 128              	.LVL15:
+ 103:LPC17xxLib/src/lpc17xx_ssp.c ****     SSPx->CPSR = prescale & SSP_CPSR_BITMASK;
+ 129              	 .loc 1 103 0
+ 130 005a 2360     	 str r3,[r4]
+ 104:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 131              	 .loc 1 104 0
+ 132 005c 2261     	 str r2,[r4,#16]
+ 133              	.LVL16:
+ 134              	.L1:
+ 135 005e 70BD     	 pop {r4,r5,r6,pc}
+ 136              	.LVL17:
+ 137              	.L2:
+ 138              	.LBE30:
+ 139              	.LBE32:
+ 136:LPC17xxLib/src/lpc17xx_ssp.c **** 		/* Set up clock and power for SSP1 module */
+ 140              	 .loc 1 136 0
+ 141 0060 104B     	 ldr r3,.L15+12
+ 142 0062 9842     	 cmp r0,r3
+ 143 0064 FBD1     	 bne .L1
+ 138:LPC17xxLib/src/lpc17xx_ssp.c **** 	} else {
+ 144              	 .loc 1 138 0
+ 145 0066 0121     	 movs r1,#1
+ 146              	.LVL18:
+ 147 0068 4FF48060 	 mov r0,#1024
+ 148              	.LVL19:
+ 149 006c D1E7     	 b .L13
+ 150              	.LVL20:
+ 151              	.L6:
+ 152              	.LBB33:
+ 153              	.LBB31:
+  75:LPC17xxLib/src/lpc17xx_ssp.c ****     	ssp_clk = CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SSP1);
+ 154              	 .loc 1 75 0
+ 155 006e 0D4B     	 ldr r3,.L15+12
+ 156 0070 9C42     	 cmp r4,r3
+ 157 0072 F4D1     	 bne .L1
+ 158              	.LVL21:
+  76:LPC17xxLib/src/lpc17xx_ssp.c ****     } else {
+ 159              	 .loc 1 76 0
+ 160 0074 1420     	 movs r0,#20
+ 161 0076 E0E7     	 b .L14
+ 162              	.LVL22:
+ 163              	.L11:
+  89:LPC17xxLib/src/lpc17xx_ssp.c **** 		if (cmp_clk > target_clock)
+ 164              	 .loc 1 89 0
+ 165 0078 5D1C     	 adds r5,r3,#1
+ 166 007a 02FB05F1 	 mul r1,r2,r5
+ 167              	.LVL23:
+ 168 007e B0FBF1F1 	 udiv r1,r0,r1
+ 169              	.LVL24:
+  90:LPC17xxLib/src/lpc17xx_ssp.c **** 		{
+ 170              	 .loc 1 90 0
+ 171 0082 8E42     	 cmp r6,r1
+ 172 0084 05D2     	 bcs .L12
+ 173              	.LVL25:
+  93:LPC17xxLib/src/lpc17xx_ssp.c **** 			{
+ 174              	 .loc 1 93 0
+ 175 0086 FF2D     	 cmp r5,#255
+ 176 0088 01D9     	 bls .L10
+ 177              	.LVL26:
+  95:LPC17xxLib/src/lpc17xx_ssp.c **** 				prescale += 2;
+ 178              	 .loc 1 95 0
+ 179 008a 0025     	 movs r5,#0
+  96:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 180              	 .loc 1 96 0
+ 181 008c 0232     	 adds r2,r2,#2
+ 182              	.LVL27:
+ 183              	.L10:
+  95:LPC17xxLib/src/lpc17xx_ssp.c **** 				prescale += 2;
+ 184              	 .loc 1 95 0
+ 185 008e 2B46     	 mov r3,r5
+ 186 0090 D9E7     	 b .L9
+ 187              	.LVL28:
+ 188              	.L12:
+  90:LPC17xxLib/src/lpc17xx_ssp.c **** 		{
+ 189              	 .loc 1 90 0
+ 190 0092 1D46     	 mov r5,r3
+ 191 0094 FBE7     	 b .L10
+ 192              	.L16:
+ 193 0096 00BF     	 .align 2
+ 194              	.L15:
+ 195 0098 00800840 	 .word 1074298880
+ 196 009c 00000000 	 .word CLKPWR_ConfigPPWR
+ 197 00a0 00000000 	 .word CLKPWR_GetPCLK
+ 198 00a4 00000340 	 .word 1073938432
+ 199              	.LBE31:
+ 200              	.LBE33:
+ 201              	 .cfi_endproc
+ 202              	.LFE56:
+ 204              	 .section .text.SSP_DeInit,"ax",%progbits
+ 205              	 .align 1
+ 206              	 .global SSP_DeInit
+ 207              	 .syntax unified
+ 208              	 .thumb
+ 209              	 .thumb_func
+ 210              	 .fpu softvfp
+ 212              	SSP_DeInit:
+ 213              	.LFB57:
+ 158:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 159:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 160:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 161:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		De-initializes the SSPx peripheral registers to their
+ 162:LPC17xxLib/src/lpc17xx_ssp.c **** *                  default reset values.
+ 163:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 164:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				 		- LPC_SSP0: SSP0 peripheral
+ 165:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 166:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		None
+ 167:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 168:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_DeInit(LPC_SSP_TypeDef* SSPx)
+ 169:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 214              	 .loc 1 169 0
+ 215              	 .cfi_startproc
+ 216              	 
+ 217              	 
+ 218              	 
+ 219              	.LVL29:
+ 170:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 171:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 172:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (SSPx == LPC_SSP0){
+ 220              	 .loc 1 172 0
+ 221 0000 074B     	 ldr r3,.L21
+ 222 0002 9842     	 cmp r0,r3
+ 223 0004 04D1     	 bne .L18
+ 173:LPC17xxLib/src/lpc17xx_ssp.c **** 		/* Set up clock and power for SSP0 module */
+ 174:LPC17xxLib/src/lpc17xx_ssp.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP0, DISABLE);
+ 224              	 .loc 1 174 0
+ 225 0006 0021     	 movs r1,#0
+ 226 0008 4FF40010 	 mov r0,#2097152
+ 227              	.LVL30:
+ 228              	.L20:
+ 175:LPC17xxLib/src/lpc17xx_ssp.c **** 	} else if (SSPx == LPC_SSP1) {
+ 176:LPC17xxLib/src/lpc17xx_ssp.c **** 		/* Set up clock and power for SSP1 module */
+ 177:LPC17xxLib/src/lpc17xx_ssp.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSSP1, DISABLE);
+ 229              	 .loc 1 177 0
+ 230 000c 054B     	 ldr r3,.L21+4
+ 231 000e 1847     	 bx r3
+ 232              	.LVL31:
+ 233              	.L18:
+ 175:LPC17xxLib/src/lpc17xx_ssp.c **** 	} else if (SSPx == LPC_SSP1) {
+ 234              	 .loc 1 175 0
+ 235 0010 054B     	 ldr r3,.L21+8
+ 236 0012 9842     	 cmp r0,r3
+ 237 0014 03D1     	 bne .L17
+ 238              	 .loc 1 177 0
+ 239 0016 0021     	 movs r1,#0
+ 240 0018 4FF48060 	 mov r0,#1024
+ 241              	.LVL32:
+ 242 001c F6E7     	 b .L20
+ 243              	.LVL33:
+ 244              	.L17:
+ 245 001e 7047     	 bx lr
+ 246              	.L22:
+ 247              	 .align 2
+ 248              	.L21:
+ 249 0020 00800840 	 .word 1074298880
+ 250 0024 00000000 	 .word CLKPWR_ConfigPPWR
+ 251 0028 00000340 	 .word 1073938432
+ 252              	 .cfi_endproc
+ 253              	.LFE57:
+ 255              	 .section .text.SSP_GetDataSize,"ax",%progbits
+ 256              	 .align 1
+ 257              	 .global SSP_GetDataSize
+ 258              	 .syntax unified
+ 259              	 .thumb
+ 260              	 .thumb_func
+ 261              	 .fpu softvfp
+ 263              	SSP_GetDataSize:
+ 264              	.LFB58:
+ 178:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 179:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 180:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 181:LPC17xxLib/src/lpc17xx_ssp.c **** /*****************************************************************************//**
+ 182:LPC17xxLib/src/lpc17xx_ssp.c **** * @brief		Get data size bit selected
+ 183:LPC17xxLib/src/lpc17xx_ssp.c **** * @param[in]	SSPx pointer to LPC_SSP_TypeDef structure, should be:
+ 184:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- LPC_SSP0: SSP0 peripheral
+ 185:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- LPC_SSP1: SSP1 peripheral
+ 186:LPC17xxLib/src/lpc17xx_ssp.c **** * @return		Data size, could be:
+ 187:LPC17xxLib/src/lpc17xx_ssp.c **** *				- SSP_DATABIT_4: 4 bit transfer
+ 188:LPC17xxLib/src/lpc17xx_ssp.c **** *				- SSP_DATABIT_5: 5 bit transfer
+ 189:LPC17xxLib/src/lpc17xx_ssp.c **** *				...
+ 190:LPC17xxLib/src/lpc17xx_ssp.c **** *				- SSP_DATABIT_16: 16 bit transfer
+ 191:LPC17xxLib/src/lpc17xx_ssp.c **** *******************************************************************************/
+ 192:LPC17xxLib/src/lpc17xx_ssp.c **** uint8_t SSP_GetDataSize(LPC_SSP_TypeDef* SSPx)
+ 193:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 265              	 .loc 1 193 0
+ 266              	 .cfi_startproc
+ 267              	 
+ 268              	 
+ 269              	 
+ 270              	.LVL34:
+ 194:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 195:LPC17xxLib/src/lpc17xx_ssp.c **** 	return (SSPx->CR0 & (0xF));
+ 271              	 .loc 1 195 0
+ 272 0000 0068     	 ldr r0,[r0]
+ 273              	.LVL35:
+ 196:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 274              	 .loc 1 196 0
+ 275 0002 00F00F00 	 and r0,r0,#15
+ 276 0006 7047     	 bx lr
+ 277              	 .cfi_endproc
+ 278              	.LFE58:
+ 280              	 .section .text.SSP_ConfigStructInit,"ax",%progbits
+ 281              	 .align 1
+ 282              	 .global SSP_ConfigStructInit
+ 283              	 .syntax unified
+ 284              	 .thumb
+ 285              	 .thumb_func
+ 286              	 .fpu softvfp
+ 288              	SSP_ConfigStructInit:
+ 289              	.LFB59:
+ 197:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 198:LPC17xxLib/src/lpc17xx_ssp.c **** /*****************************************************************************//**
+ 199:LPC17xxLib/src/lpc17xx_ssp.c **** * @brief		Fills each SSP_InitStruct member with its default value:
+ 200:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- CPHA = SSP_CPHA_FIRST
+ 201:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- CPOL = SSP_CPOL_HI
+ 202:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- ClockRate = 1000000
+ 203:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- Databit = SSP_DATABIT_8
+ 204:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- Mode = SSP_MASTER_MODE
+ 205:LPC17xxLib/src/lpc17xx_ssp.c **** * 				- FrameFormat = SSP_FRAME_SSP
+ 206:LPC17xxLib/src/lpc17xx_ssp.c **** * @param[in]	SSP_InitStruct Pointer to a SSP_CFG_Type structure
+ 207:LPC17xxLib/src/lpc17xx_ssp.c **** *                    which will be initialized.
+ 208:LPC17xxLib/src/lpc17xx_ssp.c **** * @return		None
+ 209:LPC17xxLib/src/lpc17xx_ssp.c **** *******************************************************************************/
+ 210:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_ConfigStructInit(SSP_CFG_Type *SSP_InitStruct)
+ 211:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 290              	 .loc 1 211 0
+ 291              	 .cfi_startproc
+ 292              	 
+ 293              	 
+ 294              	 
+ 295              	.LVL36:
+ 212:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->CPHA = SSP_CPHA_FIRST;
+ 213:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->CPOL = SSP_CPOL_HI;
+ 214:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->ClockRate = 1000000;
+ 296              	 .loc 1 214 0
+ 297 0000 4022     	 movs r2,#64
+ 298 0002 0275     	 strb r2,[r0,#20]
+ 299 0004 4222     	 movs r2,#66
+ 300 0006 4275     	 strb r2,[r0,#21]
+ 301 0008 0F22     	 movs r2,#15
+ 212:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->CPHA = SSP_CPHA_FIRST;
+ 302              	 .loc 1 212 0
+ 303 000a 0023     	 movs r3,#0
+ 304              	 .loc 1 214 0
+ 305 000c 8275     	 strb r2,[r0,#22]
+ 215:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->Databit = SSP_DATABIT_8;
+ 306              	 .loc 1 215 0
+ 307 000e 0722     	 movs r2,#7
+ 212:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->CPHA = SSP_CPHA_FIRST;
+ 308              	 .loc 1 212 0
+ 309 0010 0371     	 strb r3,[r0,#4]
+ 310 0012 4371     	 strb r3,[r0,#5]
+ 311 0014 8371     	 strb r3,[r0,#6]
+ 312 0016 C371     	 strb r3,[r0,#7]
+ 213:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->ClockRate = 1000000;
+ 313              	 .loc 1 213 0
+ 314 0018 0372     	 strb r3,[r0,#8]
+ 315 001a 4372     	 strb r3,[r0,#9]
+ 316 001c 8372     	 strb r3,[r0,#10]
+ 317 001e C372     	 strb r3,[r0,#11]
+ 214:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->Databit = SSP_DATABIT_8;
+ 318              	 .loc 1 214 0
+ 319 0020 C375     	 strb r3,[r0,#23]
+ 320              	 .loc 1 215 0
+ 321 0022 0270     	 strb r2,[r0]
+ 322 0024 4370     	 strb r3,[r0,#1]
+ 323 0026 8370     	 strb r3,[r0,#2]
+ 324 0028 C370     	 strb r3,[r0,#3]
+ 216:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->Mode = SSP_MASTER_MODE;
+ 325              	 .loc 1 216 0
+ 326 002a 0373     	 strb r3,[r0,#12]
+ 327 002c 4373     	 strb r3,[r0,#13]
+ 328 002e 8373     	 strb r3,[r0,#14]
+ 329 0030 C373     	 strb r3,[r0,#15]
+ 217:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSP_InitStruct->FrameFormat = SSP_FRAME_SPI;
+ 330              	 .loc 1 217 0
+ 331 0032 0374     	 strb r3,[r0,#16]
+ 332 0034 4374     	 strb r3,[r0,#17]
+ 333 0036 8374     	 strb r3,[r0,#18]
+ 334 0038 C374     	 strb r3,[r0,#19]
+ 335 003a 7047     	 bx lr
+ 336              	 .cfi_endproc
+ 337              	.LFE59:
+ 339              	 .section .text.SSP_Cmd,"ax",%progbits
+ 340              	 .align 1
+ 341              	 .global SSP_Cmd
+ 342              	 .syntax unified
+ 343              	 .thumb
+ 344              	 .thumb_func
+ 345              	 .fpu softvfp
+ 347              	SSP_Cmd:
+ 348              	.LFB60:
+ 218:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 219:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 220:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 221:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 222:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Enable or disable SSP peripheral's operation
+ 223:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral, should be:
+ 224:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- LPC_SSP0: SSP0 peripheral
+ 225:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- LPC_SSP1: SSP1 peripheral
+ 226:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	NewState New State of SSPx peripheral's operation
+ 227:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		none
+ 228:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 229:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_Cmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
+ 230:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 349              	 .loc 1 230 0
+ 350              	 .cfi_startproc
+ 351              	 
+ 352              	 
+ 353              	 
+ 354              	.LVL37:
+ 231:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 232:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 233:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 234:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (NewState == ENABLE)
+ 235:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 236:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->CR1 |= SSP_CR1_SSP_EN;
+ 355              	 .loc 1 236 0
+ 356 0000 4368     	 ldr r3,[r0,#4]
+ 234:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 357              	 .loc 1 234 0
+ 358 0002 0129     	 cmp r1,#1
+ 359              	 .loc 1 236 0
+ 360 0004 0CBF     	 ite eq
+ 361 0006 43F00203 	 orreq r3,r3,#2
+ 237:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 238:LPC17xxLib/src/lpc17xx_ssp.c **** 	else
+ 239:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 240:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->CR1 &= (~SSP_CR1_SSP_EN) & SSP_CR1_BITMASK;
+ 362              	 .loc 1 240 0
+ 363 000a 03F00D03 	 andne r3,r3,#13
+ 364 000e 4360     	 str r3,[r0,#4]
+ 365 0010 7047     	 bx lr
+ 366              	 .cfi_endproc
+ 367              	.LFE60:
+ 369              	 .section .text.SSP_LoopBackCmd,"ax",%progbits
+ 370              	 .align 1
+ 371              	 .global SSP_LoopBackCmd
+ 372              	 .syntax unified
+ 373              	 .thumb
+ 374              	 .thumb_func
+ 375              	 .fpu softvfp
+ 377              	SSP_LoopBackCmd:
+ 378              	.LFB61:
+ 241:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 242:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 243:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 244:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 245:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Enable or disable Loop Back mode function in SSP peripheral
+ 246:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 247:LPC17xxLib/src/lpc17xx_ssp.c ****  *  					- LPC_SSP0: SSP0 peripheral
+ 248:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 249:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	NewState	New State of Loop Back mode, should be:
+ 250:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							- ENABLE: Enable this function
+ 251:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							- DISABLE: Disable this function
+ 252:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		None
+ 253:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 254:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_LoopBackCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
+ 255:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 379              	 .loc 1 255 0
+ 380              	 .cfi_startproc
+ 381              	 
+ 382              	 
+ 383              	 
+ 384              	.LVL38:
+ 256:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 257:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 258:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 259:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (NewState == ENABLE)
+ 260:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 261:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->CR1 |= SSP_CR1_LBM_EN;
+ 385              	 .loc 1 261 0
+ 386 0000 4368     	 ldr r3,[r0,#4]
+ 259:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 387              	 .loc 1 259 0
+ 388 0002 0129     	 cmp r1,#1
+ 389              	 .loc 1 261 0
+ 390 0004 0CBF     	 ite eq
+ 391 0006 43F00103 	 orreq r3,r3,#1
+ 262:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 263:LPC17xxLib/src/lpc17xx_ssp.c **** 	else
+ 264:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 265:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->CR1 &= (~SSP_CR1_LBM_EN) & SSP_CR1_BITMASK;
+ 392              	 .loc 1 265 0
+ 393 000a 03F00E03 	 andne r3,r3,#14
+ 394 000e 4360     	 str r3,[r0,#4]
+ 395 0010 7047     	 bx lr
+ 396              	 .cfi_endproc
+ 397              	.LFE61:
+ 399              	 .section .text.SSP_SlaveOutputCmd,"ax",%progbits
+ 400              	 .align 1
+ 401              	 .global SSP_SlaveOutputCmd
+ 402              	 .syntax unified
+ 403              	 .thumb
+ 404              	 .thumb_func
+ 405              	 .fpu softvfp
+ 407              	SSP_SlaveOutputCmd:
+ 408              	.LFB62:
+ 266:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 267:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 268:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 269:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 270:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Enable or disable Slave Output function in SSP peripheral
+ 271:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 272:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 273:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 274:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	NewState	New State of Slave Output function, should be:
+ 275:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							- ENABLE: Slave Output in normal operation
+ 276:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							- DISABLE: Slave Output is disabled. This blocks
+ 277:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							SSP controller from driving the transmit data
+ 278:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							line (MISO)
+ 279:LPC17xxLib/src/lpc17xx_ssp.c ****  * Note: 		This function is available when SSP peripheral in Slave mode
+ 280:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		None
+ 281:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 282:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_SlaveOutputCmd(LPC_SSP_TypeDef* SSPx, FunctionalState NewState)
+ 283:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 409              	 .loc 1 283 0
+ 410              	 .cfi_startproc
+ 411              	 
+ 412              	 
+ 413              	 
+ 414              	.LVL39:
+ 284:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 285:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 286:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 287:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (NewState == ENABLE)
+ 288:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 289:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->CR1 &= (~SSP_CR1_SO_DISABLE) & SSP_CR1_BITMASK;
+ 415              	 .loc 1 289 0
+ 416 0000 4368     	 ldr r3,[r0,#4]
+ 287:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 417              	 .loc 1 287 0
+ 418 0002 0129     	 cmp r1,#1
+ 419              	 .loc 1 289 0
+ 420 0004 0CBF     	 ite eq
+ 421 0006 03F00703 	 andeq r3,r3,#7
+ 290:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 291:LPC17xxLib/src/lpc17xx_ssp.c **** 	else
+ 292:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 293:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->CR1 |= SSP_CR1_SO_DISABLE;
+ 422              	 .loc 1 293 0
+ 423 000a 43F00803 	 orrne r3,r3,#8
+ 424 000e 4360     	 str r3,[r0,#4]
+ 425 0010 7047     	 bx lr
+ 426              	 .cfi_endproc
+ 427              	.LFE62:
+ 429              	 .section .text.SSP_SendData,"ax",%progbits
+ 430              	 .align 1
+ 431              	 .global SSP_SendData
+ 432              	 .syntax unified
+ 433              	 .thumb
+ 434              	 .thumb_func
+ 435              	 .fpu softvfp
+ 437              	SSP_SendData:
+ 438              	.LFB63:
+ 294:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 295:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 296:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 297:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 298:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 299:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 300:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Transmit a single data through SSPx peripheral
+ 301:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 302:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 303:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 304:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	Data	Data to transmit (must be 16 or 8-bit long,
+ 305:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						this depend on SSP data bit number configured)
+ 306:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		none
+ 307:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 308:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_SendData(LPC_SSP_TypeDef* SSPx, uint16_t Data)
+ 309:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 439              	 .loc 1 309 0
+ 440              	 .cfi_startproc
+ 441              	 
+ 442              	 
+ 443              	 
+ 444              	.LVL40:
+ 310:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 311:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSPx->DR = SSP_DR_BITMASK(Data);
+ 445              	 .loc 1 312 0
+ 446 0000 8160     	 str r1,[r0,#8]
+ 447 0002 7047     	 bx lr
+ 448              	 .cfi_endproc
+ 449              	.LFE63:
+ 451              	 .section .text.SSP_ReceiveData,"ax",%progbits
+ 452              	 .align 1
+ 453              	 .global SSP_ReceiveData
+ 454              	 .syntax unified
+ 455              	 .thumb
+ 456              	 .thumb_func
+ 457              	 .fpu softvfp
+ 459              	SSP_ReceiveData:
+ 460              	.LFB64:
+ 313:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 314:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 315:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 316:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 317:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 318:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Receive a single data from SSPx peripheral
+ 319:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be
+ 320:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 321:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 322:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		Data received (16-bit long)
+ 323:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 324:LPC17xxLib/src/lpc17xx_ssp.c **** uint16_t SSP_ReceiveData(LPC_SSP_TypeDef* SSPx)
+ 325:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 461              	 .loc 1 325 0
+ 462              	 .cfi_startproc
+ 463              	 
+ 464              	 
+ 465              	 
+ 466              	.LVL41:
+ 326:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 327:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 328:LPC17xxLib/src/lpc17xx_ssp.c **** 	return ((uint16_t) (SSP_DR_BITMASK(SSPx->DR)));
+ 467              	 .loc 1 328 0
+ 468 0000 8068     	 ldr r0,[r0,#8]
+ 469              	.LVL42:
+ 329:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 470              	 .loc 1 329 0
+ 471 0002 80B2     	 uxth r0,r0
+ 472 0004 7047     	 bx lr
+ 473              	 .cfi_endproc
+ 474              	.LFE64:
+ 476              	 .section .text.SSP_ReadWrite,"ax",%progbits
+ 477              	 .align 1
+ 478              	 .global SSP_ReadWrite
+ 479              	 .syntax unified
+ 480              	 .thumb
+ 481              	 .thumb_func
+ 482              	 .fpu softvfp
+ 484              	SSP_ReadWrite:
+ 485              	.LFB65:
+ 330:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 331:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 332:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief 		SSP Read write data function
+ 333:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx 	Pointer to SSP peripheral, should be
+ 334:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 335:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 336:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	dataCfg	Pointer to a SSP_DATA_SETUP_Type structure that
+ 337:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						contains specified information about transmit
+ 338:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						data configuration.
+ 339:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	xfType	Transfer type, should be:
+ 340:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- SSP_TRANSFER_POLLING: Polling mode
+ 341:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- SSP_TRANSFER_INTERRUPT: Interrupt mode
+ 342:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return 		Actual Data length has been transferred in polling mode.
+ 343:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				In interrupt mode, always return (0)
+ 344:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				Return (-1) if error.
+ 345:LPC17xxLib/src/lpc17xx_ssp.c ****  * Note: This function can be used in both master and slave mode.
+ 346:LPC17xxLib/src/lpc17xx_ssp.c ****  ***********************************************************************/
+ 347:LPC17xxLib/src/lpc17xx_ssp.c **** int32_t SSP_ReadWrite (LPC_SSP_TypeDef *SSPx, SSP_DATA_SETUP_Type *dataCfg, \
+ 348:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_TRANSFER_Type xfType)
+ 349:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 486              	 .loc 1 349 0
+ 487              	 .cfi_startproc
+ 488              	 
+ 489              	 
+ 490              	.LVL43:
+ 350:LPC17xxLib/src/lpc17xx_ssp.c ****     uint8_t *rdata8 = NULL;
+ 351:LPC17xxLib/src/lpc17xx_ssp.c ****     uint8_t *wdata8 = NULL;
+ 352:LPC17xxLib/src/lpc17xx_ssp.c ****     uint16_t *rdata16 = NULL;
+ 353:LPC17xxLib/src/lpc17xx_ssp.c ****     uint16_t *wdata16 =  NULL;
+ 354:LPC17xxLib/src/lpc17xx_ssp.c ****     uint32_t stat;
+ 355:LPC17xxLib/src/lpc17xx_ssp.c ****     uint32_t tmp;
+ 356:LPC17xxLib/src/lpc17xx_ssp.c ****     int32_t dataword;
+ 357:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 358:LPC17xxLib/src/lpc17xx_ssp.c ****     dataCfg->rx_cnt = 0;
+ 491              	 .loc 1 358 0
+ 492 0000 0023     	 movs r3,#0
+ 349:LPC17xxLib/src/lpc17xx_ssp.c ****     uint8_t *rdata8 = NULL;
+ 493              	 .loc 1 349 0
+ 494 0002 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 495              	 .cfi_def_cfa_offset 24
+ 496              	 .cfi_offset 4,-24
+ 497              	 .cfi_offset 5,-20
+ 498              	 .cfi_offset 6,-16
+ 499              	 .cfi_offset 7,-12
+ 500              	 .cfi_offset 8,-8
+ 501              	 .cfi_offset 14,-4
+ 502              	 .loc 1 358 0
+ 503 0006 0B73     	 strb r3,[r1,#12]
+ 504 0008 4B73     	 strb r3,[r1,#13]
+ 505 000a 8B73     	 strb r3,[r1,#14]
+ 506 000c CB73     	 strb r3,[r1,#15]
+ 359:LPC17xxLib/src/lpc17xx_ssp.c ****     dataCfg->tx_cnt = 0;
+ 507              	 .loc 1 359 0
+ 508 000e 0B71     	 strb r3,[r1,#4]
+ 509 0010 4B71     	 strb r3,[r1,#5]
+ 510 0012 8B71     	 strb r3,[r1,#6]
+ 511 0014 CB71     	 strb r3,[r1,#7]
+ 360:LPC17xxLib/src/lpc17xx_ssp.c ****     dataCfg->status = 0;
+ 512              	 .loc 1 360 0
+ 513 0016 0B75     	 strb r3,[r1,#20]
+ 514 0018 4B75     	 strb r3,[r1,#21]
+ 515 001a 8B75     	 strb r3,[r1,#22]
+ 516 001c CB75     	 strb r3,[r1,#23]
+ 517              	.L40:
+ 361:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 362:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 363:LPC17xxLib/src/lpc17xx_ssp.c **** 	/* Clear all remaining data in RX FIFO */
+ 364:LPC17xxLib/src/lpc17xx_ssp.c **** 	while (SSPx->SR & SSP_SR_RNE){
+ 518              	 .loc 1 364 0
+ 519 001e C368     	 ldr r3,[r0,#12]
+ 520 0020 13F00403 	 ands r3,r3,#4
+ 521 0024 36D1     	 bne .L41
+ 365:LPC17xxLib/src/lpc17xx_ssp.c **** 		tmp = (uint32_t) SSP_ReceiveData(SSPx);
+ 366:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 367:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 368:LPC17xxLib/src/lpc17xx_ssp.c **** 	// Clear status
+ 369:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSPx->ICR = SSP_ICR_BITMASK;
+ 522              	 .loc 1 369 0
+ 523 0026 90F82040 	 ldrb r4,[r0,#32]
+ 524 002a 0324     	 movs r4,#3
+ 525 002c 80F82040 	 strb r4,[r0,#32]
+ 526 0030 90F82140 	 ldrb r4,[r0,#33]
+ 527 0034 80F82130 	 strb r3,[r0,#33]
+ 528 0038 90F82240 	 ldrb r4,[r0,#34]
+ 529 003c 80F82230 	 strb r3,[r0,#34]
+ 530 0040 90F82340 	 ldrb r4,[r0,#35]
+ 531 0044 80F82330 	 strb r3,[r0,#35]
+ 532              	.LVL44:
+ 533              	.LBB34:
+ 534              	.LBB35:
+ 195:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 535              	 .loc 1 195 0
+ 536 0048 0468     	 ldr r4,[r0]
+ 537              	.LVL45:
+ 538              	.LBE35:
+ 539              	.LBE34:
+ 370:LPC17xxLib/src/lpc17xx_ssp.c **** 	if(SSP_GetDataSize(SSPx)>8)
+ 540              	 .loc 1 370 0
+ 541 004a 04F00F04 	 and r4,r4,#15
+ 542 004e 082C     	 cmp r4,#8
+ 543 0050 00F2E880 	 bhi .L42
+ 544              	.LVL46:
+ 371:LPC17xxLib/src/lpc17xx_ssp.c **** 		dataword = 1;
+ 372:LPC17xxLib/src/lpc17xx_ssp.c **** 	else dataword = 0;
+ 373:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 374:LPC17xxLib/src/lpc17xx_ssp.c **** 	// Polling mode ----------------------------------------------------------------------
+ 375:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (xfType == SSP_TRANSFER_POLLING){
+ 545              	 .loc 1 375 0
+ 546 0054 02B3     	 cbz r2,.L78
+ 547              	.LVL47:
+ 548              	.L79:
+ 376:LPC17xxLib/src/lpc17xx_ssp.c **** 		if (dataword == 0){
+ 377:LPC17xxLib/src/lpc17xx_ssp.c **** 			rdata8 = (uint8_t *)dataCfg->rx_data;
+ 378:LPC17xxLib/src/lpc17xx_ssp.c **** 			wdata8 = (uint8_t *)dataCfg->tx_data;
+ 379:LPC17xxLib/src/lpc17xx_ssp.c **** 		} else {
+ 380:LPC17xxLib/src/lpc17xx_ssp.c **** 			rdata16 = (uint16_t *)dataCfg->rx_data;
+ 381:LPC17xxLib/src/lpc17xx_ssp.c **** 			wdata16 = (uint16_t *)dataCfg->tx_data;
+ 382:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 383:LPC17xxLib/src/lpc17xx_ssp.c **** 		while ((dataCfg->tx_cnt != dataCfg->length) || (dataCfg->rx_cnt != dataCfg->length)){
+ 384:LPC17xxLib/src/lpc17xx_ssp.c **** 			if ((SSPx->SR & SSP_SR_TNF) && (dataCfg->tx_cnt != dataCfg->length)){
+ 385:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Write data to buffer
+ 386:LPC17xxLib/src/lpc17xx_ssp.c **** 				if(dataCfg->tx_data == NULL){
+ 387:LPC17xxLib/src/lpc17xx_ssp.c **** 					if (dataword == 0){
+ 388:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_SendData(SSPx, 0xFF);
+ 389:LPC17xxLib/src/lpc17xx_ssp.c **** 						dataCfg->tx_cnt++;
+ 390:LPC17xxLib/src/lpc17xx_ssp.c **** 					} else {
+ 391:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_SendData(SSPx, 0xFFFF);
+ 392:LPC17xxLib/src/lpc17xx_ssp.c **** 						dataCfg->tx_cnt += 2;
+ 393:LPC17xxLib/src/lpc17xx_ssp.c **** 					}
+ 394:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 395:LPC17xxLib/src/lpc17xx_ssp.c **** 					if (dataword == 0){
+ 396:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_SendData(SSPx, *wdata8);
+ 397:LPC17xxLib/src/lpc17xx_ssp.c **** 						wdata8++;
+ 398:LPC17xxLib/src/lpc17xx_ssp.c **** 						dataCfg->tx_cnt++;
+ 399:LPC17xxLib/src/lpc17xx_ssp.c **** 					} else {
+ 400:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_SendData(SSPx, *wdata16);
+ 401:LPC17xxLib/src/lpc17xx_ssp.c **** 						wdata16++;
+ 402:LPC17xxLib/src/lpc17xx_ssp.c **** 						dataCfg->tx_cnt += 2;
+ 403:LPC17xxLib/src/lpc17xx_ssp.c **** 					}
+ 404:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 405:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 406:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 407:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Check overrun error
+ 408:LPC17xxLib/src/lpc17xx_ssp.c **** 			if ((stat = SSPx->RIS) & SSP_RIS_ROR){
+ 409:LPC17xxLib/src/lpc17xx_ssp.c **** 				// save status and return
+ 410:LPC17xxLib/src/lpc17xx_ssp.c **** 				dataCfg->status = stat | SSP_STAT_ERROR;
+ 411:LPC17xxLib/src/lpc17xx_ssp.c **** 				return (-1);
+ 412:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 413:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 414:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Check for any data available in RX FIFO
+ 415:LPC17xxLib/src/lpc17xx_ssp.c **** 			while ((SSPx->SR & SSP_SR_RNE) && (dataCfg->rx_cnt != dataCfg->length)){
+ 416:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Read data from SSP data
+ 417:LPC17xxLib/src/lpc17xx_ssp.c **** 				tmp = SSP_ReceiveData(SSPx);
+ 418:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 419:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Store data to destination
+ 420:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataCfg->rx_data != NULL)
+ 421:LPC17xxLib/src/lpc17xx_ssp.c **** 				{
+ 422:LPC17xxLib/src/lpc17xx_ssp.c **** 					if (dataword == 0){
+ 423:LPC17xxLib/src/lpc17xx_ssp.c **** 						*(rdata8) = (uint8_t) tmp;
+ 424:LPC17xxLib/src/lpc17xx_ssp.c **** 						rdata8++;
+ 425:LPC17xxLib/src/lpc17xx_ssp.c **** 					} else {
+ 426:LPC17xxLib/src/lpc17xx_ssp.c **** 						*(rdata16) = (uint16_t) tmp;
+ 427:LPC17xxLib/src/lpc17xx_ssp.c **** 						rdata16++;
+ 428:LPC17xxLib/src/lpc17xx_ssp.c **** 					}
+ 429:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 430:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Increase counter
+ 431:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataword == 0){
+ 432:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->rx_cnt++;
+ 433:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 434:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->rx_cnt += 2;
+ 435:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 436:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 437:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 438:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 439:LPC17xxLib/src/lpc17xx_ssp.c **** 		// save status
+ 440:LPC17xxLib/src/lpc17xx_ssp.c **** 		dataCfg->status = SSP_STAT_DONE;
+ 441:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 442:LPC17xxLib/src/lpc17xx_ssp.c **** 		if (dataCfg->tx_data != NULL){
+ 443:LPC17xxLib/src/lpc17xx_ssp.c **** 			return dataCfg->tx_cnt;
+ 444:LPC17xxLib/src/lpc17xx_ssp.c **** 		} else if (dataCfg->rx_data != NULL){
+ 445:LPC17xxLib/src/lpc17xx_ssp.c **** 			return dataCfg->rx_cnt;
+ 446:LPC17xxLib/src/lpc17xx_ssp.c **** 		} else {
+ 447:LPC17xxLib/src/lpc17xx_ssp.c **** 			return (0);
+ 448:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 449:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 450:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 451:LPC17xxLib/src/lpc17xx_ssp.c **** 	// Interrupt mode ----------------------------------------------------------------------
+ 452:LPC17xxLib/src/lpc17xx_ssp.c **** 	else if (xfType == SSP_TRANSFER_INTERRUPT){
+ 549              	 .loc 1 452 0
+ 550 0056 012A     	 cmp r2,#1
+ 551 0058 66D1     	 bne .L105
+ 552 005a 4FF0FF35 	 mov r5,#-1
+ 553              	.LVL48:
+ 554              	.L91:
+ 453:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 454:LPC17xxLib/src/lpc17xx_ssp.c **** 		while ((SSPx->SR & SSP_SR_TNF) && (dataCfg->tx_cnt != dataCfg->length)){
+ 555              	 .loc 1 454 0
+ 556 005e C268     	 ldr r2,[r0,#12]
+ 557 0060 0C69     	 ldr r4,[r1,#16]
+ 558 0062 12F0020F 	 tst r2,#2
+ 559 0066 03D0     	 beq .L74
+ 560              	 .loc 1 454 0 is_stmt 0 discriminator 1
+ 561 0068 4A68     	 ldr r2,[r1,#4]
+ 562 006a A242     	 cmp r2,r4
+ 563 006c 40F09780 	 bne .L75
+ 564              	.L74:
+ 455:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Write data to buffer
+ 456:LPC17xxLib/src/lpc17xx_ssp.c **** 			if(dataCfg->tx_data == NULL){
+ 457:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataword == 0){
+ 458:LPC17xxLib/src/lpc17xx_ssp.c **** 					SSP_SendData(SSPx, 0xFF);
+ 459:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->tx_cnt++;
+ 460:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 461:LPC17xxLib/src/lpc17xx_ssp.c **** 					SSP_SendData(SSPx, 0xFFFF);
+ 462:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->tx_cnt += 2;
+ 463:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 464:LPC17xxLib/src/lpc17xx_ssp.c **** 			} else {
+ 465:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataword == 0){
+ 466:LPC17xxLib/src/lpc17xx_ssp.c **** 					SSP_SendData(SSPx, (*(uint8_t *)((uint32_t)dataCfg->tx_data + dataCfg->tx_cnt)));
+ 467:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->tx_cnt++;
+ 468:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 469:LPC17xxLib/src/lpc17xx_ssp.c **** 					SSP_SendData(SSPx, (*(uint16_t *)((uint32_t)dataCfg->tx_data + dataCfg->tx_cnt)));
+ 470:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->tx_cnt += 2;
+ 471:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 472:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 473:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 474:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Check error
+ 475:LPC17xxLib/src/lpc17xx_ssp.c **** 			if ((stat = SSPx->RIS) & SSP_RIS_ROR){
+ 476:LPC17xxLib/src/lpc17xx_ssp.c **** 				// save status and return
+ 477:LPC17xxLib/src/lpc17xx_ssp.c **** 				dataCfg->status = stat | SSP_STAT_ERROR;
+ 478:LPC17xxLib/src/lpc17xx_ssp.c **** 				return (-1);
+ 479:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 480:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 481:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Check for any data available in RX FIFO
+ 482:LPC17xxLib/src/lpc17xx_ssp.c **** 			while ((SSPx->SR & SSP_SR_RNE) && (dataCfg->rx_cnt != dataCfg->length)){
+ 483:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Read data from SSP data
+ 484:LPC17xxLib/src/lpc17xx_ssp.c **** 				tmp = SSP_ReceiveData(SSPx);
+ 485:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 486:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Store data to destination
+ 487:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataCfg->rx_data != NULL)
+ 488:LPC17xxLib/src/lpc17xx_ssp.c **** 				{
+ 489:LPC17xxLib/src/lpc17xx_ssp.c **** 					if (dataword == 0){
+ 490:LPC17xxLib/src/lpc17xx_ssp.c **** 						*(uint8_t *)((uint32_t)dataCfg->rx_data + dataCfg->rx_cnt) = (uint8_t) tmp;
+ 491:LPC17xxLib/src/lpc17xx_ssp.c **** 					} else {
+ 492:LPC17xxLib/src/lpc17xx_ssp.c **** 						*(uint16_t *)((uint32_t)dataCfg->rx_data + dataCfg->rx_cnt) = (uint16_t) tmp;
+ 493:LPC17xxLib/src/lpc17xx_ssp.c **** 					}
+ 494:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 495:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Increase counter
+ 496:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataword == 0){
+ 497:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->rx_cnt++;
+ 498:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 499:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->rx_cnt += 2;
+ 500:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 501:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 502:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 503:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 504:LPC17xxLib/src/lpc17xx_ssp.c **** 		// If there more data to sent or receive
+ 505:LPC17xxLib/src/lpc17xx_ssp.c **** 		if ((dataCfg->rx_cnt != dataCfg->length) || (dataCfg->tx_cnt != dataCfg->length)){
+ 565              	 .loc 1 505 0 is_stmt 1
+ 566 0070 CB68     	 ldr r3,[r1,#12]
+ 567 0072 A342     	 cmp r3,r4
+ 568 0074 03D1     	 bne .L76
+ 569              	 .loc 1 505 0 is_stmt 0 discriminator 1
+ 570 0076 4B68     	 ldr r3,[r1,#4]
+ 571 0078 9C42     	 cmp r4,r3
+ 572 007a 00F0CC80 	 beq .L77
+ 573              	.L76:
+ 506:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Enable all interrupt
+ 507:LPC17xxLib/src/lpc17xx_ssp.c **** 			SSPx->IMSC = SSP_IMSC_BITMASK;
+ 574              	 .loc 1 507 0 is_stmt 1
+ 575 007e 0F22     	 movs r2,#15
+ 576 0080 037D     	 ldrb r3,[r0,#20]
+ 577 0082 0023     	 movs r3,#0
+ 578 0084 0275     	 strb r2,[r0,#20]
+ 579 0086 427D     	 ldrb r2,[r0,#21]
+ 580 0088 4375     	 strb r3,[r0,#21]
+ 581 008a 827D     	 ldrb r2,[r0,#22]
+ 582 008c 8375     	 strb r3,[r0,#22]
+ 583 008e C27D     	 ldrb r2,[r0,#23]
+ 584 0090 C375     	 strb r3,[r0,#23]
+ 585 0092 1DE0     	 b .L39
+ 586              	.LVL49:
+ 587              	.L41:
+ 588              	.LBB36:
+ 589              	.LBB37:
+ 328:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 590              	 .loc 1 328 0
+ 591 0094 8368     	 ldr r3,[r0,#8]
+ 592              	.LVL50:
+ 593 0096 C2E7     	 b .L40
+ 594              	.LVL51:
+ 595              	.L78:
+ 596              	.LBE37:
+ 597              	.LBE36:
+ 372:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 598              	 .loc 1 372 0
+ 599 0098 1446     	 mov r4,r2
+ 353:LPC17xxLib/src/lpc17xx_ssp.c ****     uint32_t stat;
+ 600              	 .loc 1 353 0
+ 601 009a 9646     	 mov lr,r2
+ 352:LPC17xxLib/src/lpc17xx_ssp.c ****     uint16_t *wdata16 =  NULL;
+ 602              	 .loc 1 352 0
+ 603 009c 1746     	 mov r7,r2
+ 377:LPC17xxLib/src/lpc17xx_ssp.c **** 			wdata8 = (uint8_t *)dataCfg->tx_data;
+ 604              	 .loc 1 377 0
+ 605 009e 8E68     	 ldr r6,[r1,#8]
+ 606              	.LVL52:
+ 378:LPC17xxLib/src/lpc17xx_ssp.c **** 		} else {
+ 607              	 .loc 1 378 0
+ 608 00a0 0D68     	 ldr r5,[r1]
+ 609              	.LVL53:
+ 610              	.L45:
+ 611 00a2 4FF0FF32 	 mov r2,#-1
+ 612              	.LVL54:
+ 613              	.L44:
+ 383:LPC17xxLib/src/lpc17xx_ssp.c **** 			if ((SSPx->SR & SSP_SR_TNF) && (dataCfg->tx_cnt != dataCfg->length)){
+ 614              	 .loc 1 383 0
+ 615 00a6 4B68     	 ldr r3,[r1,#4]
+ 616 00a8 D1F810C0 	 ldr ip,[r1,#16]
+ 617 00ac 6345     	 cmp r3,ip
+ 618 00ae 19D1     	 bne .L60
+ 383:LPC17xxLib/src/lpc17xx_ssp.c **** 			if ((SSPx->SR & SSP_SR_TNF) && (dataCfg->tx_cnt != dataCfg->length)){
+ 619              	 .loc 1 383 0 is_stmt 0 discriminator 1
+ 620 00b0 D1F80C80 	 ldr r8,[r1,#12]
+ 621 00b4 4345     	 cmp r3,r8
+ 622 00b6 15D1     	 bne .L60
+ 440:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 623              	 .loc 1 440 0 is_stmt 1
+ 624 00b8 0022     	 movs r2,#0
+ 625 00ba 0120     	 movs r0,#1
+ 626              	.LVL55:
+ 627 00bc 0A75     	 strb r2,[r1,#20]
+ 628 00be 8A75     	 strb r2,[r1,#22]
+ 629 00c0 CA75     	 strb r2,[r1,#23]
+ 442:LPC17xxLib/src/lpc17xx_ssp.c **** 			return dataCfg->tx_cnt;
+ 630              	 .loc 1 442 0
+ 631 00c2 0A68     	 ldr r2,[r1]
+ 440:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 632              	 .loc 1 440 0
+ 633 00c4 4875     	 strb r0,[r1,#21]
+ 442:LPC17xxLib/src/lpc17xx_ssp.c **** 			return dataCfg->tx_cnt;
+ 634              	 .loc 1 442 0
+ 635 00c6 1AB9     	 cbnz r2,.L39
+ 444:LPC17xxLib/src/lpc17xx_ssp.c **** 			return dataCfg->rx_cnt;
+ 636              	 .loc 1 444 0
+ 637 00c8 8A68     	 ldr r2,[r1,#8]
+ 445:LPC17xxLib/src/lpc17xx_ssp.c **** 		} else {
+ 638              	 .loc 1 445 0
+ 639 00ca 002A     	 cmp r2,#0
+ 640 00cc 08BF     	 it eq
+ 641 00ce 0023     	 moveq r3,#0
+ 642              	.LVL56:
+ 643              	.L39:
+ 508:LPC17xxLib/src/lpc17xx_ssp.c **** 		} else {
+ 509:LPC17xxLib/src/lpc17xx_ssp.c **** 			// Save status
+ 510:LPC17xxLib/src/lpc17xx_ssp.c **** 			dataCfg->status = SSP_STAT_DONE;
+ 511:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 512:LPC17xxLib/src/lpc17xx_ssp.c **** 		return (0);
+ 513:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 514:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 515:LPC17xxLib/src/lpc17xx_ssp.c **** 	return (-1);
+ 516:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 644              	 .loc 1 516 0
+ 645 00d0 1846     	 mov r0,r3
+ 646 00d2 BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 647              	.LVL57:
+ 648              	.L80:
+ 380:LPC17xxLib/src/lpc17xx_ssp.c **** 			wdata16 = (uint16_t *)dataCfg->tx_data;
+ 649              	 .loc 1 380 0
+ 650 00d6 8F68     	 ldr r7,[r1,#8]
+ 651              	.LVL58:
+ 381:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 652              	 .loc 1 381 0
+ 653 00d8 D1F800E0 	 ldr lr,[r1]
+ 654              	.LVL59:
+ 371:LPC17xxLib/src/lpc17xx_ssp.c **** 	else dataword = 0;
+ 655              	 .loc 1 371 0
+ 656 00dc 0124     	 movs r4,#1
+ 351:LPC17xxLib/src/lpc17xx_ssp.c ****     uint16_t *rdata16 = NULL;
+ 657              	 .loc 1 351 0
+ 658 00de 1546     	 mov r5,r2
+ 350:LPC17xxLib/src/lpc17xx_ssp.c ****     uint8_t *wdata8 = NULL;
+ 659              	 .loc 1 350 0
+ 660 00e0 1646     	 mov r6,r2
+ 661 00e2 DEE7     	 b .L45
+ 662              	.LVL60:
+ 663              	.L60:
+ 384:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Write data to buffer
+ 664              	 .loc 1 384 0
+ 665 00e4 D0F80C80 	 ldr r8,[r0,#12]
+ 666 00e8 18F0020F 	 tst r8,#2
+ 667 00ec 15D0     	 beq .L46
+ 384:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Write data to buffer
+ 668              	 .loc 1 384 0 is_stmt 0 discriminator 1
+ 669 00ee 6345     	 cmp r3,ip
+ 670 00f0 13D0     	 beq .L46
+ 386:LPC17xxLib/src/lpc17xx_ssp.c **** 					if (dataword == 0){
+ 671              	 .loc 1 386 0 is_stmt 1
+ 672 00f2 D1F800C0 	 ldr ip,[r1]
+ 673 00f6 BCF1000F 	 cmp ip,#0
+ 674 00fa 28D1     	 bne .L47
+ 387:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_SendData(SSPx, 0xFF);
+ 675              	 .loc 1 387 0
+ 676 00fc BCB9     	 cbnz r4,.L48
+ 677              	.LVL61:
+ 678              	.LBB38:
+ 679              	.LBB39:
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 680              	 .loc 1 312 0
+ 681 00fe 90F808C0 	 ldrb ip,[r0,#8]
+ 682 0102 0272     	 strb r2,[r0,#8]
+ 683 0104 90F809C0 	 ldrb ip,[r0,#9]
+ 684 0108 4472     	 strb r4,[r0,#9]
+ 685 010a 90F80AC0 	 ldrb ip,[r0,#10]
+ 686 010e 8472     	 strb r4,[r0,#10]
+ 687 0110 90F80BC0 	 ldrb ip,[r0,#11]
+ 688 0114 C472     	 strb r4,[r0,#11]
+ 689              	.LVL62:
+ 690              	.L106:
+ 691              	.LBE39:
+ 692              	.LBE38:
+ 398:LPC17xxLib/src/lpc17xx_ssp.c **** 					} else {
+ 693              	 .loc 1 398 0
+ 694 0116 0133     	 adds r3,r3,#1
+ 695              	.L99:
+ 402:LPC17xxLib/src/lpc17xx_ssp.c **** 					}
+ 696              	 .loc 1 402 0
+ 697 0118 4B60     	 str r3,[r1,#4]
+ 698              	.L46:
+ 408:LPC17xxLib/src/lpc17xx_ssp.c **** 				// save status and return
+ 699              	 .loc 1 408 0
+ 700 011a 8369     	 ldr r3,[r0,#24]
+ 701              	.LVL63:
+ 702 011c 13F0010F 	 tst r3,#1
+ 703 0120 2DD0     	 beq .L51
+ 410:LPC17xxLib/src/lpc17xx_ssp.c **** 				return (-1);
+ 704              	 .loc 1 410 0
+ 705 0122 43F40073 	 orr r3,r3,#512
+ 706              	.LVL64:
+ 707 0126 4B61     	 str r3,[r1,#20]
+ 708              	.LVL65:
+ 709              	.L105:
+ 478:LPC17xxLib/src/lpc17xx_ssp.c **** 			}
+ 710              	 .loc 1 478 0
+ 711 0128 4FF0FF33 	 mov r3,#-1
+ 712 012c D0E7     	 b .L39
+ 713              	.LVL66:
+ 714              	.L48:
+ 715              	.LBB40:
+ 716              	.LBB41:
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 717              	 .loc 1 312 0
+ 718 012e 90F80880 	 ldrb r8,[r0,#8]
+ 719 0132 0272     	 strb r2,[r0,#8]
+ 720 0134 90F80980 	 ldrb r8,[r0,#9]
+ 721 0138 4272     	 strb r2,[r0,#9]
+ 722 013a 90F80A80 	 ldrb r8,[r0,#10]
+ 723 013e 80F80AC0 	 strb ip,[r0,#10]
+ 724 0142 90F80B80 	 ldrb r8,[r0,#11]
+ 725 0146 80F80BC0 	 strb ip,[r0,#11]
+ 726              	.LVL67:
+ 727              	.L100:
+ 728              	.LBE41:
+ 729              	.LBE40:
+ 402:LPC17xxLib/src/lpc17xx_ssp.c **** 					}
+ 730              	 .loc 1 402 0
+ 731 014a 0233     	 adds r3,r3,#2
+ 732 014c E4E7     	 b .L99
+ 733              	.L47:
+ 395:LPC17xxLib/src/lpc17xx_ssp.c **** 						SSP_SendData(SSPx, *wdata8);
+ 734              	 .loc 1 395 0
+ 735 014e 24B9     	 cbnz r4,.L49
+ 736              	.LVL68:
+ 737              	.LBB42:
+ 738              	.LBB43:
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 739              	 .loc 1 312 0
+ 740 0150 15F801CB 	 ldrb ip,[r5],#1
+ 741              	.LVL69:
+ 742 0154 C0F808C0 	 str ip,[r0,#8]
+ 743              	.LVL70:
+ 744 0158 DDE7     	 b .L106
+ 745              	.LVL71:
+ 746              	.L49:
+ 747              	.LBE43:
+ 748              	.LBE42:
+ 749              	.LBB44:
+ 750              	.LBB45:
+ 751 015a 3EF802CB 	 ldrh ip,[lr],#2
+ 752              	.LVL72:
+ 753 015e C0F808C0 	 str ip,[r0,#8]
+ 754 0162 F2E7     	 b .L100
+ 755              	.LVL73:
+ 756              	.L59:
+ 757              	.LBE45:
+ 758              	.LBE44:
+ 420:LPC17xxLib/src/lpc17xx_ssp.c **** 				{
+ 759              	 .loc 1 420 0
+ 760 0164 D1F80880 	 ldr r8,[r1,#8]
+ 761              	.LBB46:
+ 762              	.LBB47:
+ 328:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 763              	 .loc 1 328 0
+ 764 0168 D0F808C0 	 ldr ip,[r0,#8]
+ 765              	.LVL74:
+ 766              	.LBE47:
+ 767              	.LBE46:
+ 420:LPC17xxLib/src/lpc17xx_ssp.c **** 				{
+ 768              	 .loc 1 420 0
+ 769 016c B8F1000F 	 cmp r8,#0
+ 770 0170 12D0     	 beq .L53
+ 422:LPC17xxLib/src/lpc17xx_ssp.c **** 						*(rdata8) = (uint8_t) tmp;
+ 771              	 .loc 1 422 0
+ 772 0172 6CB9     	 cbnz r4,.L54
+ 423:LPC17xxLib/src/lpc17xx_ssp.c **** 						rdata8++;
+ 773              	 .loc 1 423 0
+ 774 0174 06F801CB 	 strb ip,[r6],#1
+ 775              	.LVL75:
+ 776              	.L55:
+ 432:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 777              	 .loc 1 432 0
+ 778 0178 CB68     	 ldr r3,[r1,#12]
+ 779 017a 0133     	 adds r3,r3,#1
+ 780              	.L101:
+ 434:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 781              	 .loc 1 434 0
+ 782 017c CB60     	 str r3,[r1,#12]
+ 783              	.LVL76:
+ 784              	.L51:
+ 415:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Read data from SSP data
+ 785              	 .loc 1 415 0
+ 786 017e C368     	 ldr r3,[r0,#12]
+ 787 0180 5B07     	 lsls r3,r3,#29
+ 788 0182 90D5     	 bpl .L44
+ 415:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Read data from SSP data
+ 789              	 .loc 1 415 0 is_stmt 0 discriminator 1
+ 790 0184 CB68     	 ldr r3,[r1,#12]
+ 791 0186 D1F810C0 	 ldr ip,[r1,#16]
+ 792 018a 6345     	 cmp r3,ip
+ 793 018c EAD1     	 bne .L59
+ 794 018e 8AE7     	 b .L44
+ 795              	.LVL77:
+ 796              	.L54:
+ 797              	.LBB49:
+ 798              	.LBB48:
+ 328:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 799              	 .loc 1 328 0 is_stmt 1
+ 800 0190 27F802CB 	 strh ip,[r7],#2
+ 801              	.LVL78:
+ 802              	.L56:
+ 803              	.LBE48:
+ 804              	.LBE49:
+ 434:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 805              	 .loc 1 434 0
+ 806 0194 0233     	 adds r3,r3,#2
+ 807 0196 F1E7     	 b .L101
+ 808              	.L53:
+ 431:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->rx_cnt++;
+ 809              	 .loc 1 431 0
+ 810 0198 002C     	 cmp r4,#0
+ 811 019a EDD0     	 beq .L55
+ 812 019c FAE7     	 b .L56
+ 813              	.LVL79:
+ 814              	.L75:
+ 456:LPC17xxLib/src/lpc17xx_ssp.c **** 				if (dataword == 0){
+ 815              	 .loc 1 456 0
+ 816 019e 0C68     	 ldr r4,[r1]
+ 817 01a0 DCB9     	 cbnz r4,.L63
+ 457:LPC17xxLib/src/lpc17xx_ssp.c **** 					SSP_SendData(SSPx, 0xFF);
+ 818              	 .loc 1 457 0
+ 819 01a2 83B9     	 cbnz r3,.L64
+ 820              	.LVL80:
+ 821              	.LBB50:
+ 822              	.LBB51:
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 823              	 .loc 1 312 0
+ 824 01a4 047A     	 ldrb r4,[r0,#8]
+ 825 01a6 0572     	 strb r5,[r0,#8]
+ 826 01a8 447A     	 ldrb r4,[r0,#9]
+ 827 01aa 4372     	 strb r3,[r0,#9]
+ 828 01ac 847A     	 ldrb r4,[r0,#10]
+ 829 01ae 8372     	 strb r3,[r0,#10]
+ 830 01b0 C47A     	 ldrb r4,[r0,#11]
+ 831 01b2 C372     	 strb r3,[r0,#11]
+ 832              	.LVL81:
+ 833              	.L107:
+ 834              	.LBE51:
+ 835              	.LBE50:
+ 467:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 836              	 .loc 1 467 0
+ 837 01b4 0132     	 adds r2,r2,#1
+ 838              	.L102:
+ 470:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 839              	 .loc 1 470 0
+ 840 01b6 4A60     	 str r2,[r1,#4]
+ 475:LPC17xxLib/src/lpc17xx_ssp.c **** 				// save status and return
+ 841              	 .loc 1 475 0
+ 842 01b8 8269     	 ldr r2,[r0,#24]
+ 843              	.LVL82:
+ 844 01ba D407     	 lsls r4,r2,#31
+ 845 01bc 1CD5     	 bpl .L67
+ 477:LPC17xxLib/src/lpc17xx_ssp.c **** 				return (-1);
+ 846              	 .loc 1 477 0
+ 847 01be 42F40072 	 orr r2,r2,#512
+ 848              	.LVL83:
+ 849 01c2 4A61     	 str r2,[r1,#20]
+ 850 01c4 B0E7     	 b .L105
+ 851              	.L64:
+ 852              	.LVL84:
+ 853              	.LBB52:
+ 854              	.LBB53:
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 855              	 .loc 1 312 0
+ 856 01c6 067A     	 ldrb r6,[r0,#8]
+ 857 01c8 0572     	 strb r5,[r0,#8]
+ 858 01ca 467A     	 ldrb r6,[r0,#9]
+ 859 01cc 4572     	 strb r5,[r0,#9]
+ 860 01ce 867A     	 ldrb r6,[r0,#10]
+ 861 01d0 8472     	 strb r4,[r0,#10]
+ 862 01d2 C67A     	 ldrb r6,[r0,#11]
+ 863 01d4 C472     	 strb r4,[r0,#11]
+ 864              	.LVL85:
+ 865              	.L103:
+ 866              	.LBE53:
+ 867              	.LBE52:
+ 470:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 868              	 .loc 1 470 0
+ 869 01d6 0232     	 adds r2,r2,#2
+ 870 01d8 EDE7     	 b .L102
+ 871              	.L63:
+ 465:LPC17xxLib/src/lpc17xx_ssp.c **** 					SSP_SendData(SSPx, (*(uint8_t *)((uint32_t)dataCfg->tx_data + dataCfg->tx_cnt)));
+ 872              	 .loc 1 465 0
+ 873 01da 13B9     	 cbnz r3,.L66
+ 874              	.LVL86:
+ 875              	.LBB54:
+ 876              	.LBB55:
+ 312:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 877              	 .loc 1 312 0
+ 878 01dc A45C     	 ldrb r4,[r4,r2]
+ 879              	.LVL87:
+ 880 01de 8460     	 str r4,[r0,#8]
+ 881              	.LVL88:
+ 882 01e0 E8E7     	 b .L107
+ 883              	.LVL89:
+ 884              	.L66:
+ 885              	.LBE55:
+ 886              	.LBE54:
+ 887              	.LBB56:
+ 888              	.LBB57:
+ 889 01e2 A45A     	 ldrh r4,[r4,r2]
+ 890              	.LVL90:
+ 891 01e4 8460     	 str r4,[r0,#8]
+ 892 01e6 F6E7     	 b .L103
+ 893              	.LVL91:
+ 894              	.L73:
+ 895              	.LBE57:
+ 896              	.LBE56:
+ 487:LPC17xxLib/src/lpc17xx_ssp.c **** 				{
+ 897              	 .loc 1 487 0
+ 898 01e8 8C68     	 ldr r4,[r1,#8]
+ 899              	.LBB58:
+ 900              	.LBB59:
+ 328:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 901              	 .loc 1 328 0
+ 902 01ea 8668     	 ldr r6,[r0,#8]
+ 903              	.LVL92:
+ 904              	.LBE59:
+ 905              	.LBE58:
+ 487:LPC17xxLib/src/lpc17xx_ssp.c **** 				{
+ 906              	 .loc 1 487 0
+ 907 01ec 84B1     	 cbz r4,.L68
+ 489:LPC17xxLib/src/lpc17xx_ssp.c **** 						*(uint8_t *)((uint32_t)dataCfg->rx_data + dataCfg->rx_cnt) = (uint8_t) tmp;
+ 908              	 .loc 1 489 0
+ 909 01ee 63B9     	 cbnz r3,.L69
+ 490:LPC17xxLib/src/lpc17xx_ssp.c **** 					} else {
+ 910              	 .loc 1 490 0
+ 911 01f0 A654     	 strb r6,[r4,r2]
+ 912              	.L70:
+ 497:LPC17xxLib/src/lpc17xx_ssp.c **** 				} else {
+ 913              	 .loc 1 497 0
+ 914 01f2 CA68     	 ldr r2,[r1,#12]
+ 915 01f4 0132     	 adds r2,r2,#1
+ 916              	.L104:
+ 499:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 917              	 .loc 1 499 0
+ 918 01f6 CA60     	 str r2,[r1,#12]
+ 919              	.LVL93:
+ 920              	.L67:
+ 482:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Read data from SSP data
+ 921              	 .loc 1 482 0
+ 922 01f8 C268     	 ldr r2,[r0,#12]
+ 923 01fa 5207     	 lsls r2,r2,#29
+ 924 01fc 7FF52FAF 	 bpl .L91
+ 482:LPC17xxLib/src/lpc17xx_ssp.c **** 				// Read data from SSP data
+ 925              	 .loc 1 482 0 is_stmt 0 discriminator 1
+ 926 0200 CA68     	 ldr r2,[r1,#12]
+ 927 0202 0C69     	 ldr r4,[r1,#16]
+ 928 0204 A242     	 cmp r2,r4
+ 929 0206 EFD1     	 bne .L73
+ 930 0208 29E7     	 b .L91
+ 931              	.LVL94:
+ 932              	.L69:
+ 933              	.LBB61:
+ 934              	.LBB60:
+ 328:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 935              	 .loc 1 328 0 is_stmt 1
+ 936 020a A652     	 strh r6,[r4,r2]
+ 937              	.L71:
+ 938              	.LBE60:
+ 939              	.LBE61:
+ 499:LPC17xxLib/src/lpc17xx_ssp.c **** 				}
+ 940              	 .loc 1 499 0
+ 941 020c 0232     	 adds r2,r2,#2
+ 942 020e F2E7     	 b .L104
+ 943              	.L68:
+ 496:LPC17xxLib/src/lpc17xx_ssp.c **** 					dataCfg->rx_cnt++;
+ 944              	 .loc 1 496 0
+ 945 0210 002B     	 cmp r3,#0
+ 946 0212 EED0     	 beq .L70
+ 947 0214 FAE7     	 b .L71
+ 948              	.LVL95:
+ 949              	.L77:
+ 510:LPC17xxLib/src/lpc17xx_ssp.c **** 		}
+ 950              	 .loc 1 510 0
+ 951 0216 0023     	 movs r3,#0
+ 952 0218 0122     	 movs r2,#1
+ 953 021a 0B75     	 strb r3,[r1,#20]
+ 954 021c 4A75     	 strb r2,[r1,#21]
+ 955 021e 8B75     	 strb r3,[r1,#22]
+ 956 0220 CB75     	 strb r3,[r1,#23]
+ 957 0222 55E7     	 b .L39
+ 958              	.LVL96:
+ 959              	.L42:
+ 375:LPC17xxLib/src/lpc17xx_ssp.c **** 		if (dataword == 0){
+ 960              	 .loc 1 375 0
+ 961 0224 002A     	 cmp r2,#0
+ 962 0226 3FF456AF 	 beq .L80
+ 371:LPC17xxLib/src/lpc17xx_ssp.c **** 	else dataword = 0;
+ 963              	 .loc 1 371 0
+ 964 022a 0123     	 movs r3,#1
+ 965 022c 13E7     	 b .L79
+ 966              	 .cfi_endproc
+ 967              	.LFE65:
+ 969              	 .section .text.SSP_GetStatus,"ax",%progbits
+ 970              	 .align 1
+ 971              	 .global SSP_GetStatus
+ 972              	 .syntax unified
+ 973              	 .thumb
+ 974              	 .thumb_func
+ 975              	 .fpu softvfp
+ 977              	SSP_GetStatus:
+ 978              	.LFB66:
+ 517:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 518:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 519:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Checks whether the specified SSP status flag is set or not
+ 520:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 521:LPC17xxLib/src/lpc17xx_ssp.c ****  * 		 				- LPC_SSP0: SSP0 peripheral
+ 522:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 523:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	FlagType	Type of flag to check status, should be one
+ 524:LPC17xxLib/src/lpc17xx_ssp.c ****  * 							of following:
+ 525:LPC17xxLib/src/lpc17xx_ssp.c ****  *							- SSP_STAT_TXFIFO_EMPTY: TX FIFO is empty
+ 526:LPC17xxLib/src/lpc17xx_ssp.c ****  *							- SSP_STAT_TXFIFO_NOTFULL: TX FIFO is not full
+ 527:LPC17xxLib/src/lpc17xx_ssp.c ****  *							- SSP_STAT_RXFIFO_NOTEMPTY: RX FIFO is not empty
+ 528:LPC17xxLib/src/lpc17xx_ssp.c ****  *							- SSP_STAT_RXFIFO_FULL: RX FIFO is full
+ 529:LPC17xxLib/src/lpc17xx_ssp.c ****  *							- SSP_STAT_BUSY: SSP peripheral is busy
+ 530:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return		New State of specified SSP status flag
+ 531:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 532:LPC17xxLib/src/lpc17xx_ssp.c **** FlagStatus SSP_GetStatus(LPC_SSP_TypeDef* SSPx, uint32_t FlagType)
+ 533:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 979              	 .loc 1 533 0
+ 980              	 .cfi_startproc
+ 981              	 
+ 982              	 
+ 983              	 
+ 984              	.LVL97:
+ 534:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 535:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSP_STAT(FlagType));
+ 536:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 537:LPC17xxLib/src/lpc17xx_ssp.c **** 	return ((SSPx->SR & FlagType) ? SET : RESET);
+ 985              	 .loc 1 537 0
+ 986 0000 C368     	 ldr r3,[r0,#12]
+ 987 0002 0B42     	 tst r3,r1
+ 538:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 988              	 .loc 1 538 0
+ 989 0004 14BF     	 ite ne
+ 990 0006 0120     	 movne r0,#1
+ 991              	.LVL98:
+ 992 0008 0020     	 moveq r0,#0
+ 993 000a 7047     	 bx lr
+ 994              	 .cfi_endproc
+ 995              	.LFE66:
+ 997              	 .section .text.SSP_IntConfig,"ax",%progbits
+ 998              	 .align 1
+ 999              	 .global SSP_IntConfig
+ 1000              	 .syntax unified
+ 1001              	 .thumb
+ 1002              	 .thumb_func
+ 1003              	 .fpu softvfp
+ 1005              	SSP_IntConfig:
+ 1006              	.LFB67:
+ 539:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 540:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 541:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Enable or disable specified interrupt type in SSP peripheral
+ 542:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 543:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 544:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 545:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	IntType	Interrupt type in SSP peripheral, should be:
+ 546:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTCFG_ROR: Receive Overrun interrupt
+ 547:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTCFG_RT: Receive Time out interrupt
+ 548:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTCFG_RX: RX FIFO is at least half full interrupt
+ 549:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTCFG_TX: TX FIFO is at least half empty interrupt
+ 550:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	NewState New State of specified interrupt type, should be:
+ 551:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- ENABLE: Enable this interrupt type
+ 552:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- DISABLE: Disable this interrupt type
+ 553:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return		None
+ 554:LPC17xxLib/src/lpc17xx_ssp.c ****  * Note: We can enable/disable multi-interrupt type by OR multi value
+ 555:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 556:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_IntConfig(LPC_SSP_TypeDef *SSPx, uint32_t IntType, FunctionalState NewState)
+ 557:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 1007              	 .loc 1 557 0
+ 1008              	 .cfi_startproc
+ 1009              	 
+ 1010              	 
+ 1011              	 
+ 1012              	.LVL99:
+ 558:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 559:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 560:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (NewState == ENABLE)
+ 1013              	 .loc 1 560 0
+ 1014 0000 012A     	 cmp r2,#1
+ 561:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 562:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->IMSC |= IntType;
+ 563:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 564:LPC17xxLib/src/lpc17xx_ssp.c **** 	else
+ 565:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 566:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->IMSC &= (~IntType) & SSP_IMSC_BITMASK;
+ 1015              	 .loc 1 566 0
+ 1016 0002 18BF     	 it ne
+ 1017 0004 C943     	 mvnne r1,r1
+ 1018              	.LVL100:
+ 562:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 1019              	 .loc 1 562 0
+ 1020 0006 4369     	 ldr r3,[r0,#20]
+ 1021              	 .loc 1 566 0
+ 1022 0008 16BF     	 itet ne
+ 1023 000a 01F00F01 	 andne r1,r1,#15
+ 562:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 1024              	 .loc 1 562 0
+ 1025 000e 1943     	 orreq r1,r1,r3
+ 1026              	 .loc 1 566 0
+ 1027 0010 1940     	 andne r1,r1,r3
+ 1028 0012 4161     	 str r1,[r0,#20]
+ 1029 0014 7047     	 bx lr
+ 1030              	 .cfi_endproc
+ 1031              	.LFE67:
+ 1033              	 .section .text.SSP_GetRawIntStatus,"ax",%progbits
+ 1034              	 .align 1
+ 1035              	 .global SSP_GetRawIntStatus
+ 1036              	 .syntax unified
+ 1037              	 .thumb
+ 1038              	 .thumb_func
+ 1039              	 .fpu softvfp
+ 1041              	SSP_GetRawIntStatus:
+ 1042              	.LFB68:
+ 567:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 568:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 569:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 570:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 571:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief	Check whether the specified Raw interrupt status flag is
+ 572:LPC17xxLib/src/lpc17xx_ssp.c ****  * 			set or not
+ 573:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 574:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 575:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 576:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	RawIntType	Raw Interrupt Type, should be:
+ 577:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_RAW_ROR: Receive Overrun interrupt
+ 578:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_RAW_RT: Receive Time out interrupt
+ 579:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_RAW_RX: RX FIFO is at least half full interrupt
+ 580:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_RAW_TX: TX FIFO is at least half empty interrupt
+ 581:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return	New State of specified Raw interrupt status flag in SSP peripheral
+ 582:LPC17xxLib/src/lpc17xx_ssp.c ****  * Note: Enabling/Disabling specified interrupt in SSP peripheral does not
+ 583:LPC17xxLib/src/lpc17xx_ssp.c ****  * 		effect to Raw Interrupt Status flag.
+ 584:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 585:LPC17xxLib/src/lpc17xx_ssp.c **** IntStatus SSP_GetRawIntStatus(LPC_SSP_TypeDef *SSPx, uint32_t RawIntType)
+ 586:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 1043              	 .loc 1 586 0
+ 1044              	 .cfi_startproc
+ 1045              	 
+ 1046              	 
+ 1047              	 
+ 1048              	.LVL101:
+ 587:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 588:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSP_INTSTAT_RAW(RawIntType));
+ 589:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 590:LPC17xxLib/src/lpc17xx_ssp.c **** 	return ((SSPx->RIS & RawIntType) ? SET : RESET);
+ 1049              	 .loc 1 590 0
+ 1050 0000 8369     	 ldr r3,[r0,#24]
+ 1051 0002 0B42     	 tst r3,r1
+ 591:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 1052              	 .loc 1 591 0
+ 1053 0004 14BF     	 ite ne
+ 1054 0006 0120     	 movne r0,#1
+ 1055              	.LVL102:
+ 1056 0008 0020     	 moveq r0,#0
+ 1057 000a 7047     	 bx lr
+ 1058              	 .cfi_endproc
+ 1059              	.LFE68:
+ 1061              	 .section .text.SSP_GetRawIntStatusReg,"ax",%progbits
+ 1062              	 .align 1
+ 1063              	 .global SSP_GetRawIntStatusReg
+ 1064              	 .syntax unified
+ 1065              	 .thumb
+ 1066              	 .thumb_func
+ 1067              	 .fpu softvfp
+ 1069              	SSP_GetRawIntStatusReg:
+ 1070              	.LFB69:
+ 592:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 593:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 594:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief		Get Raw Interrupt Status register
+ 595:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 596:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 597:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 598:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return		Raw Interrupt Status (RIS) register value
+ 599:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 600:LPC17xxLib/src/lpc17xx_ssp.c **** uint32_t SSP_GetRawIntStatusReg(LPC_SSP_TypeDef *SSPx)
+ 601:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 1071              	 .loc 1 601 0
+ 1072              	 .cfi_startproc
+ 1073              	 
+ 1074              	 
+ 1075              	 
+ 1076              	.LVL103:
+ 602:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 603:LPC17xxLib/src/lpc17xx_ssp.c **** 	return (SSPx->RIS);
+ 1077              	 .loc 1 603 0
+ 1078 0000 8069     	 ldr r0,[r0,#24]
+ 1079              	.LVL104:
+ 604:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 1080              	 .loc 1 604 0
+ 1081 0002 7047     	 bx lr
+ 1082              	 .cfi_endproc
+ 1083              	.LFE69:
+ 1085              	 .section .text.SSP_GetIntStatus,"ax",%progbits
+ 1086              	 .align 1
+ 1087              	 .global SSP_GetIntStatus
+ 1088              	 .syntax unified
+ 1089              	 .thumb
+ 1090              	 .thumb_func
+ 1091              	 .fpu softvfp
+ 1093              	SSP_GetIntStatus:
+ 1094              	.LFB70:
+ 605:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 606:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 607:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief	Check whether the specified interrupt status flag is
+ 608:LPC17xxLib/src/lpc17xx_ssp.c ****  * 			set or not
+ 609:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 610:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP0: SSP0 peripheral
+ 611:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 612:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	IntType	Raw Interrupt Type, should be:
+ 613:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_ROR: Receive Overrun interrupt
+ 614:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_RT: Receive Time out interrupt
+ 615:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_RX: RX FIFO is at least half full interrupt
+ 616:LPC17xxLib/src/lpc17xx_ssp.c ****  * 				- SSP_INTSTAT_TX: TX FIFO is at least half empty interrupt
+ 617:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return	New State of specified interrupt status flag in SSP peripheral
+ 618:LPC17xxLib/src/lpc17xx_ssp.c ****  * Note: Enabling/Disabling specified interrupt in SSP peripheral effects
+ 619:LPC17xxLib/src/lpc17xx_ssp.c ****  * 			to Interrupt Status flag.
+ 620:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 621:LPC17xxLib/src/lpc17xx_ssp.c **** IntStatus SSP_GetIntStatus (LPC_SSP_TypeDef *SSPx, uint32_t IntType)
+ 622:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 1095              	 .loc 1 622 0
+ 1096              	 .cfi_startproc
+ 1097              	 
+ 1098              	 
+ 1099              	 
+ 1100              	.LVL105:
+ 623:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 624:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSP_INTSTAT(IntType));
+ 625:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 626:LPC17xxLib/src/lpc17xx_ssp.c **** 	return ((SSPx->MIS & IntType) ? SET :RESET);
+ 1101              	 .loc 1 626 0
+ 1102 0000 C369     	 ldr r3,[r0,#28]
+ 1103 0002 0B42     	 tst r3,r1
+ 627:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 1104              	 .loc 1 627 0
+ 1105 0004 14BF     	 ite ne
+ 1106 0006 0120     	 movne r0,#1
+ 1107              	.LVL106:
+ 1108 0008 0020     	 moveq r0,#0
+ 1109 000a 7047     	 bx lr
+ 1110              	 .cfi_endproc
+ 1111              	.LFE70:
+ 1113              	 .section .text.SSP_ClearIntPending,"ax",%progbits
+ 1114              	 .align 1
+ 1115              	 .global SSP_ClearIntPending
+ 1116              	 .syntax unified
+ 1117              	 .thumb
+ 1118              	 .thumb_func
+ 1119              	 .fpu softvfp
+ 1121              	SSP_ClearIntPending:
+ 1122              	.LFB71:
+ 628:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 629:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 630:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief				Clear specified interrupt pending in SSP peripheral
+ 631:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 632:LPC17xxLib/src/lpc17xx_ssp.c ****  *  					- LPC_SSP0: SSP0 peripheral
+ 633:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 634:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	IntType	Interrupt pending to clear, should be:
+ 635:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- SSP_INTCLR_ROR: clears the "frame was received when
+ 636:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						RxFIFO was full" interrupt.
+ 637:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- SSP_INTCLR_RT: clears the "Rx FIFO was not empty and
+ 638:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						has not been read for a timeout period" interrupt.
+ 639:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return		None
+ 640:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 641:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_ClearIntPending(LPC_SSP_TypeDef *SSPx, uint32_t IntType)
+ 642:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 1123              	 .loc 1 642 0
+ 1124              	 .cfi_startproc
+ 1125              	 
+ 1126              	 
+ 1127              	 
+ 1128              	.LVL107:
+ 643:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 644:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSP_INTCLR(IntType));
+ 645:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 646:LPC17xxLib/src/lpc17xx_ssp.c **** 	SSPx->ICR = IntType;
+ 1129              	 .loc 1 646 0
+ 1130 0000 0162     	 str r1,[r0,#32]
+ 1131 0002 7047     	 bx lr
+ 1132              	 .cfi_endproc
+ 1133              	.LFE71:
+ 1135              	 .section .text.SSP_DMACmd,"ax",%progbits
+ 1136              	 .align 1
+ 1137              	 .global SSP_DMACmd
+ 1138              	 .syntax unified
+ 1139              	 .thumb
+ 1140              	 .thumb_func
+ 1141              	 .fpu softvfp
+ 1143              	SSP_DMACmd:
+ 1144              	.LFB72:
+ 647:LPC17xxLib/src/lpc17xx_ssp.c **** }
+ 648:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 649:LPC17xxLib/src/lpc17xx_ssp.c **** /*********************************************************************//**
+ 650:LPC17xxLib/src/lpc17xx_ssp.c ****  * @brief				Enable/Disable DMA function for SSP peripheral
+ 651:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	SSPx	SSP peripheral selected, should be:
+ 652:LPC17xxLib/src/lpc17xx_ssp.c ****  *  					- LPC_SSP0: SSP0 peripheral
+ 653:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- LPC_SSP1: SSP1 peripheral
+ 654:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	DMAMode	Type of DMA, should be:
+ 655:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- SSP_DMA_TX: DMA for the transmit FIFO
+ 656:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- SSP_DMA_RX: DMA for the Receive FIFO
+ 657:LPC17xxLib/src/lpc17xx_ssp.c ****  * @param[in]	NewState	New State of DMA function on SSP peripheral,
+ 658:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						should be:
+ 659:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- ENALBE: Enable this function
+ 660:LPC17xxLib/src/lpc17xx_ssp.c ****  * 						- DISABLE: Disable this function
+ 661:LPC17xxLib/src/lpc17xx_ssp.c ****  * @return		None
+ 662:LPC17xxLib/src/lpc17xx_ssp.c ****  **********************************************************************/
+ 663:LPC17xxLib/src/lpc17xx_ssp.c **** void SSP_DMACmd(LPC_SSP_TypeDef *SSPx, uint32_t DMAMode, FunctionalState NewState)
+ 664:LPC17xxLib/src/lpc17xx_ssp.c **** {
+ 1145              	 .loc 1 664 0
+ 1146              	 .cfi_startproc
+ 1147              	 
+ 1148              	 
+ 1149              	 
+ 1150              	.LVL108:
+ 665:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSPx(SSPx));
+ 666:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_SSP_DMA(DMAMode));
+ 667:LPC17xxLib/src/lpc17xx_ssp.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 668:LPC17xxLib/src/lpc17xx_ssp.c **** 
+ 669:LPC17xxLib/src/lpc17xx_ssp.c **** 	if (NewState == ENABLE)
+ 1151              	 .loc 1 669 0
+ 1152 0000 012A     	 cmp r2,#1
+ 670:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 671:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->DMACR |= DMAMode;
+ 672:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 673:LPC17xxLib/src/lpc17xx_ssp.c **** 	else
+ 674:LPC17xxLib/src/lpc17xx_ssp.c **** 	{
+ 675:LPC17xxLib/src/lpc17xx_ssp.c **** 		SSPx->DMACR &= (~DMAMode) & SSP_DMA_BITMASK;
+ 1153              	 .loc 1 675 0
+ 1154 0002 18BF     	 it ne
+ 1155 0004 C943     	 mvnne r1,r1
+ 1156              	.LVL109:
+ 671:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 1157              	 .loc 1 671 0
+ 1158 0006 436A     	 ldr r3,[r0,#36]
+ 1159              	 .loc 1 675 0
+ 1160 0008 16BF     	 itet ne
+ 1161 000a 01F00301 	 andne r1,r1,#3
+ 671:LPC17xxLib/src/lpc17xx_ssp.c **** 	}
+ 1162              	 .loc 1 671 0
+ 1163 000e 1943     	 orreq r1,r1,r3
+ 1164              	 .loc 1 675 0
+ 1165 0010 1940     	 andne r1,r1,r3
+ 1166 0012 4162     	 str r1,[r0,#36]
+ 1167 0014 7047     	 bx lr
+ 1168              	 .cfi_endproc
+ 1169              	.LFE72:
+ 1171              	 .text
+ 1172              	.Letext0:
+ 1173              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 1174              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 1175              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 1176              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 1177              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 1178              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 1179              	 .file 8 "LPC17xxLib/inc/lpc17xx_ssp.h"
+ 1180              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_ssp.c
+    {standard input}:16     .text.SSP_Init:0000000000000000 $t
+    {standard input}:23     .text.SSP_Init:0000000000000000 SSP_Init
+    {standard input}:195    .text.SSP_Init:0000000000000098 $d
+    {standard input}:205    .text.SSP_DeInit:0000000000000000 $t
+    {standard input}:212    .text.SSP_DeInit:0000000000000000 SSP_DeInit
+    {standard input}:249    .text.SSP_DeInit:0000000000000020 $d
+    {standard input}:256    .text.SSP_GetDataSize:0000000000000000 $t
+    {standard input}:263    .text.SSP_GetDataSize:0000000000000000 SSP_GetDataSize
+    {standard input}:281    .text.SSP_ConfigStructInit:0000000000000000 $t
+    {standard input}:288    .text.SSP_ConfigStructInit:0000000000000000 SSP_ConfigStructInit
+    {standard input}:340    .text.SSP_Cmd:0000000000000000 $t
+    {standard input}:347    .text.SSP_Cmd:0000000000000000 SSP_Cmd
+    {standard input}:370    .text.SSP_LoopBackCmd:0000000000000000 $t
+    {standard input}:377    .text.SSP_LoopBackCmd:0000000000000000 SSP_LoopBackCmd
+    {standard input}:400    .text.SSP_SlaveOutputCmd:0000000000000000 $t
+    {standard input}:407    .text.SSP_SlaveOutputCmd:0000000000000000 SSP_SlaveOutputCmd
+    {standard input}:430    .text.SSP_SendData:0000000000000000 $t
+    {standard input}:437    .text.SSP_SendData:0000000000000000 SSP_SendData
+    {standard input}:452    .text.SSP_ReceiveData:0000000000000000 $t
+    {standard input}:459    .text.SSP_ReceiveData:0000000000000000 SSP_ReceiveData
+    {standard input}:477    .text.SSP_ReadWrite:0000000000000000 $t
+    {standard input}:484    .text.SSP_ReadWrite:0000000000000000 SSP_ReadWrite
+    {standard input}:970    .text.SSP_GetStatus:0000000000000000 $t
+    {standard input}:977    .text.SSP_GetStatus:0000000000000000 SSP_GetStatus
+    {standard input}:998    .text.SSP_IntConfig:0000000000000000 $t
+    {standard input}:1005   .text.SSP_IntConfig:0000000000000000 SSP_IntConfig
+    {standard input}:1034   .text.SSP_GetRawIntStatus:0000000000000000 $t
+    {standard input}:1041   .text.SSP_GetRawIntStatus:0000000000000000 SSP_GetRawIntStatus
+    {standard input}:1062   .text.SSP_GetRawIntStatusReg:0000000000000000 $t
+    {standard input}:1069   .text.SSP_GetRawIntStatusReg:0000000000000000 SSP_GetRawIntStatusReg
+    {standard input}:1086   .text.SSP_GetIntStatus:0000000000000000 $t
+    {standard input}:1093   .text.SSP_GetIntStatus:0000000000000000 SSP_GetIntStatus
+    {standard input}:1114   .text.SSP_ClearIntPending:0000000000000000 $t
+    {standard input}:1121   .text.SSP_ClearIntPending:0000000000000000 SSP_ClearIntPending
+    {standard input}:1136   .text.SSP_DMACmd:0000000000000000 $t
+    {standard input}:1143   .text.SSP_DMACmd:0000000000000000 SSP_DMACmd
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR
+CLKPWR_GetPCLK

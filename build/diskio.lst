@@ -1,0 +1,659 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "diskio.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.disk_initialize,"ax",%progbits
+  16              	 .align 1
+  17              	 .global disk_initialize
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	disk_initialize:
+  24              	.LFB55:
+  25              	 .file 1 "fatfs/diskio.c"
+   1:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+   2:fatfs/diskio.c **** /* Low level disk I/O module skeleton for FatFs     (C)ChaN, 2012        */
+   3:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+   4:fatfs/diskio.c **** /* If a working storage control module is available, it should be        */
+   5:fatfs/diskio.c **** /* attached to the FatFs via a glue function rather than modifying it.   */
+   6:fatfs/diskio.c **** /* This is an example of glue functions to attach various exsisting      */
+   7:fatfs/diskio.c **** /* storage control module to the FatFs module with a defined API.        */
+   8:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+   9:fatfs/diskio.c **** 
+  10:fatfs/diskio.c **** #include "diskio.h"		/* FatFs lower layer API */
+  11:fatfs/diskio.c **** #include "SDCard.h"
+  12:fatfs/diskio.c **** // #include "usbdisk.h"	/* Example: USB drive control */
+  13:fatfs/diskio.c **** // #include "atadrive.h"	/* Example: SDCard drive control */
+  14:fatfs/diskio.c **** // #include "sdcard.h"		/* Example: MMC/SDC contorl */
+  15:fatfs/diskio.c **** 
+  16:fatfs/diskio.c **** /* Definitions of physical drive number for each media */
+  17:fatfs/diskio.c **** #define SDCard		0
+  18:fatfs/diskio.c **** // #define MMC		1
+  19:fatfs/diskio.c **** // #define USB		2
+  20:fatfs/diskio.c **** 
+  21:fatfs/diskio.c **** 
+  22:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+  23:fatfs/diskio.c **** /* Inidialize a Drive                                                    */
+  24:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+  25:fatfs/diskio.c **** 
+  26:fatfs/diskio.c **** DSTATUS disk_initialize (
+  27:fatfs/diskio.c **** 	BYTE drv				/* Physical drive nmuber (0..) */
+  28:fatfs/diskio.c **** )
+  29:fatfs/diskio.c **** {
+  26              	 .loc 1 29 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  31 0000 08B5     	 push {r3,lr}
+  32              	 .cfi_def_cfa_offset 8
+  33              	 .cfi_offset 3,-8
+  34              	 .cfi_offset 14,-4
+  30:fatfs/diskio.c **** 	DSTATUS stat;
+  31:fatfs/diskio.c **** 	int result;
+  32:fatfs/diskio.c **** 
+  33:fatfs/diskio.c **** 	switch (drv) {
+  35              	 .loc 1 33 0
+  36 0002 28B9     	 cbnz r0,.L5
+  34:fatfs/diskio.c **** 	case SDCard :
+  35:fatfs/diskio.c **** 		result = SDCard_disk_initialize();
+  37              	 .loc 1 35 0
+  38 0004 034B     	 ldr r3,.L6
+  39 0006 9847     	 blx r3
+  40              	.LVL1:
+  36:fatfs/diskio.c **** 
+  37:fatfs/diskio.c **** 		// translate the reslut code here
+  38:fatfs/diskio.c **** 		stat = result?RES_ERROR:RES_OK;
+  41              	 .loc 1 38 0
+  42 0008 0030     	 adds r0,r0,#0
+  43 000a 18BF     	 it ne
+  44 000c 0120     	 movne r0,#1
+  45              	.LVL2:
+  39:fatfs/diskio.c **** 
+  40:fatfs/diskio.c **** 		return stat;
+  46              	 .loc 1 40 0
+  47 000e 08BD     	 pop {r3,pc}
+  48              	.LVL3:
+  49              	.L5:
+  41:fatfs/diskio.c **** 
+  42:fatfs/diskio.c **** // 	case MMC :
+  43:fatfs/diskio.c **** // 		result = MMC_disk_initialize();
+  44:fatfs/diskio.c **** //
+  45:fatfs/diskio.c **** // 		// translate the reslut code here
+  46:fatfs/diskio.c **** //
+  47:fatfs/diskio.c **** // 		return stat;
+  48:fatfs/diskio.c **** //
+  49:fatfs/diskio.c **** // 	case USB :
+  50:fatfs/diskio.c **** // 		result = USB_disk_initialize();
+  51:fatfs/diskio.c **** //
+  52:fatfs/diskio.c **** // 		// translate the reslut code here
+  53:fatfs/diskio.c **** //
+  54:fatfs/diskio.c **** // 		return stat;
+  55:fatfs/diskio.c **** 	}
+  56:fatfs/diskio.c **** 	return STA_NOINIT;
+  50              	 .loc 1 56 0
+  51 0010 0120     	 movs r0,#1
+  52              	.LVL4:
+  57:fatfs/diskio.c **** }
+  53              	 .loc 1 57 0
+  54 0012 08BD     	 pop {r3,pc}
+  55              	.L7:
+  56              	 .align 2
+  57              	.L6:
+  58 0014 00000000 	 .word SDCard_disk_initialize
+  59              	 .cfi_endproc
+  60              	.LFE55:
+  62              	 .section .text.disk_status,"ax",%progbits
+  63              	 .align 1
+  64              	 .global disk_status
+  65              	 .syntax unified
+  66              	 .thumb
+  67              	 .thumb_func
+  68              	 .fpu softvfp
+  70              	disk_status:
+  71              	.LFB56:
+  58:fatfs/diskio.c **** 
+  59:fatfs/diskio.c **** 
+  60:fatfs/diskio.c **** 
+  61:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+  62:fatfs/diskio.c **** /* Get Disk Status                                                       */
+  63:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+  64:fatfs/diskio.c **** 
+  65:fatfs/diskio.c **** DSTATUS disk_status (
+  66:fatfs/diskio.c **** 	BYTE drv		/* Physical drive nmuber (0..) */
+  67:fatfs/diskio.c **** )
+  68:fatfs/diskio.c **** {
+  72              	 .loc 1 68 0
+  73              	 .cfi_startproc
+  74              	 
+  75              	 
+  76              	.LVL5:
+  77 0000 08B5     	 push {r3,lr}
+  78              	 .cfi_def_cfa_offset 8
+  79              	 .cfi_offset 3,-8
+  80              	 .cfi_offset 14,-4
+  69:fatfs/diskio.c **** 	DSTATUS stat;
+  70:fatfs/diskio.c **** 	int result;
+  71:fatfs/diskio.c **** 
+  72:fatfs/diskio.c **** 	switch (drv) {
+  81              	 .loc 1 72 0
+  82 0002 28B9     	 cbnz r0,.L12
+  73:fatfs/diskio.c **** 	case SDCard :
+  74:fatfs/diskio.c **** 		result = SDCard_disk_status();
+  83              	 .loc 1 74 0
+  84 0004 034B     	 ldr r3,.L13
+  85 0006 9847     	 blx r3
+  86              	.LVL6:
+  75:fatfs/diskio.c **** 
+  76:fatfs/diskio.c **** 		// translate the reslut code here
+  77:fatfs/diskio.c **** 		stat = result?RES_ERROR:RES_OK;
+  87              	 .loc 1 77 0
+  88 0008 0030     	 adds r0,r0,#0
+  89 000a 18BF     	 it ne
+  90 000c 0120     	 movne r0,#1
+  91              	.LVL7:
+  78:fatfs/diskio.c **** 
+  79:fatfs/diskio.c **** 		return stat;
+  92              	 .loc 1 79 0
+  93 000e 08BD     	 pop {r3,pc}
+  94              	.LVL8:
+  95              	.L12:
+  80:fatfs/diskio.c **** 
+  81:fatfs/diskio.c **** // 	case MMC :
+  82:fatfs/diskio.c **** // 		result = MMC_disk_status();
+  83:fatfs/diskio.c **** //
+  84:fatfs/diskio.c **** // 		// translate the reslut code here
+  85:fatfs/diskio.c **** //
+  86:fatfs/diskio.c **** // 		return stat;
+  87:fatfs/diskio.c **** //
+  88:fatfs/diskio.c **** // 	case USB :
+  89:fatfs/diskio.c **** // 		result = USB_disk_status();
+  90:fatfs/diskio.c **** 
+  91:fatfs/diskio.c **** 		// translate the reslut code here
+  92:fatfs/diskio.c **** 
+  93:fatfs/diskio.c **** // 		return stat;
+  94:fatfs/diskio.c **** 	}
+  95:fatfs/diskio.c **** 	return STA_NOINIT;
+  96              	 .loc 1 95 0
+  97 0010 0120     	 movs r0,#1
+  98              	.LVL9:
+  96:fatfs/diskio.c **** }
+  99              	 .loc 1 96 0
+ 100 0012 08BD     	 pop {r3,pc}
+ 101              	.L14:
+ 102              	 .align 2
+ 103              	.L13:
+ 104 0014 00000000 	 .word SDCard_disk_status
+ 105              	 .cfi_endproc
+ 106              	.LFE56:
+ 108              	 .section .text.disk_read,"ax",%progbits
+ 109              	 .align 1
+ 110              	 .global disk_read
+ 111              	 .syntax unified
+ 112              	 .thumb
+ 113              	 .thumb_func
+ 114              	 .fpu softvfp
+ 116              	disk_read:
+ 117              	.LFB57:
+  97:fatfs/diskio.c **** 
+  98:fatfs/diskio.c **** 
+  99:fatfs/diskio.c **** 
+ 100:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+ 101:fatfs/diskio.c **** /* Read Sector(s)                                                        */
+ 102:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+ 103:fatfs/diskio.c **** 
+ 104:fatfs/diskio.c **** DRESULT disk_read (
+ 105:fatfs/diskio.c **** 	BYTE drv,		/* Physical drive nmuber (0..) */
+ 106:fatfs/diskio.c **** 	BYTE *buff,		/* Data buffer to store read data */
+ 107:fatfs/diskio.c **** 	DWORD sector,	/* Sector address (LBA) */
+ 108:fatfs/diskio.c **** 	BYTE count		/* Number of sectors to read (1..128) */
+ 109:fatfs/diskio.c **** )
+ 110:fatfs/diskio.c **** {
+ 118              	 .loc 1 110 0
+ 119              	 .cfi_startproc
+ 120              	 
+ 121              	 
+ 122              	.LVL10:
+ 123 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 124              	 .cfi_def_cfa_offset 24
+ 125              	 .cfi_offset 3,-24
+ 126              	 .cfi_offset 4,-20
+ 127              	 .cfi_offset 5,-16
+ 128              	 .cfi_offset 6,-12
+ 129              	 .cfi_offset 7,-8
+ 130              	 .cfi_offset 14,-4
+ 131              	 .loc 1 110 0
+ 132 0002 0E46     	 mov r6,r1
+ 133 0004 1546     	 mov r5,r2
+ 134 0006 1C46     	 mov r4,r3
+ 111:fatfs/diskio.c **** 	DRESULT res;
+ 112:fatfs/diskio.c **** 	int result;
+ 113:fatfs/diskio.c **** 
+ 114:fatfs/diskio.c **** 	switch (drv) {
+ 135              	 .loc 1 114 0
+ 136 0008 58B9     	 cbnz r0,.L21
+ 115:fatfs/diskio.c **** 	case SDCard :
+ 116:fatfs/diskio.c **** 		// translate the arguments here
+ 117:fatfs/diskio.c **** 
+ 118:fatfs/diskio.c **** 		for (; count; count--, sector += 512)
+ 119:fatfs/diskio.c **** 			SDCard_disk_read(buff, sector);
+ 137              	 .loc 1 119 0 discriminator 1
+ 138 000a 074F     	 ldr r7,.L22
+ 139              	.LVL11:
+ 140              	.L18:
+ 118:fatfs/diskio.c **** 			SDCard_disk_read(buff, sector);
+ 141              	 .loc 1 118 0 discriminator 1
+ 142 000c 0CB9     	 cbnz r4,.L19
+ 120:fatfs/diskio.c **** 		result = 0;
+ 121:fatfs/diskio.c **** 
+ 122:fatfs/diskio.c **** 		// translate the reslut code here
+ 123:fatfs/diskio.c **** 		res = result?RES_ERROR:RES_OK;
+ 124:fatfs/diskio.c **** 
+ 125:fatfs/diskio.c **** 		return res;
+ 143              	 .loc 1 125 0
+ 144 000e 2046     	 mov r0,r4
+ 145 0010 F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 146              	.LVL12:
+ 147              	.L19:
+ 119:fatfs/diskio.c **** 		result = 0;
+ 148              	 .loc 1 119 0 discriminator 2
+ 149 0012 2946     	 mov r1,r5
+ 150 0014 3046     	 mov r0,r6
+ 118:fatfs/diskio.c **** 			SDCard_disk_read(buff, sector);
+ 151              	 .loc 1 118 0 discriminator 2
+ 152 0016 013C     	 subs r4,r4,#1
+ 153              	.LVL13:
+ 119:fatfs/diskio.c **** 		result = 0;
+ 154              	 .loc 1 119 0 discriminator 2
+ 155 0018 B847     	 blx r7
+ 156              	.LVL14:
+ 118:fatfs/diskio.c **** 			SDCard_disk_read(buff, sector);
+ 157              	 .loc 1 118 0 discriminator 2
+ 158 001a E4B2     	 uxtb r4,r4
+ 159              	.LVL15:
+ 160 001c 05F50075 	 add r5,r5,#512
+ 161              	.LVL16:
+ 162 0020 F4E7     	 b .L18
+ 163              	.LVL17:
+ 164              	.L21:
+ 126:fatfs/diskio.c **** 
+ 127:fatfs/diskio.c **** // 	case MMC :
+ 128:fatfs/diskio.c **** // 		// translate the arguments here
+ 129:fatfs/diskio.c **** //
+ 130:fatfs/diskio.c **** // 		result = MMC_disk_read(buff, sector, count);
+ 131:fatfs/diskio.c **** //
+ 132:fatfs/diskio.c **** // 		// translate the reslut code here
+ 133:fatfs/diskio.c **** //
+ 134:fatfs/diskio.c **** // 		return res;
+ 135:fatfs/diskio.c **** //
+ 136:fatfs/diskio.c **** // 	case USB :
+ 137:fatfs/diskio.c **** // 		// translate the arguments here
+ 138:fatfs/diskio.c **** //
+ 139:fatfs/diskio.c **** // 		result = USB_disk_read(buff, sector, count);
+ 140:fatfs/diskio.c **** //
+ 141:fatfs/diskio.c **** // 		// translate the reslut code here
+ 142:fatfs/diskio.c **** //
+ 143:fatfs/diskio.c **** // 		return res;
+ 144:fatfs/diskio.c **** 	}
+ 145:fatfs/diskio.c **** 	return RES_PARERR;
+ 165              	 .loc 1 145 0
+ 166 0022 0420     	 movs r0,#4
+ 167              	.LVL18:
+ 146:fatfs/diskio.c **** }
+ 168              	 .loc 1 146 0
+ 169 0024 F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 170              	.LVL19:
+ 171              	.L23:
+ 172 0026 00BF     	 .align 2
+ 173              	.L22:
+ 174 0028 00000000 	 .word SDCard_disk_read
+ 175              	 .cfi_endproc
+ 176              	.LFE57:
+ 178              	 .section .text.disk_write,"ax",%progbits
+ 179              	 .align 1
+ 180              	 .global disk_write
+ 181              	 .syntax unified
+ 182              	 .thumb
+ 183              	 .thumb_func
+ 184              	 .fpu softvfp
+ 186              	disk_write:
+ 187              	.LFB58:
+ 147:fatfs/diskio.c **** 
+ 148:fatfs/diskio.c **** 
+ 149:fatfs/diskio.c **** 
+ 150:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+ 151:fatfs/diskio.c **** /* Write Sector(s)                                                       */
+ 152:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+ 153:fatfs/diskio.c **** 
+ 154:fatfs/diskio.c **** #if _USE_WRITE
+ 155:fatfs/diskio.c **** DRESULT disk_write (
+ 156:fatfs/diskio.c **** 	BYTE drv,			/* Physical drive nmuber (0..) */
+ 157:fatfs/diskio.c **** 	const BYTE *buff,	/* Data to be written */
+ 158:fatfs/diskio.c **** 	DWORD sector,		/* Sector address (LBA) */
+ 159:fatfs/diskio.c **** 	BYTE count			/* Number of sectors to write (1..128) */
+ 160:fatfs/diskio.c **** )
+ 161:fatfs/diskio.c **** {
+ 188              	 .loc 1 161 0
+ 189              	 .cfi_startproc
+ 190              	 
+ 191              	 
+ 192              	.LVL20:
+ 193 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 194              	 .cfi_def_cfa_offset 24
+ 195              	 .cfi_offset 3,-24
+ 196              	 .cfi_offset 4,-20
+ 197              	 .cfi_offset 5,-16
+ 198              	 .cfi_offset 6,-12
+ 199              	 .cfi_offset 7,-8
+ 200              	 .cfi_offset 14,-4
+ 201              	 .loc 1 161 0
+ 202 0002 0E46     	 mov r6,r1
+ 203 0004 1546     	 mov r5,r2
+ 204 0006 1C46     	 mov r4,r3
+ 162:fatfs/diskio.c **** 	DRESULT res;
+ 163:fatfs/diskio.c **** 	int result;
+ 164:fatfs/diskio.c **** 
+ 165:fatfs/diskio.c **** 	switch (drv) {
+ 205              	 .loc 1 165 0
+ 206 0008 58B9     	 cbnz r0,.L30
+ 166:fatfs/diskio.c **** 	case SDCard :
+ 167:fatfs/diskio.c **** 		// translate the arguments here
+ 168:fatfs/diskio.c **** 
+ 169:fatfs/diskio.c **** 		for (; count; count--, sector += 512)
+ 170:fatfs/diskio.c **** 			SDCard_disk_write(buff, sector);
+ 207              	 .loc 1 170 0 discriminator 1
+ 208 000a 074F     	 ldr r7,.L31
+ 209              	.LVL21:
+ 210              	.L27:
+ 169:fatfs/diskio.c **** 			SDCard_disk_write(buff, sector);
+ 211              	 .loc 1 169 0 discriminator 1
+ 212 000c 0CB9     	 cbnz r4,.L28
+ 171:fatfs/diskio.c **** 		result = 0;
+ 172:fatfs/diskio.c **** 
+ 173:fatfs/diskio.c **** 		// translate the reslut code here
+ 174:fatfs/diskio.c **** 		res = result?RES_ERROR:RES_OK;
+ 175:fatfs/diskio.c **** 
+ 176:fatfs/diskio.c **** 		return res;
+ 213              	 .loc 1 176 0
+ 214 000e 2046     	 mov r0,r4
+ 215 0010 F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 216              	.LVL22:
+ 217              	.L28:
+ 170:fatfs/diskio.c **** 		result = 0;
+ 218              	 .loc 1 170 0 discriminator 2
+ 219 0012 2946     	 mov r1,r5
+ 220 0014 3046     	 mov r0,r6
+ 169:fatfs/diskio.c **** 			SDCard_disk_write(buff, sector);
+ 221              	 .loc 1 169 0 discriminator 2
+ 222 0016 013C     	 subs r4,r4,#1
+ 223              	.LVL23:
+ 170:fatfs/diskio.c **** 		result = 0;
+ 224              	 .loc 1 170 0 discriminator 2
+ 225 0018 B847     	 blx r7
+ 226              	.LVL24:
+ 169:fatfs/diskio.c **** 			SDCard_disk_write(buff, sector);
+ 227              	 .loc 1 169 0 discriminator 2
+ 228 001a E4B2     	 uxtb r4,r4
+ 229              	.LVL25:
+ 230 001c 05F50075 	 add r5,r5,#512
+ 231              	.LVL26:
+ 232 0020 F4E7     	 b .L27
+ 233              	.LVL27:
+ 234              	.L30:
+ 177:fatfs/diskio.c **** 
+ 178:fatfs/diskio.c **** // 	case MMC :
+ 179:fatfs/diskio.c **** // 		// translate the arguments here
+ 180:fatfs/diskio.c **** //
+ 181:fatfs/diskio.c **** // 		result = MMC_disk_write(buff, sector, count);
+ 182:fatfs/diskio.c **** //
+ 183:fatfs/diskio.c **** // 		// translate the reslut code here
+ 184:fatfs/diskio.c **** //
+ 185:fatfs/diskio.c **** // 		return res;
+ 186:fatfs/diskio.c **** //
+ 187:fatfs/diskio.c **** // 	case USB :
+ 188:fatfs/diskio.c **** // 		// translate the arguments here
+ 189:fatfs/diskio.c **** //
+ 190:fatfs/diskio.c **** // 		result = USB_disk_write(buff, sector, count);
+ 191:fatfs/diskio.c **** //
+ 192:fatfs/diskio.c **** // 		// translate the reslut code here
+ 193:fatfs/diskio.c **** //
+ 194:fatfs/diskio.c **** // 		return res;
+ 195:fatfs/diskio.c **** 	}
+ 196:fatfs/diskio.c **** 	return RES_PARERR;
+ 235              	 .loc 1 196 0
+ 236 0022 0420     	 movs r0,#4
+ 237              	.LVL28:
+ 197:fatfs/diskio.c **** }
+ 238              	 .loc 1 197 0
+ 239 0024 F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 240              	.LVL29:
+ 241              	.L32:
+ 242 0026 00BF     	 .align 2
+ 243              	.L31:
+ 244 0028 00000000 	 .word SDCard_disk_write
+ 245              	 .cfi_endproc
+ 246              	.LFE58:
+ 248              	 .section .text.disk_ioctl,"ax",%progbits
+ 249              	 .align 1
+ 250              	 .global disk_ioctl
+ 251              	 .syntax unified
+ 252              	 .thumb
+ 253              	 .thumb_func
+ 254              	 .fpu softvfp
+ 256              	disk_ioctl:
+ 257              	.LFB59:
+ 198:fatfs/diskio.c **** #endif
+ 199:fatfs/diskio.c **** 
+ 200:fatfs/diskio.c **** 
+ 201:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+ 202:fatfs/diskio.c **** /* Miscellaneous Functions                                               */
+ 203:fatfs/diskio.c **** /*-----------------------------------------------------------------------*/
+ 204:fatfs/diskio.c **** 
+ 205:fatfs/diskio.c **** #if _USE_IOCTL
+ 206:fatfs/diskio.c **** DRESULT disk_ioctl (
+ 207:fatfs/diskio.c **** 	BYTE drv,		/* Physical drive nmuber (0..) */
+ 208:fatfs/diskio.c **** 	BYTE ctrl,		/* Control code */
+ 209:fatfs/diskio.c **** 	void *buff		/* Buffer to send/receive control data */
+ 210:fatfs/diskio.c **** )
+ 211:fatfs/diskio.c **** {
+ 258              	 .loc 1 211 0
+ 259              	 .cfi_startproc
+ 260              	 
+ 261              	 
+ 262              	.LVL30:
+ 263 0000 10B5     	 push {r4,lr}
+ 264              	 .cfi_def_cfa_offset 8
+ 265              	 .cfi_offset 4,-8
+ 266              	 .cfi_offset 14,-4
+ 267              	 .loc 1 211 0
+ 268 0002 1446     	 mov r4,r2
+ 212:fatfs/diskio.c **** 	DRESULT res;
+ 213:fatfs/diskio.c **** 	int result = 1;
+ 214:fatfs/diskio.c **** 
+ 215:fatfs/diskio.c **** 	switch (drv) {
+ 269              	 .loc 1 215 0
+ 270 0004 C8B9     	 cbnz r0,.L44
+ 216:fatfs/diskio.c **** 	case SDCard :
+ 217:fatfs/diskio.c **** 		// pre-process here
+ 218:fatfs/diskio.c **** 		switch(ctrl)
+ 271              	 .loc 1 218 0
+ 272 0006 0429     	 cmp r1,#4
+ 273 0008 15D8     	 bhi .L43
+ 274 000a DFE801F0 	 tbb [pc,r1]
+ 275              	.L38:
+ 276 000e 03       	 .byte (.L37-.L38)/2
+ 277 000f 0E       	 .byte (.L39-.L38)/2
+ 278 0010 06       	 .byte (.L40-.L38)/2
+ 279 0011 12       	 .byte (.L41-.L38)/2
+ 280 0012 03       	 .byte (.L37-.L38)/2
+ 281 0013 00       	 .p2align 1
+ 282              	.L37:
+ 219:fatfs/diskio.c **** 		{
+ 220:fatfs/diskio.c **** 			case CTRL_SYNC:
+ 221:fatfs/diskio.c **** 				result = 0;
+ 283              	 .loc 1 221 0
+ 284 0014 0020     	 movs r0,#0
+ 285              	.LVL31:
+ 286              	.L36:
+ 222:fatfs/diskio.c **** 				break;
+ 223:fatfs/diskio.c **** 			case GET_SECTOR_SIZE:
+ 224:fatfs/diskio.c **** 			{
+ 225:fatfs/diskio.c **** 				*((uint16_t *) buff) = SDCard_disk_blocksize();
+ 226:fatfs/diskio.c **** 				result = (*((uint16_t *) buff))?1:0;
+ 227:fatfs/diskio.c **** 				break;
+ 228:fatfs/diskio.c **** 			}
+ 229:fatfs/diskio.c **** 			case GET_SECTOR_COUNT:
+ 230:fatfs/diskio.c **** 			{
+ 231:fatfs/diskio.c **** 				*((uint32_t *) buff) = SDCard_disk_sectors();
+ 232:fatfs/diskio.c **** 				result = (*((uint32_t *) buff))?1:0;
+ 233:fatfs/diskio.c **** 				break;
+ 234:fatfs/diskio.c **** 			}
+ 235:fatfs/diskio.c **** 			case GET_BLOCK_SIZE:
+ 236:fatfs/diskio.c **** 			{
+ 237:fatfs/diskio.c **** 				*((uint32_t *) buff) = SDCard_disk_blocksize();
+ 238:fatfs/diskio.c **** 				result = (*((uint32_t *) buff))?1:0;
+ 239:fatfs/diskio.c **** 				break;
+ 240:fatfs/diskio.c **** 			}
+ 241:fatfs/diskio.c **** 			case CTRL_ERASE_SECTOR:
+ 242:fatfs/diskio.c **** 			{
+ 243:fatfs/diskio.c **** // 				SDCard_disk_erase(((uint32_t *) buff)[0], ((uint32_t *) buff)[1] - ((uint32_t *) buff)[0] + 
+ 244:fatfs/diskio.c **** 				result = 0;
+ 245:fatfs/diskio.c **** 				break;
+ 246:fatfs/diskio.c **** 			}
+ 247:fatfs/diskio.c **** 		}
+ 248:fatfs/diskio.c **** 
+ 249:fatfs/diskio.c **** 		// post-process here
+ 250:fatfs/diskio.c **** 		res = result?RES_ERROR:RES_OK;
+ 287              	 .loc 1 250 0
+ 288 0016 C0B2     	 uxtb r0,r0
+ 289              	.LVL32:
+ 251:fatfs/diskio.c **** 
+ 252:fatfs/diskio.c **** 		return res;
+ 290              	 .loc 1 252 0
+ 291 0018 10BD     	 pop {r4,pc}
+ 292              	.LVL33:
+ 293              	.L40:
+ 225:fatfs/diskio.c **** 				result = (*((uint16_t *) buff))?1:0;
+ 294              	 .loc 1 225 0
+ 295 001a 094B     	 ldr r3,.L47
+ 296 001c 9847     	 blx r3
+ 297              	.LVL34:
+ 298 001e 80B2     	 uxth r0,r0
+ 299 0020 2080     	 strh r0,[r4]
+ 300              	.L46:
+ 238:fatfs/diskio.c **** 				break;
+ 301              	 .loc 1 238 0
+ 302 0022 0030     	 adds r0,r0,#0
+ 303 0024 18BF     	 it ne
+ 304 0026 0120     	 movne r0,#1
+ 305              	.LVL35:
+ 239:fatfs/diskio.c **** 			}
+ 306              	 .loc 1 239 0
+ 307 0028 F5E7     	 b .L36
+ 308              	.LVL36:
+ 309              	.L39:
+ 231:fatfs/diskio.c **** 				result = (*((uint32_t *) buff))?1:0;
+ 310              	 .loc 1 231 0
+ 311 002a 064B     	 ldr r3,.L47+4
+ 312              	.L45:
+ 237:fatfs/diskio.c **** 				result = (*((uint32_t *) buff))?1:0;
+ 313              	 .loc 1 237 0
+ 314 002c 9847     	 blx r3
+ 315              	.LVL37:
+ 316 002e 2060     	 str r0,[r4]
+ 317 0030 F7E7     	 b .L46
+ 318              	.LVL38:
+ 319              	.L41:
+ 320 0032 034B     	 ldr r3,.L47
+ 321 0034 FAE7     	 b .L45
+ 322              	.L43:
+ 213:fatfs/diskio.c **** 
+ 323              	 .loc 1 213 0
+ 324 0036 0120     	 movs r0,#1
+ 325              	.LVL39:
+ 326 0038 EDE7     	 b .L36
+ 327              	.LVL40:
+ 328              	.L44:
+ 253:fatfs/diskio.c **** 
+ 254:fatfs/diskio.c **** // 	case MMC :
+ 255:fatfs/diskio.c **** // 		// pre-process here
+ 256:fatfs/diskio.c **** //
+ 257:fatfs/diskio.c **** // 		result = MMC_disk_ioctl(ctrl, buff);
+ 258:fatfs/diskio.c **** //
+ 259:fatfs/diskio.c **** // 		// post-process here
+ 260:fatfs/diskio.c **** //
+ 261:fatfs/diskio.c **** // 		return res;
+ 262:fatfs/diskio.c **** //
+ 263:fatfs/diskio.c **** // 	case USB :
+ 264:fatfs/diskio.c **** // 		// pre-process here
+ 265:fatfs/diskio.c **** //
+ 266:fatfs/diskio.c **** // 		result = USB_disk_ioctl(ctrl, buff);
+ 267:fatfs/diskio.c **** //
+ 268:fatfs/diskio.c **** // 		// post-process here
+ 269:fatfs/diskio.c **** //
+ 270:fatfs/diskio.c **** // 		return res;
+ 271:fatfs/diskio.c **** 	}
+ 272:fatfs/diskio.c **** 	return RES_PARERR;
+ 329              	 .loc 1 272 0
+ 330 003a 0420     	 movs r0,#4
+ 331              	.LVL41:
+ 273:fatfs/diskio.c **** }
+ 332              	 .loc 1 273 0
+ 333 003c 10BD     	 pop {r4,pc}
+ 334              	.L48:
+ 335 003e 00BF     	 .align 2
+ 336              	.L47:
+ 337 0040 00000000 	 .word SDCard_disk_blocksize
+ 338 0044 00000000 	 .word SDCard_disk_sectors
+ 339              	 .cfi_endproc
+ 340              	.LFE59:
+ 342              	 .text
+ 343              	.Letext0:
+ 344              	 .file 2 "fatfs/integer.h"
+ 345              	 .file 3 "fatfs/diskio.h"
+ 346              	 .file 4 "/usr/include/newlib/machine/_default_types.h"
+ 347              	 .file 5 "/usr/include/newlib/sys/_stdint.h"
+ 348              	 .file 6 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 349              	 .file 7 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 350              	 .file 8 "./spi.h"
+ 351              	 .file 9 "./SDCard.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 diskio.c
+    {standard input}:16     .text.disk_initialize:0000000000000000 $t
+    {standard input}:23     .text.disk_initialize:0000000000000000 disk_initialize
+    {standard input}:58     .text.disk_initialize:0000000000000014 $d
+    {standard input}:63     .text.disk_status:0000000000000000 $t
+    {standard input}:70     .text.disk_status:0000000000000000 disk_status
+    {standard input}:104    .text.disk_status:0000000000000014 $d
+    {standard input}:109    .text.disk_read:0000000000000000 $t
+    {standard input}:116    .text.disk_read:0000000000000000 disk_read
+    {standard input}:174    .text.disk_read:0000000000000028 $d
+    {standard input}:179    .text.disk_write:0000000000000000 $t
+    {standard input}:186    .text.disk_write:0000000000000000 disk_write
+    {standard input}:244    .text.disk_write:0000000000000028 $d
+    {standard input}:249    .text.disk_ioctl:0000000000000000 $t
+    {standard input}:256    .text.disk_ioctl:0000000000000000 disk_ioctl
+    {standard input}:276    .text.disk_ioctl:000000000000000e $d
+    {standard input}:337    .text.disk_ioctl:0000000000000040 $d
+                     .debug_frame:0000000000000010 $d
+    {standard input}:281    .text.disk_ioctl:0000000000000013 $d
+    {standard input}:281    .text.disk_ioctl:0000000000000014 $t
+
+UNDEFINED SYMBOLS
+SDCard_disk_initialize
+SDCard_disk_status
+SDCard_disk_read
+SDCard_disk_write
+SDCard_disk_blocksize
+SDCard_disk_sectors

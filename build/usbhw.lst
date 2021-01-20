@@ -1,0 +1,2291 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "usbhw.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.usb_init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global usb_init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	usb_init:
+  24              	.LFB56:
+  25              	 .file 1 "usbhw.c"
+   1:usbhw.c       **** /*****************************************************************************
+   2:usbhw.c       ****  *                                                                            *
+   3:usbhw.c       ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:usbhw.c       ****  *                                                                            *
+   5:usbhw.c       ****  * by Triffid Hunter                                                          *
+   6:usbhw.c       ****  *                                                                            *
+   7:usbhw.c       ****  *                                                                            *
+   8:usbhw.c       ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:usbhw.c       ****  *                                                                            *
+  10:usbhw.c       ****  * This program is free software; you can redistribute it and/or modify       *
+  11:usbhw.c       ****  * it under the terms of the GNU General Public License as published by       *
+  12:usbhw.c       ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:usbhw.c       ****  * (at your option) any later version.                                        *
+  14:usbhw.c       ****  *                                                                            *
+  15:usbhw.c       ****  * This program is distributed in the hope that it will be useful,            *
+  16:usbhw.c       ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:usbhw.c       ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:usbhw.c       ****  * GNU General Public License for more details.                               *
+  19:usbhw.c       ****  *                                                                            *
+  20:usbhw.c       ****  * You should have received a copy of the GNU General Public License          *
+  21:usbhw.c       ****  * along with this program; if not, write to the Free Software                *
+  22:usbhw.c       ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:usbhw.c       ****  *                                                                            *
+  24:usbhw.c       ****  *****************************************************************************/
+  25:usbhw.c       **** 
+  26:usbhw.c       **** #include "usbhw.h"
+  27:usbhw.c       **** 
+  28:usbhw.c       **** #include <LPC17xx.h>
+  29:usbhw.c       **** 
+  30:usbhw.c       **** #include <lpc17xx_clkpwr.h>
+  31:usbhw.c       **** 
+  32:usbhw.c       **** #include "lpc17xx_usb.h"
+  33:usbhw.c       **** 
+  34:usbhw.c       **** #include <stdio.h>
+  35:usbhw.c       **** 
+  36:usbhw.c       **** #if !(defined DEBUG)
+  37:usbhw.c       **** #define printf(...) do {} while (0)
+  38:usbhw.c       **** #endif
+  39:usbhw.c       **** 
+  40:usbhw.c       **** /// pointers for callbacks to EP1-15 both IN and OUT
+  41:usbhw.c       **** usb_callback_pointer EPcallbacks[30];
+  42:usbhw.c       **** 
+  43:usbhw.c       **** void usb_init(void)
+  44:usbhw.c       **** {
+  26              	 .loc 1 44 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30 0000 10B5     	 push {r4,lr}
+  31              	 .cfi_def_cfa_offset 8
+  32              	 .cfi_offset 4,-8
+  33              	 .cfi_offset 14,-4
+  45:usbhw.c       **** 	// enable USB hardware
+  46:usbhw.c       **** 	LPC_SC->PCONP |= CLKPWR_PCONP_PCUSB;
+  34              	 .loc 1 46 0
+  35 0002 134A     	 ldr r2,.L4
+  36 0004 D2F8C430 	 ldr r3,[r2,#196]
+  37 0008 43F00043 	 orr r3,r3,#-2147483648
+  38 000c C2F8C430 	 str r3,[r2,#196]
+  47:usbhw.c       **** 
+  48:usbhw.c       **** 	// enable clocks
+  49:usbhw.c       **** 	LPC_USB->USBClkCtrl |= DEV_CLK_EN | AHB_CLK_EN;
+  39              	 .loc 1 49 0
+  40 0010 104B     	 ldr r3,.L4+4
+  41 0012 D3F8F42F 	 ldr r2,[r3,#4084]
+  42 0016 42F01202 	 orr r2,r2,#18
+  43 001a C3F8F42F 	 str r2,[r3,#4084]
+  44              	.L2:
+  50:usbhw.c       **** 	// wait for clocks to stabilise
+  51:usbhw.c       **** 	while (LPC_USB->USBClkSt != (DEV_CLK_ON | AHB_CLK_ON));
+  45              	 .loc 1 51 0 discriminator 1
+  46 001e D3F8F82F 	 ldr r2,[r3,#4088]
+  47 0022 122A     	 cmp r2,#18
+  48 0024 FBD1     	 bne .L2
+  52:usbhw.c       **** 
+  53:usbhw.c       **** 	// configure USBD+ and USBD-
+  54:usbhw.c       **** 	LPC_PINCON->PINSEL1 &= 0xc3ffffff;
+  49              	 .loc 1 54 0
+  50 0026 0C4C     	 ldr r4,.L4+8
+  51 0028 6368     	 ldr r3,[r4,#4]
+  52 002a 23F07053 	 bic r3,r3,#1006632960
+  53 002e 6360     	 str r3,[r4,#4]
+  55:usbhw.c       **** 	LPC_PINCON->PINSEL1 |= 0x14000000;
+  54              	 .loc 1 55 0
+  55 0030 6368     	 ldr r3,[r4,#4]
+  56 0032 43F0A053 	 orr r3,r3,#335544320
+  57 0036 6360     	 str r3,[r4,#4]
+  56:usbhw.c       **** 
+  57:usbhw.c       **** 	SIE_Disconnect();
+  58              	 .loc 1 57 0
+  59 0038 084B     	 ldr r3,.L4+12
+  60 003a 9847     	 blx r3
+  61              	.LVL0:
+  58:usbhw.c       **** 
+  59:usbhw.c       **** 	// configure USB Connect
+  60:usbhw.c       **** 	LPC_PINCON->PINSEL4 &= 0xfffcffff;
+  62              	 .loc 1 60 0
+  63 003c 2369     	 ldr r3,[r4,#16]
+  64 003e 23F44033 	 bic r3,r3,#196608
+  65 0042 2361     	 str r3,[r4,#16]
+  61:usbhw.c       **** 	LPC_PINCON->PINSEL4 |= 0x00040000;
+  66              	 .loc 1 61 0
+  67 0044 2369     	 ldr r3,[r4,#16]
+  68 0046 43F48023 	 orr r3,r3,#262144
+  69 004a 2361     	 str r3,[r4,#16]
+  70 004c 10BD     	 pop {r4,pc}
+  71              	.L5:
+  72 004e 00BF     	 .align 2
+  73              	.L4:
+  74 0050 00C00F40 	 .word 1074774016
+  75 0054 00C00050 	 .word 1342226432
+  76 0058 00C00240 	 .word 1073922048
+  77 005c 00000000 	 .word SIE_Disconnect
+  78              	 .cfi_endproc
+  79              	.LFE56:
+  81              	 .section .text.usb_disconnect,"ax",%progbits
+  82              	 .align 1
+  83              	 .global usb_disconnect
+  84              	 .syntax unified
+  85              	 .thumb
+  86              	 .thumb_func
+  87              	 .fpu softvfp
+  89              	usb_disconnect:
+  90              	.LFB58:
+  62:usbhw.c       **** }
+  63:usbhw.c       **** 
+  64:usbhw.c       **** void usb_connect(void)
+  65:usbhw.c       **** {
+  66:usbhw.c       **** 	LPC_USB->USBDevIntEn = DEV_STAT | EP_SLOW;
+  67:usbhw.c       **** 	usb_realise_endpoint(EP0IN, 64);
+  68:usbhw.c       **** 	usb_realise_endpoint(EP0OUT, 64);
+  69:usbhw.c       **** 
+  70:usbhw.c       **** 	SIE_Connect();
+  71:usbhw.c       **** }
+  72:usbhw.c       **** 
+  73:usbhw.c       **** void usb_disconnect(void)
+  74:usbhw.c       **** {
+  91              	 .loc 1 74 0
+  92              	 .cfi_startproc
+  93              	 
+  94              	 
+  95              	 
+  75:usbhw.c       **** 	SIE_Disconnect();
+  96              	 .loc 1 75 0
+  97 0000 004B     	 ldr r3,.L7
+  98 0002 1847     	 bx r3
+  99              	.LVL1:
+ 100              	.L8:
+ 101              	 .align 2
+ 102              	.L7:
+ 103 0004 00000000 	 .word SIE_Disconnect
+ 104              	 .cfi_endproc
+ 105              	.LFE58:
+ 107              	 .section .text.usb_set_callback,"ax",%progbits
+ 108              	 .align 1
+ 109              	 .global usb_set_callback
+ 110              	 .syntax unified
+ 111              	 .thumb
+ 112              	 .thumb_func
+ 113              	 .fpu softvfp
+ 115              	usb_set_callback:
+ 116              	.LFB59:
+  76:usbhw.c       **** }
+  77:usbhw.c       **** 
+  78:usbhw.c       **** void usb_set_callback(uint8_t bEP, usb_callback_pointer callback)
+  79:usbhw.c       **** {
+ 117              	 .loc 1 79 0
+ 118              	 .cfi_startproc
+ 119              	 
+ 120              	 
+ 121              	 
+ 122              	.LVL2:
+  80:usbhw.c       **** 	EPcallbacks[EP(bEP)] = callback;
+ 123              	 .loc 1 80 0
+ 124 0000 4300     	 lsls r3,r0,#1
+ 125 0002 03F01E03 	 and r3,r3,#30
+ 126 0006 43EAD010 	 orr r0,r3,r0,lsr#7
+ 127              	.LVL3:
+ 128 000a 0123     	 movs r3,#1
+ 129 000c 03FA00F0 	 lsl r0,r3,r0
+ 130 0010 014B     	 ldr r3,.L10
+ 131 0012 43F82010 	 str r1,[r3,r0,lsl#2]
+ 132 0016 7047     	 bx lr
+ 133              	.L11:
+ 134              	 .align 2
+ 135              	.L10:
+ 136 0018 00000000 	 .word EPcallbacks
+ 137              	 .cfi_endproc
+ 138              	.LFE59:
+ 140              	 .section .text.usb_realise_endpoint,"ax",%progbits
+ 141              	 .align 1
+ 142              	 .global usb_realise_endpoint
+ 143              	 .syntax unified
+ 144              	 .thumb
+ 145              	 .thumb_func
+ 146              	 .fpu softvfp
+ 148              	usb_realise_endpoint:
+ 149              	.LFB60:
+  81:usbhw.c       **** }
+  82:usbhw.c       **** 
+  83:usbhw.c       **** void usb_realise_endpoint(uint8_t bEP, uint16_t packet_size)
+  84:usbhw.c       **** {
+ 150              	 .loc 1 84 0
+ 151              	 .cfi_startproc
+ 152              	 
+ 153              	 
+ 154              	.LVL4:
+ 155 0000 10B5     	 push {r4,lr}
+ 156              	 .cfi_def_cfa_offset 8
+ 157              	 .cfi_offset 4,-8
+ 158              	 .cfi_offset 14,-4
+ 159              	.LBB20:
+ 160              	.LBB21:
+ 161              	 .file 2 "CMSISv2p00_LPC17xx/inc/core_cmFunc.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @file     core_cmFunc.h
+   3:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @brief    CMSIS Cortex-M Core Function Access Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M 
+  12:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * processor based microcontrollers.  This file can be freely distributed 
+  13:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * within development tools that are supporting such ARM based processors. 
+  14:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  24:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #ifndef __CORE_CMFUNC_H__
+  25:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __CORE_CMFUNC_H__
+  26:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ###########################  Core Function Access  ########################### */
+  28:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \ingroup  CMSIS_Core_FunctionInterface   
+  29:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+  30:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   @{
+  31:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  32:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  33:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined ( __CC_ARM   ) /*------------------ RealView Compiler ----------------*/
+  34:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* ARM armcc specific functions */
+  35:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  36:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __enable_irq();     */
+  37:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __disable_irq();    */
+  38:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  39:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Control Register
+  40:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  41:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the Control Register.
+  42:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  43:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Control Register value
+  44:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  45:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  46:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_CONTROL(void);
+  47:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  48:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_CONTROL(void)
+  49:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  50:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  51:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regControl);
+  52:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  53:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  54:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  56:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Control Register
+  57:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  58:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function writes the given value to the Control Register.
+  59:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  60:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    control  Control Register value to set
+  61:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  62:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  63:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_CONTROL(uint32_t control);
+  64:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  65:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_CONTROL(uint32_t control)
+  66:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  67:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regControl         __ASM("control");
+  68:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regControl = control;
+  69:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  70:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  71:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  72:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  73:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+  74:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  75:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+  76:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+  78:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  79:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  80:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_IPSR(void);
+  81:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  82:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_IPSR(void)
+  83:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+  84:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regIPSR          __ASM("ipsr");
+  85:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regIPSR);
+  86:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+  87:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+  88:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  89:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  90:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+  91:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  92:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+  93:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+  94:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+  95:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+  96:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+  97:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_APSR(void);
+  98:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+  99:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_APSR(void)
+ 100:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 101:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regAPSR          __ASM("apsr");
+ 102:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regAPSR);
+ 103:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 104:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 105:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 106:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 107:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 108:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 109:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 110:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 111:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 112:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 113:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 114:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_xPSR(void);
+ 115:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 116:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_xPSR(void)
+ 117:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 118:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regXPSR          __ASM("xpsr");
+ 119:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regXPSR);
+ 120:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 121:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 122:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 123:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 124:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 125:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 126:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 127:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 128:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 129:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 130:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 131:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PSP(void);
+ 132:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 133:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PSP(void)
+ 134:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 135:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 136:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regProcessStackPointer);
+ 137:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 138:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 139:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 140:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 142:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 143:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 144:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 145:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 146:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 147:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 148:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PSP(uint32_t topOfProcStack);
+ 149:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 150:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PSP(uint32_t topOfProcStack)
+ 151:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 152:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regProcessStackPointer  __ASM("psp");
+ 153:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regProcessStackPointer = topOfProcStack;
+ 154:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 155:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 156:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 157:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 158:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 159:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 160:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 161:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 162:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 163:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 164:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 165:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_MSP(void);
+ 166:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 167:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_MSP(void)
+ 168:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 169:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 170:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regMainStackPointer);
+ 171:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 172:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 173:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 174:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 175:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 176:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 177:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 178:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 179:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 180:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 181:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 182:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_MSP(uint32_t topOfMainStack);
+ 183:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 184:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_MSP(uint32_t topOfMainStack)
+ 185:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 186:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regMainStackPointer     __ASM("msp");
+ 187:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regMainStackPointer = topOfMainStack;
+ 188:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 189:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 190:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 191:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 192:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Priority Mask
+ 193:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 194:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current state of the priority mask bit from the Priority Mask Registe
+ 195:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 196:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Priority Mask value
+ 197:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 198:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 199:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_PRIMASK(void);
+ 200:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 201:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_PRIMASK(void)
+ 202:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 203:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 204:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regPriMask);
+ 205:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 206:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 207:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 208:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 209:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Priority Mask
+ 210:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 211:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Priority Mask Register.
+ 212:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 213:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    priMask  Priority Mask
+ 214:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 215:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 216:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_PRIMASK(uint32_t priMask);
+ 217:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 218:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_PRIMASK(uint32_t priMask)
+ 219:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 220:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 221:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regPriMask = (priMask);
+ 222:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 223:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 224:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 225:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 226:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 227:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 228:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 229:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 230:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 231:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 232:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 233:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_fault_irq                __enable_fiq
+ 234:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 235:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 236:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 237:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 238:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 239:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 240:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 241:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_fault_irq               __disable_fiq
+ 242:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 243:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 244:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Base Priority
+ 245:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 246:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Base Priority register.
+ 247:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 248:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Base Priority register value
+ 249:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 250:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 251:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_BASEPRI(void);
+ 252:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 253:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t  __get_BASEPRI(void)
+ 254:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 255:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 256:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regBasePri);
+ 257:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 258:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 259:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 260:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 261:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Base Priority
+ 262:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 263:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Base Priority register.
+ 264:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 265:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    basePri  Base Priority value to set
+ 266:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 267:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 268:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_BASEPRI(uint32_t basePri);
+ 269:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 270:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_BASEPRI(uint32_t basePri)
+ 271:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 272:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 273:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regBasePri = (basePri & 0xff);
+ 274:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 275:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 276:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 277:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 278:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Fault Mask
+ 279:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Fault Mask register.
+ 281:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 282:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Fault Mask register value
+ 283:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 284:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 285:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          uint32_t __get_FAULTMASK(void);
+ 286:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 287:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FAULTMASK(void)
+ 288:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 289:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 290:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regFaultMask);
+ 291:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 292:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 293:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 294:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 295:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Fault Mask
+ 296:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 297:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Fault Mask register.
+ 298:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 299:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    faultMask  Fault Mask value to set
+ 300:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 301:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__ARMCC_VERSION <  400000)
+ 302:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** extern          void __set_FAULTMASK(uint32_t faultMask);
+ 303:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else  /* (__ARMCC_VERSION >= 400000) */
+ 304:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FAULTMASK(uint32_t faultMask)
+ 305:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 306:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 307:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regFaultMask = (faultMask & 1);
+ 308:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 309:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /*  __ARMCC_VERSION  */ 
+ 310:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 311:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 312:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 313:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 314:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 315:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 316:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 317:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 319:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 320:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 321:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 322:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE uint32_t __get_FPSCR(void)
+ 323:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 324:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 325:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 326:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(__regfpscr);
+ 327:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 328:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****    return(0);
+ 329:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 330:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 331:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 332:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 333:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 334:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 335:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 336:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 337:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 338:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 339:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __set_FPSCR(uint32_t fpscr)
+ 340:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 341:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 342:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   register uint32_t __regfpscr         __ASM("fpscr");
+ 343:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __regfpscr = (fpscr);
+ 344:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 345:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 346:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 347:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 348:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 349:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 350:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  #elif (defined (__ICCARM__)) /*---------------- ICC Compiler ---------------------*/
+ 351:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* IAR iccarm specific functions */
+ 352:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if defined (__ICCARM__)
+ 354:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   #include <intrinsics.h>                     /* IAR Intrinsics   */
+ 355:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 356:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 357:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_suppress=Pe940
+ 358:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 359:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 360:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 361:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 362:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 363:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 364:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __enable_irq                              __enable_interrupt
+ 365:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 367:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 368:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 369:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 370:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 371:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 372:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #define __disable_irq                             __disable_interrupt
+ 373:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 374:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_CONTROL( void ); (see intrinsic.h) */
+ 376:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_CONTROL( unsigned long ); (see intrinsic.h) */
+ 377:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 378:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 379:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get ISPR Register
+ 380:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 381:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the ISPR Register.
+ 382:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 383:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               ISPR Register value
+ 384:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 385:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_IPSR(void)
+ 386:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 387:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, ipsr");
+ 388:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 389:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 390:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 391:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get APSR Register
+ 392:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the APSR Register.
+ 394:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 395:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               APSR Register value
+ 396:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 397:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_APSR(void)
+ 398:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 399:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, apsr");
+ 400:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 401:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 402:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 403:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get xPSR Register
+ 404:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 405:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the content of the xPSR Register.
+ 406:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 407:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               xPSR Register value
+ 408:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 409:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_xPSR(void)
+ 410:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 411:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psr");           // assembler does not know "xpsr"
+ 412:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 413:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 414:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 415:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Process Stack Pointer
+ 416:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 417:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Process Stack Pointer (PSP).
+ 418:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               PSP Register value
+ 420:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 421:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_PSP(void)
+ 422:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 423:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, psp");
+ 424:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 425:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 426:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 427:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Process Stack Pointer
+ 428:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 429:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Process Stack Pointer (PSP).
+ 430:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 431:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 432:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 433:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_PSP(uint32_t topOfProcStack)
+ 434:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 435:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr psp, r0");
+ 436:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 437:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 438:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 439:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get Main Stack Pointer
+ 440:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 441:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Main Stack Pointer (MSP).
+ 442:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 443:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               MSP Register value
+ 444:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 445:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_MSP(void)
+ 446:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 447:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("mrs r0, msp");
+ 448:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 449:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 450:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 451:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set Main Stack Pointer
+ 452:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 453:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Main Stack Pointer (MSP).
+ 454:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 455:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 456:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 457:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_MSP(uint32_t topOfMainStack)
+ 458:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 459:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("msr msp, r0");
+ 460:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 461:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 462:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 463:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_PRIMASK( void ); (see intrinsic.h) */
+ 464:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_PRIMASK( unsigned long ); (see intrinsic.h) */
+ 465:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  
+ 466:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 467:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M >= 0x03)
+ 468:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 469:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable FIQ
+ 470:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 471:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 472:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 473:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 474:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __enable_fault_irq(void)
+ 475:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 476:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsie f");
+ 477:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 478:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 479:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 480:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable FIQ
+ 481:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 482:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function disables FIQ interrupts by setting the F-bit in the CPSR.
+ 483:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     Can only be executed in Privileged modes.
+ 484:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 485:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static __INLINE void __disable_fault_irq(void)
+ 486:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 487:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM ("cpsid f");
+ 488:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 489:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 491:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_BASEPRI( void );   (see intrinsic.h) */
+ 492:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_BASEPRI( unsigned long );   (see intrinsic.h) */
+ 493:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic unsigned long __get_FAULTMASK( void ); (see intrinsic.h) */
+ 494:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* intrinsic void __set_FAULTMASK(unsigned long);   (see intrinsic.h) */
+ 495:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 496:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 497:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 498:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 499:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if       (__CORTEX_M == 0x04)
+ 500:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 501:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Get FPSCR
+ 502:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 503:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function returns the current value of the Floating Point Status/Control register.
+ 504:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 505:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \return               Floating Point Status/Control register value
+ 506:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 507:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static uint32_t __get_FPSCR(void)
+ 508:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 509:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 510:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmrs r0, fpscr"); 
+ 511:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #else
+ 512:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   return(0);
+ 513:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 514:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 515:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 516:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 517:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Set FPSCR
+ 518:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 519:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     This function assigns the given value to the Floating Point Status/Control register.
+ 520:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 521:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****     \param [in]    fpscr  Floating Point Status/Control value to set
+ 522:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 523:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** static void __set_FPSCR(uint32_t fpscr)
+ 524:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 525:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #if (__FPU_PRESENT == 1)
+ 526:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM("vmsr fpscr, r0");
+ 527:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif
+ 528:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 529:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 530:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #endif /* (__CORTEX_M == 0x04) */
+ 531:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 532:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #pragma diag_default=Pe940
+ 533:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 534:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 535:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 536:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /* GNU gcc specific functions */
+ 537:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 538:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Enable IRQ Interrupts
+ 539:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 540:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 541:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 542:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 543:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __enable_irq(void)
+ 544:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsie i");
+ 546:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 547:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 548:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 549:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** /** \brief  Disable IRQ Interrupts
+ 550:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** 
+ 551:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   This function disables IRQ interrupts by setting the I-bit in the CPSR.
+ 552:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   Can only be executed in Privileged modes.
+ 553:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****  */
+ 554:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** __attribute__( ( always_inline ) ) static __INLINE void __disable_irq(void)
+ 555:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** {
+ 556:CMSISv2p00_LPC17xx/inc/core_cmFunc.h ****   __ASM volatile ("cpsid i");
+ 162              	 .loc 2 556 0
+ 163              	 .syntax unified
+ 164              	
+ 165 0002 72B6     	 cpsid i
+ 166              	
+ 167              	 .thumb
+ 168              	 .syntax unified
+ 169              	.LBE21:
+ 170              	.LBE20:
+  85:usbhw.c       **** 	__disable_irq();
+  86:usbhw.c       **** 	LPC_USB->USBDevIntClr = EP_RLZD;
+ 171              	 .loc 1 86 0
+ 172 0004 4FF48072 	 mov r2,#256
+ 173 0008 104B     	 ldr r3,.L16
+ 174 000a C3F80822 	 str r2,[r3,#520]
+  87:usbhw.c       **** 	LPC_USB->USBReEp |= EP(bEP);
+ 175              	 .loc 1 87 0
+ 176 000e 4200     	 lsls r2,r0,#1
+ 177 0010 02F01E02 	 and r2,r2,#30
+ 178 0014 42EAD010 	 orr r0,r2,r0,lsr#7
+ 179              	.LVL5:
+ 180 0018 0122     	 movs r2,#1
+ 181 001a D3F84442 	 ldr r4,[r3,#580]
+ 182 001e 8240     	 lsls r2,r2,r0
+ 183 0020 1443     	 orrs r4,r4,r2
+ 184 0022 C3F84442 	 str r4,[r3,#580]
+  88:usbhw.c       **** 	LPC_USB->USBEpInd = EP2IDX(bEP);
+ 185              	 .loc 1 88 0
+ 186 0026 C3F84802 	 str r0,[r3,#584]
+  89:usbhw.c       **** 	LPC_USB->USBMaxPSize = packet_size;
+ 187              	 .loc 1 89 0
+ 188 002a C3F84C12 	 str r1,[r3,#588]
+ 189              	.LBB22:
+ 190              	.LBB23:
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 191              	 .loc 2 545 0
+ 192              	 .syntax unified
+ 193              	
+ 194 002e 62B6     	 cpsie i
+ 195              	
+ 196              	.LVL6:
+ 197              	 .thumb
+ 198              	 .syntax unified
+ 199              	.L13:
+ 200              	.LBE23:
+ 201              	.LBE22:
+  90:usbhw.c       **** 	__enable_irq();
+  91:usbhw.c       **** 	while (!(LPC_USB->USBDevIntSt & EP_RLZD));
+ 202              	 .loc 1 91 0 discriminator 1
+ 203 0030 D3F80012 	 ldr r1,[r3,#512]
+ 204 0034 C905     	 lsls r1,r1,#23
+ 205 0036 FBD5     	 bpl .L13
+  92:usbhw.c       **** 	LPC_USB->USBDevIntClr = EP_RLZD;
+ 206              	 .loc 1 92 0
+ 207 0038 4FF48071 	 mov r1,#256
+ 208 003c C3F80812 	 str r1,[r3,#520]
+  93:usbhw.c       **** 	LPC_USB->USBEpIntEn |= EP(bEP);
+ 209              	 .loc 1 93 0
+ 210 0040 D3F83412 	 ldr r1,[r3,#564]
+ 211 0044 0A43     	 orrs r2,r2,r1
+ 212 0046 C3F83422 	 str r2,[r3,#564]
+ 213 004a 10BD     	 pop {r4,pc}
+ 214              	.L17:
+ 215              	 .align 2
+ 216              	.L16:
+ 217 004c 00C00050 	 .word 1342226432
+ 218              	 .cfi_endproc
+ 219              	.LFE60:
+ 221              	 .section .text.usb_connect,"ax",%progbits
+ 222              	 .align 1
+ 223              	 .global usb_connect
+ 224              	 .syntax unified
+ 225              	 .thumb
+ 226              	 .thumb_func
+ 227              	 .fpu softvfp
+ 229              	usb_connect:
+ 230              	.LFB57:
+  65:usbhw.c       **** 	LPC_USB->USBDevIntEn = DEV_STAT | EP_SLOW;
+ 231              	 .loc 1 65 0
+ 232              	 .cfi_startproc
+ 233              	 
+ 234              	 
+  66:usbhw.c       **** 	usb_realise_endpoint(EP0IN, 64);
+ 235              	 .loc 1 66 0
+ 236 0000 0C22     	 movs r2,#12
+  65:usbhw.c       **** 	LPC_USB->USBDevIntEn = DEV_STAT | EP_SLOW;
+ 237              	 .loc 1 65 0
+ 238 0002 10B5     	 push {r4,lr}
+ 239              	 .cfi_def_cfa_offset 8
+ 240              	 .cfi_offset 4,-8
+ 241              	 .cfi_offset 14,-4
+  66:usbhw.c       **** 	usb_realise_endpoint(EP0IN, 64);
+ 242              	 .loc 1 66 0
+ 243 0004 064B     	 ldr r3,.L19
+  67:usbhw.c       **** 	usb_realise_endpoint(EP0OUT, 64);
+ 244              	 .loc 1 67 0
+ 245 0006 074C     	 ldr r4,.L19+4
+  66:usbhw.c       **** 	usb_realise_endpoint(EP0IN, 64);
+ 246              	 .loc 1 66 0
+ 247 0008 C3F80422 	 str r2,[r3,#516]
+  67:usbhw.c       **** 	usb_realise_endpoint(EP0OUT, 64);
+ 248              	 .loc 1 67 0
+ 249 000c 4021     	 movs r1,#64
+ 250 000e 8020     	 movs r0,#128
+ 251 0010 A047     	 blx r4
+ 252              	.LVL7:
+  68:usbhw.c       **** 
+ 253              	 .loc 1 68 0
+ 254 0012 4021     	 movs r1,#64
+ 255 0014 0020     	 movs r0,#0
+ 256 0016 A047     	 blx r4
+ 257              	.LVL8:
+  71:usbhw.c       **** 
+ 258              	 .loc 1 71 0
+ 259 0018 BDE81040 	 pop {r4,lr}
+ 260              	 .cfi_restore 14
+ 261              	 .cfi_restore 4
+ 262              	 .cfi_def_cfa_offset 0
+  70:usbhw.c       **** }
+ 263              	 .loc 1 70 0
+ 264 001c 024B     	 ldr r3,.L19+8
+ 265 001e 1847     	 bx r3
+ 266              	.LVL9:
+ 267              	.L20:
+ 268              	 .align 2
+ 269              	.L19:
+ 270 0020 00C00050 	 .word 1342226432
+ 271 0024 00000000 	 .word usb_realise_endpoint
+ 272 0028 00000000 	 .word SIE_Connect
+ 273              	 .cfi_endproc
+ 274              	.LFE57:
+ 276              	 .section .text.usb_read_packet,"ax",%progbits
+ 277              	 .align 1
+ 278              	 .global usb_read_packet
+ 279              	 .syntax unified
+ 280              	 .thumb
+ 281              	 .thumb_func
+ 282              	 .fpu softvfp
+ 284              	usb_read_packet:
+ 285              	.LFB61:
+  94:usbhw.c       **** }
+  95:usbhw.c       **** 
+  96:usbhw.c       **** int usb_read_packet(uint8_t bEP, void *buffer, int buffersize)
+  97:usbhw.c       **** {
+ 286              	 .loc 1 97 0
+ 287              	 .cfi_startproc
+ 288              	 
+ 289              	 
+ 290              	.LVL10:
+ 291 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 292              	 .cfi_def_cfa_offset 24
+ 293              	 .cfi_offset 3,-24
+ 294              	 .cfi_offset 4,-20
+ 295              	 .cfi_offset 5,-16
+ 296              	 .cfi_offset 6,-12
+ 297              	 .cfi_offset 7,-8
+ 298              	 .cfi_offset 14,-4
+ 299              	.LBB24:
+ 300              	.LBB25:
+ 301              	 .loc 2 556 0
+ 302              	 .syntax unified
+ 303              	
+ 304 0002 72B6     	 cpsid i
+ 305              	
+ 306              	 .thumb
+ 307              	 .syntax unified
+ 308              	.LBE25:
+ 309              	.LBE24:
+  98:usbhw.c       **** 	int i = 0;
+  99:usbhw.c       **** 	int l = 0;
+ 100:usbhw.c       **** 	uint32_t j = 0;
+ 101:usbhw.c       **** 	__disable_irq();
+ 102:usbhw.c       **** 
+ 103:usbhw.c       **** 	LPC_USB->USBCtrl = RD_EN | ((bEP & 0xF) << 2);
+ 310              	 .loc 1 103 0
+ 311 0004 8400     	 lsls r4,r0,#2
+ 312 0006 04F03C04 	 and r4,r4,#60
+ 313 000a 174B     	 ldr r3,.L34
+ 314 000c 44F00104 	 orr r4,r4,#1
+ 315 0010 C3F82842 	 str r4,[r3,#552]
+ 316              	.L22:
+ 104:usbhw.c       **** 	while ((LPC_USB->USBRxPLen & 0x800) != 0x800);
+ 317              	 .loc 1 104 0 discriminator 1
+ 318 0014 D3F82042 	 ldr r4,[r3,#544]
+ 319 0018 2405     	 lsls r4,r4,#20
+ 320 001a FBD5     	 bpl .L22
+ 105:usbhw.c       **** 	l = LPC_USB->USBRxPLen & 0x3FF;
+ 321              	 .loc 1 105 0
+ 322 001c D3F82042 	 ldr r4,[r3,#544]
+ 323 0020 C4F30904 	 ubfx r4,r4,#0,#10
+ 324              	.LVL11:
+ 106:usbhw.c       **** 
+ 107:usbhw.c       **** 	if (l > buffersize)
+ 325              	 .loc 1 107 0
+ 326 0024 9442     	 cmp r4,r2
+ 327 0026 02DD     	 ble .L23
+ 328              	.LVL12:
+ 329              	.L33:
+ 330              	.LBB26:
+ 331              	.LBB27:
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 332              	 .loc 2 545 0
+ 333              	 .syntax unified
+ 334              	
+ 335 0028 62B6     	 cpsie i
+ 336              	
+ 337              	 .thumb
+ 338              	 .syntax unified
+ 339              	.LBE27:
+ 340              	.LBE26:
+ 108:usbhw.c       **** 	{
+ 109:usbhw.c       **** // 		printf("Not enough room in buffer (got %d need %d), failing to read\n", buffersize, l);
+ 110:usbhw.c       **** 		__enable_irq();
+ 111:usbhw.c       **** 		return l;
+ 112:usbhw.c       **** 	}
+ 113:usbhw.c       **** 
+ 114:usbhw.c       **** 	if (l == 0)
+ 115:usbhw.c       **** 		j = LPC_USB->USBRxData;
+ 116:usbhw.c       **** 	else
+ 117:usbhw.c       **** 	{
+ 118:usbhw.c       **** 		for (i = 0; i < buffersize; i++)
+ 119:usbhw.c       **** 		{
+ 120:usbhw.c       **** 			if ((i & 3) == 0)
+ 121:usbhw.c       **** 			{
+ 122:usbhw.c       **** 				j = LPC_USB->USBRxData;
+ 123:usbhw.c       **** 			}
+ 124:usbhw.c       **** 
+ 125:usbhw.c       **** 			((uint8_t *) buffer)[i] = j & 0xFF;
+ 126:usbhw.c       **** 			j >>= 8;
+ 127:usbhw.c       **** 
+ 128:usbhw.c       **** 			if ((i & 3) == 3)
+ 129:usbhw.c       **** 			{
+ 130:usbhw.c       **** 				if (!(LPC_USB->USBCtrl & RD_EN))
+ 131:usbhw.c       **** 				{
+ 132:usbhw.c       **** 					SIE_SelectEndpoint(bEP);
+ 133:usbhw.c       **** 					SIE_ClearBuffer();
+ 134:usbhw.c       **** 					__enable_irq();
+ 135:usbhw.c       **** 					return l;
+ 136:usbhw.c       **** 				}
+ 137:usbhw.c       **** 			}
+ 138:usbhw.c       **** 		}
+ 139:usbhw.c       **** 	}
+ 140:usbhw.c       **** 
+ 141:usbhw.c       **** 	SIE_SelectEndpoint(bEP);
+ 142:usbhw.c       **** 	SIE_ClearBuffer();
+ 143:usbhw.c       **** 	__enable_irq();
+ 144:usbhw.c       **** 	return l;
+ 145:usbhw.c       **** }
+ 341              	 .loc 1 145 0
+ 342 002a 2046     	 mov r0,r4
+ 343 002c F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 344              	.LVL13:
+ 345              	.L23:
+ 114:usbhw.c       **** 		j = LPC_USB->USBRxData;
+ 346              	 .loc 1 114 0
+ 347 002e A4B1     	 cbz r4,.L25
+ 348 0030 0025     	 movs r5,#0
+ 349 0032 2B46     	 mov r3,r5
+ 122:usbhw.c       **** 			}
+ 350              	 .loc 1 122 0 discriminator 1
+ 351 0034 0C4E     	 ldr r6,.L34
+ 352              	.LVL14:
+ 353              	.L26:
+ 118:usbhw.c       **** 		{
+ 354              	 .loc 1 118 0 discriminator 1
+ 355 0036 9342     	 cmp r3,r2
+ 356 0038 11D0     	 beq .L27
+ 120:usbhw.c       **** 			{
+ 357              	 .loc 1 120 0
+ 358 003a 13F00307 	 ands r7,r3,#3
+ 122:usbhw.c       **** 			}
+ 359              	 .loc 1 122 0
+ 360 003e 08BF     	 it eq
+ 361 0040 D6F81852 	 ldreq r5,[r6,#536]
+ 362              	.LVL15:
+ 128:usbhw.c       **** 			{
+ 363              	 .loc 1 128 0
+ 364 0044 032F     	 cmp r7,#3
+ 125:usbhw.c       **** 			j >>= 8;
+ 365              	 .loc 1 125 0
+ 366 0046 CD54     	 strb r5,[r1,r3]
+ 126:usbhw.c       **** 
+ 367              	 .loc 1 126 0
+ 368 0048 4FEA1525 	 lsr r5,r5,#8
+ 369              	.LVL16:
+ 128:usbhw.c       **** 			{
+ 370              	 .loc 1 128 0
+ 371 004c 03D1     	 bne .L29
+ 130:usbhw.c       **** 				{
+ 372              	 .loc 1 130 0
+ 373 004e D6F82872 	 ldr r7,[r6,#552]
+ 374 0052 FF07     	 lsls r7,r7,#31
+ 375 0054 03D5     	 bpl .L27
+ 376              	.L29:
+ 118:usbhw.c       **** 		{
+ 377              	 .loc 1 118 0 discriminator 2
+ 378 0056 0133     	 adds r3,r3,#1
+ 379              	.LVL17:
+ 380 0058 EDE7     	 b .L26
+ 381              	.LVL18:
+ 382              	.L25:
+ 115:usbhw.c       **** 	else
+ 383              	 .loc 1 115 0
+ 384 005a D3F81832 	 ldr r3,[r3,#536]
+ 385              	.LVL19:
+ 386              	.L27:
+ 141:usbhw.c       **** 	SIE_ClearBuffer();
+ 387              	 .loc 1 141 0
+ 388 005e 034B     	 ldr r3,.L34+4
+ 389 0060 9847     	 blx r3
+ 390              	.LVL20:
+ 142:usbhw.c       **** 	__enable_irq();
+ 391              	 .loc 1 142 0
+ 392 0062 034B     	 ldr r3,.L34+8
+ 393 0064 9847     	 blx r3
+ 394              	.LVL21:
+ 395 0066 DFE7     	 b .L33
+ 396              	.L35:
+ 397              	 .align 2
+ 398              	.L34:
+ 399 0068 00C00050 	 .word 1342226432
+ 400 006c 00000000 	 .word SIE_SelectEndpoint
+ 401 0070 00000000 	 .word SIE_ClearBuffer
+ 402              	 .cfi_endproc
+ 403              	.LFE61:
+ 405              	 .section .text.usb_write_packet,"ax",%progbits
+ 406              	 .align 1
+ 407              	 .global usb_write_packet
+ 408              	 .syntax unified
+ 409              	 .thumb
+ 410              	 .thumb_func
+ 411              	 .fpu softvfp
+ 413              	usb_write_packet:
+ 414              	.LFB62:
+ 146:usbhw.c       **** 
+ 147:usbhw.c       **** int usb_write_packet(uint8_t bEP, void *data, int packetlen)
+ 148:usbhw.c       **** {
+ 415              	 .loc 1 148 0
+ 416              	 .cfi_startproc
+ 417              	 
+ 418              	 
+ 419              	.LVL22:
+ 420 0000 70B5     	 push {r4,r5,r6,lr}
+ 421              	 .cfi_def_cfa_offset 16
+ 422              	 .cfi_offset 4,-16
+ 423              	 .cfi_offset 5,-12
+ 424              	 .cfi_offset 6,-8
+ 425              	 .cfi_offset 14,-4
+ 426              	 .loc 1 148 0
+ 427 0002 1446     	 mov r4,r2
+ 428              	.LBB28:
+ 429              	.LBB29:
+ 430              	 .loc 2 556 0
+ 431              	 .syntax unified
+ 432              	
+ 433 0004 72B6     	 cpsid i
+ 434              	
+ 435              	 .thumb
+ 436              	 .syntax unified
+ 437              	.LBE29:
+ 438              	.LBE28:
+ 149:usbhw.c       **** 	int i = 0;
+ 150:usbhw.c       **** 	uint8_t *d = (uint8_t *) data;
+ 151:usbhw.c       **** 	__disable_irq();
+ 152:usbhw.c       **** 	LPC_USB->USBCtrl = WR_EN | ((bEP & 0xF) << 2);
+ 439              	 .loc 1 152 0
+ 440 0006 8200     	 lsls r2,r0,#2
+ 441              	.LVL23:
+ 442 0008 134B     	 ldr r3,.L44
+ 443 000a 02F03C02 	 and r2,r2,#60
+ 444 000e 42F00202 	 orr r2,r2,#2
+ 445 0012 C3F82822 	 str r2,[r3,#552]
+ 153:usbhw.c       **** 	LPC_USB->USBTxPLen = packetlen;
+ 446              	 .loc 1 153 0
+ 447 0016 C3F82442 	 str r4,[r3,#548]
+ 154:usbhw.c       **** 	if (packetlen)
+ 448              	 .loc 1 154 0
+ 449 001a C4B1     	 cbz r4,.L37
+ 450 001c 0025     	 movs r5,#0
+ 451              	.LVL24:
+ 452              	.L38:
+ 155:usbhw.c       **** 	{
+ 156:usbhw.c       **** 		for (i = 0;(LPC_USB->USBCtrl & WR_EN) && (i < packetlen);)
+ 453              	 .loc 1 156 0 discriminator 1
+ 454 001e D3F82862 	 ldr r6,[r3,#552]
+ 455 0022 4A19     	 adds r2,r1,r5
+ 456              	.LVL25:
+ 457 0024 B607     	 lsls r6,r6,#30
+ 458 0026 01D5     	 bpl .L39
+ 459              	 .loc 1 156 0 is_stmt 0 discriminator 2
+ 460 0028 A542     	 cmp r5,r4
+ 461 002a 0BDB     	 blt .L40
+ 462              	.LVL26:
+ 463              	.L39:
+ 157:usbhw.c       **** 		{
+ 158:usbhw.c       **** 			// 		printf("[%x]",d);
+ 159:usbhw.c       **** 			LPC_USB->USBTxData = ((d[0]) << 0) | ((d[1]) << 8) | ((d[2]) << 16) | ((d[3]) << 24);
+ 160:usbhw.c       **** 			d += 4;
+ 161:usbhw.c       **** 			i += 4;
+ 162:usbhw.c       **** 		}
+ 163:usbhw.c       **** 	}
+ 164:usbhw.c       **** 	else
+ 165:usbhw.c       **** 	{
+ 166:usbhw.c       **** 		LPC_USB->USBTxData = 0;
+ 167:usbhw.c       **** 	}
+ 168:usbhw.c       **** 	SIE_SelectEndpoint(bEP);
+ 464              	 .loc 1 168 0 is_stmt 1
+ 465 002c 0B4B     	 ldr r3,.L44+4
+ 466 002e 9847     	 blx r3
+ 467              	.LVL27:
+ 169:usbhw.c       **** 	SIE_ValidateBuffer();
+ 468              	 .loc 1 169 0
+ 469 0030 0B4B     	 ldr r3,.L44+8
+ 470 0032 9847     	 blx r3
+ 471              	.LVL28:
+ 472              	.LBB30:
+ 473              	.LBB31:
+ 474              	 .file 3 "CMSISv2p00_LPC17xx/inc/core_cmInstr.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @file     core_cmInstr.h
+   3:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @brief    CMSIS Cortex-M Core Instruction Access Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M
+  12:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * processor based microcontrollers.  This file can be freely distributed
+  13:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * within development tools that are supporting such ARM based processors.
+  14:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  24:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #ifndef __CORE_CMINSTR_H__
+  25:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __CORE_CMINSTR_H__
+  26:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  28:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* ##########################  Core Instruction Access  ######################### */
+  29:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \ingroup  CMSIS
+  30:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 	\addtogroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+  31:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   Access to dedicated instructions
+  32:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   @{
+  33:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** */
+  34:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  35:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if defined ( __CC_ARM   ) /*------------------ RealView Compiler ----------------*/
+  36:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* ARM armcc specific functions */
+  37:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  38:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  No Operation
+  39:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  40:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+  41:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  42:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __NOP                             __nop
+  43:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  44:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  45:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Interrupt
+  46:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  47:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+  48:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     until one of a number of events occurs.
+  49:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  50:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __WFI                             __wfi
+  51:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  52:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  53:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Event
+  54:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+  56:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+  57:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  58:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __WFE                             __wfe
+  59:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  60:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  61:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Send Event
+  62:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  63:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+  64:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  65:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __SEV                             __sev
+  66:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  67:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  68:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+  69:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  70:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+  71:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+  72:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     memory, after the instruction has been completed.
+  73:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  74:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __ISB()                           __isb(0xF)
+  75:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  76:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Data Synchronization Barrier
+  78:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  79:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function acts as a special kind of Data Memory Barrier.
+  80:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     It completes when all explicit memory accesses before this instruction complete.
+  81:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  82:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __DSB()                           __dsb(0xF)
+  83:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  84:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  85:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Data Memory Barrier
+  86:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  87:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function ensures the apparent order of the explicit memory operations before
+  88:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     and after the instruction, without ensuring their completion.
+  89:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  90:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __DMB()                           __dmb(0xF)
+  91:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  92:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  93:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order (32 bit)
+  94:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  95:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in integer value.
+  96:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  97:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+  98:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+  99:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 100:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __REV                             __rev
+ 101:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 102:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 103:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order (16 bit)
+ 104:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 105:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in two unsigned short values.
+ 106:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 107:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 108:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 109:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 110:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if (__ARMCC_VERSION < 400677)
+ 111:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** extern uint32_t __REV16(uint32_t value);
+ 112:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #else  /* (__ARMCC_VERSION >= 400677)  */
+ 113:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE __ASM uint32_t __REV16(uint32_t value)
+ 114:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 115:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   rev16 r0, r0
+ 116:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   bx lr
+ 117:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 118:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* __ARMCC_VERSION  */
+ 119:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 120:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 121:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order in signed short value
+ 122:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 123:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in a signed short value with sign extension to integer.
+ 124:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 125:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 126:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 127:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 128:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if (__ARMCC_VERSION < 400677)
+ 129:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** extern int32_t __REVSH(int32_t value);
+ 130:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #else  /* (__ARMCC_VERSION >= 400677)  */
+ 131:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE __ASM int32_t __REVSH(int32_t value)
+ 132:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 133:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   revsh r0, r0
+ 134:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   bx lr
+ 135:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 136:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* __ARMCC_VERSION  */
+ 137:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 138:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 139:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if       (__CORTEX_M >= 0x03)
+ 140:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse bit order of value
+ 142:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 143:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the bit order of the given value.
+ 144:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 145:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 146:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 147:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 148:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __RBIT                            __rbit
+ 149:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 150:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 151:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (8 bit)
+ 152:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 153:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 8 bit value.
+ 154:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 155:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 156:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             value of type uint8_t at (*ptr)
+ 157:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 158:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __LDREXB(ptr)                     ((uint8_t ) __ldrex(ptr))
+ 159:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 160:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 161:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (16 bit)
+ 162:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 163:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 16 bit values.
+ 164:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 165:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 166:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint16_t at (*ptr)
+ 167:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 168:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __LDREXH(ptr)                     ((uint16_t) __ldrex(ptr))
+ 169:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 170:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 171:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (32 bit)
+ 172:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 173:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 32 bit values.
+ 174:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 175:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 176:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint32_t at (*ptr)
+ 177:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 178:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __LDREXW(ptr)                     ((uint32_t ) __ldrex(ptr))
+ 179:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 180:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 181:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (8 bit)
+ 182:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 183:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 8 bit values.
+ 184:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 185:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 186:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 187:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 188:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 189:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 190:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __STREXB(value, ptr)              __strex(value, ptr)
+ 191:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 192:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 193:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (16 bit)
+ 194:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 195:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 16 bit values.
+ 196:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 197:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 198:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 199:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 200:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 201:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 202:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __STREXH(value, ptr)              __strex(value, ptr)
+ 203:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 204:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 205:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (32 bit)
+ 206:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 207:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 32 bit values.
+ 208:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 209:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 210:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 211:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 212:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 213:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 214:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __STREXW(value, ptr)              __strex(value, ptr)
+ 215:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 216:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 217:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Remove the exclusive lock
+ 218:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 219:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function removes the exclusive lock which is created by LDREX.
+ 220:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 221:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 222:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if (__ARMCC_VERSION < 400000)
+ 223:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** extern void __CLREX(void);
+ 224:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #else  /* (__ARMCC_VERSION >= 400000)  */
+ 225:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __CLREX                           __clrex
+ 226:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* __ARMCC_VERSION  */
+ 227:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 228:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 229:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Signed Saturate
+ 230:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 231:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function saturates a signed value.
+ 232:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 233:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 234:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (1..32)
+ 235:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             Saturated value
+ 236:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 237:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __SSAT                            __ssat
+ 238:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 239:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 240:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Unsigned Saturate
+ 241:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 242:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function saturates an unsigned value.
+ 243:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 244:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 245:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (0..31)
+ 246:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             Saturated value
+ 247:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 248:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __USAT                            __usat
+ 249:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 250:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 251:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Count leading zeros
+ 252:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 253:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function counts the number of leading zeros of a data value.
+ 254:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 255:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to count the leading zeros
+ 256:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             number of leading zeros in value
+ 257:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 258:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __CLZ                             __clz
+ 259:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 260:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 261:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 262:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 263:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 264:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #elif (defined (__ICCARM__)) /*---------------- ICC Compiler ---------------------*/
+ 265:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* IAR iccarm specific functions */
+ 266:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 267:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #include <intrinsics.h>                     /* IAR Intrinsics   */
+ 268:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 269:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #pragma diag_suppress=Pe940
+ 270:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 271:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  No Operation
+ 272:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 273:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+ 274:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 275:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __NOP                           __no_operation
+ 276:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 277:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 278:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Interrupt
+ 279:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+ 281:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     until one of a number of events occurs.
+ 282:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 283:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE  void __WFI(void)
+ 284:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 285:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("wfi");
+ 286:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 287:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 288:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 289:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Event
+ 290:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 291:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+ 292:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+ 293:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 294:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE  void __WFE(void)
+ 295:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 296:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("wfe");
+ 297:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 298:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 299:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 300:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Send Event
+ 301:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 302:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 303:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 304:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE  void __SEV(void)
+ 305:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 306:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("sev");
+ 307:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 308:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 309:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 310:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic     void __ISB(void)            (see intrinsics.h) */
+ 311:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic     void __DSB(void)            (see intrinsics.h) */
+ 312:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic     void __DMB(void)            (see intrinsics.h) */
+ 313:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic uint32_t __REV(uint32_t value)  (see intrinsics.h) */
+ 314:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic          __SSAT                 (see intrinsics.h) */
+ 315:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic          __USAT                 (see intrinsics.h) */
+ 316:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 317:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order (16 bit)
+ 319:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 320:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in two unsigned short values.
+ 321:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 322:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 323:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 324:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 325:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __REV16(uint32_t value)
+ 326:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 327:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("rev16 r0, r0");
+ 328:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 329:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 330:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 331:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic uint32_t __REVSH(uint32_t value)  (see intrinsics.h */
+ 332:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 333:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 334:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if       (__CORTEX_M >= 0x03)
+ 335:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 336:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse bit order of value
+ 337:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 338:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the bit order of the given value.
+ 339:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 340:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 341:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 342:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 343:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __RBIT(uint32_t value)
+ 344:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 345:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("rbit r0, r0");
+ 346:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 347:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 348:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 349:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (8 bit)
+ 350:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 351:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 8 bit value.
+ 352:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 354:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             value of type uint8_t at (*ptr)
+ 355:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 356:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint8_t __LDREXB(volatile uint8_t *addr)
+ 357:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 358:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("ldrexb r0, [r0]");
+ 359:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 360:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 361:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 362:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (16 bit)
+ 363:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 364:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 16 bit values.
+ 365:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 367:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint16_t at (*ptr)
+ 368:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 369:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint16_t __LDREXH(volatile uint16_t *addr)
+ 370:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 371:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("ldrexh r0, [r0]");
+ 372:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 373:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 374:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (32 bit)
+ 376:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 377:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 32 bit values.
+ 378:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 379:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 380:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint32_t at (*ptr)
+ 381:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 382:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic unsigned long __LDREX(unsigned long *)  (see intrinsics.h) */
+ 383:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __LDREXW(volatile uint32_t *addr)
+ 384:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 385:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("ldrex r0, [r0]");
+ 386:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 387:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 388:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 389:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (8 bit)
+ 390:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 391:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 8 bit values.
+ 392:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 394:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 395:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 396:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 397:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 398:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __STREXB(uint8_t value, volatile uint8_t *addr)
+ 399:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 400:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("strexb r0, r0, [r1]");
+ 401:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 402:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 403:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 404:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (16 bit)
+ 405:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 406:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 16 bit values.
+ 407:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 408:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 409:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 410:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 411:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 412:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 413:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __STREXH(uint16_t value, volatile uint16_t *addr)
+ 414:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 415:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("strexh r0, r0, [r1]");
+ 416:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 417:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 418:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (32 bit)
+ 420:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 421:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 32 bit values.
+ 422:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 423:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 424:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 425:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 426:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 427:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 428:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic unsigned long __STREX(unsigned long, unsigned long)  (see intrinsics.h )*/
+ 429:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __STREXW(uint32_t value, volatile uint32_t *addr)
+ 430:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 431:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("strex r0, r0, [r1]");
+ 432:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 433:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 434:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 435:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Remove the exclusive lock
+ 436:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 437:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function removes the exclusive lock which is created by LDREX.
+ 438:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 439:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 440:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE void __CLREX(void)
+ 441:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 442:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("clrex");
+ 443:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 444:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 445:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic   unsigned char __CLZ( unsigned long )      (see intrinsics.h) */
+ 446:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 447:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 448:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 449:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #pragma diag_default=Pe940
+ 450:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 451:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 452:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 453:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 454:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* GNU gcc specific functions */
+ 455:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 456:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  No Operation
+ 457:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 458:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+ 459:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 460:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __NOP(void)
+ 461:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 462:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("nop");
+ 463:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 464:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 465:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 466:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Interrupt
+ 467:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 468:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+ 469:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     until one of a number of events occurs.
+ 470:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 471:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __WFI(void)
+ 472:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 473:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("wfi");
+ 474:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 475:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 476:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 477:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Event
+ 478:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 479:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+ 480:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+ 481:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 482:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __WFE(void)
+ 483:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 484:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("wfe");
+ 485:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 486:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 487:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 488:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Send Event
+ 489:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 491:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 492:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __SEV(void)
+ 493:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 494:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("sev");
+ 495:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 496:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 497:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 498:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+ 499:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 500:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 501:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+ 502:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     memory, after the instruction has been completed.
+ 503:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 504:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __ISB(void)
+ 505:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 506:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("isb");
+ 475              	 .loc 3 506 0
+ 476              	 .syntax unified
+ 477              	
+ 478 0034 BFF36F8F 	 isb
+ 479              	
+ 480              	 .thumb
+ 481              	 .syntax unified
+ 482              	.LBE31:
+ 483              	.LBE30:
+ 484              	.LBB32:
+ 485              	.LBB33:
+ 545:CMSISv2p00_LPC17xx/inc/core_cmFunc.h **** }
+ 486              	 .loc 2 545 0
+ 487              	 .syntax unified
+ 488              	
+ 489 0038 62B6     	 cpsie i
+ 490              	
+ 491              	 .thumb
+ 492              	 .syntax unified
+ 493              	.LBE33:
+ 494              	.LBE32:
+ 170:usbhw.c       **** 	__ISB();
+ 171:usbhw.c       **** 	__enable_irq();
+ 172:usbhw.c       **** 	if (i > packetlen)
+ 173:usbhw.c       **** 		return packetlen;
+ 174:usbhw.c       **** 	return i;
+ 175:usbhw.c       **** }
+ 495              	 .loc 1 175 0
+ 496 003a A542     	 cmp r5,r4
+ 497 003c 2846     	 mov r0,r5
+ 498 003e A8BF     	 it ge
+ 499 0040 2046     	 movge r0,r4
+ 500 0042 70BD     	 pop {r4,r5,r6,pc}
+ 501              	.LVL29:
+ 502              	.L40:
+ 503 0044 1268     	 ldr r2,[r2]
+ 504              	.LVL30:
+ 161:usbhw.c       **** 		}
+ 505              	 .loc 1 161 0
+ 506 0046 0435     	 adds r5,r5,#4
+ 507              	.LVL31:
+ 159:usbhw.c       **** 			d += 4;
+ 508              	 .loc 1 159 0
+ 509 0048 C3F81C22 	 str r2,[r3,#540]
+ 510              	.LVL32:
+ 511 004c E7E7     	 b .L38
+ 512              	.LVL33:
+ 513              	.L37:
+ 166:usbhw.c       **** 	}
+ 514              	 .loc 1 166 0
+ 515 004e C3F81C42 	 str r4,[r3,#540]
+ 149:usbhw.c       **** 	uint8_t *d = (uint8_t *) data;
+ 516              	 .loc 1 149 0
+ 517 0052 2546     	 mov r5,r4
+ 518 0054 EAE7     	 b .L39
+ 519              	.L45:
+ 520 0056 00BF     	 .align 2
+ 521              	.L44:
+ 522 0058 00C00050 	 .word 1342226432
+ 523 005c 00000000 	 .word SIE_SelectEndpoint
+ 524 0060 00000000 	 .word SIE_ValidateBuffer
+ 525              	 .cfi_endproc
+ 526              	.LFE62:
+ 528              	 .section .text.usb_ep_stall,"ax",%progbits
+ 529              	 .align 1
+ 530              	 .global usb_ep_stall
+ 531              	 .syntax unified
+ 532              	 .thumb
+ 533              	 .thumb_func
+ 534              	 .fpu softvfp
+ 536              	usb_ep_stall:
+ 537              	.LFB63:
+ 176:usbhw.c       **** 
+ 177:usbhw.c       **** void usb_ep_stall(uint8_t bEP)
+ 178:usbhw.c       **** {
+ 538              	 .loc 1 178 0
+ 539              	 .cfi_startproc
+ 540              	 
+ 541              	 
+ 542              	 
+ 543              	.LVL34:
+ 179:usbhw.c       **** 	SIE_SetEndpointStatus(bEP, SIE_EPST_ST);
+ 544              	 .loc 1 179 0
+ 545 0000 0121     	 movs r1,#1
+ 546 0002 014B     	 ldr r3,.L47
+ 547 0004 1847     	 bx r3
+ 548              	.LVL35:
+ 549              	.L48:
+ 550 0006 00BF     	 .align 2
+ 551              	.L47:
+ 552 0008 00000000 	 .word SIE_SetEndpointStatus
+ 553              	 .cfi_endproc
+ 554              	.LFE63:
+ 556              	 .section .text.usb_ep_unstall,"ax",%progbits
+ 557              	 .align 1
+ 558              	 .global usb_ep_unstall
+ 559              	 .syntax unified
+ 560              	 .thumb
+ 561              	 .thumb_func
+ 562              	 .fpu softvfp
+ 564              	usb_ep_unstall:
+ 565              	.LFB64:
+ 180:usbhw.c       **** }
+ 181:usbhw.c       **** 
+ 182:usbhw.c       **** void usb_ep_unstall(uint8_t bEP)
+ 183:usbhw.c       **** {
+ 566              	 .loc 1 183 0
+ 567              	 .cfi_startproc
+ 568              	 
+ 569              	 
+ 570              	 
+ 571              	.LVL36:
+ 184:usbhw.c       **** 	SIE_SetEndpointStatus(bEP, 0);
+ 572              	 .loc 1 184 0
+ 573 0000 0021     	 movs r1,#0
+ 574 0002 014B     	 ldr r3,.L50
+ 575 0004 1847     	 bx r3
+ 576              	.LVL37:
+ 577              	.L51:
+ 578 0006 00BF     	 .align 2
+ 579              	.L50:
+ 580 0008 00000000 	 .word SIE_SetEndpointStatus
+ 581              	 .cfi_endproc
+ 582              	.LFE64:
+ 584              	 .section .text.usb_ep0_stall,"ax",%progbits
+ 585              	 .align 1
+ 586              	 .global usb_ep0_stall
+ 587              	 .syntax unified
+ 588              	 .thumb
+ 589              	 .thumb_func
+ 590              	 .fpu softvfp
+ 592              	usb_ep0_stall:
+ 593              	.LFB65:
+ 185:usbhw.c       **** }
+ 186:usbhw.c       **** 
+ 187:usbhw.c       **** void usb_ep0_stall(void)
+ 188:usbhw.c       **** {
+ 594              	 .loc 1 188 0
+ 595              	 .cfi_startproc
+ 596              	 
+ 597              	 
+ 598              	 
+ 189:usbhw.c       **** 	SIE_SetEndpointStatus(EP0OUT, SIE_EPST_CND_ST);
+ 599              	 .loc 1 189 0
+ 600 0000 8021     	 movs r1,#128
+ 601 0002 0020     	 movs r0,#0
+ 602 0004 004B     	 ldr r3,.L53
+ 603 0006 1847     	 bx r3
+ 604              	.LVL38:
+ 605              	.L54:
+ 606              	 .align 2
+ 607              	.L53:
+ 608 0008 00000000 	 .word SIE_SetEndpointStatus
+ 609              	 .cfi_endproc
+ 610              	.LFE65:
+ 612              	 .section .text.usb_task,"ax",%progbits
+ 613              	 .align 1
+ 614              	 .global usb_task
+ 615              	 .syntax unified
+ 616              	 .thumb
+ 617              	 .thumb_func
+ 618              	 .fpu softvfp
+ 620              	usb_task:
+ 621              	.LFB66:
+ 190:usbhw.c       **** }
+ 191:usbhw.c       **** 
+ 192:usbhw.c       **** void usb_task(void)
+ 193:usbhw.c       **** {
+ 622              	 .loc 1 193 0
+ 623              	 .cfi_startproc
+ 624              	 
+ 625              	 
+ 626 0000 F7B5     	 push {r0,r1,r2,r4,r5,r6,r7,lr}
+ 627              	 .cfi_def_cfa_offset 32
+ 628              	 .cfi_offset 4,-20
+ 629              	 .cfi_offset 5,-16
+ 630              	 .cfi_offset 6,-12
+ 631              	 .cfi_offset 7,-8
+ 632              	 .cfi_offset 14,-4
+ 194:usbhw.c       **** 	if (LPC_USB->USBDevIntSt & FRAME)
+ 633              	 .loc 1 194 0
+ 634 0002 2F4B     	 ldr r3,.L88
+ 635 0004 D3F80022 	 ldr r2,[r3,#512]
+ 636 0008 D707     	 lsls r7,r2,#31
+ 195:usbhw.c       **** 	{
+ 196:usbhw.c       **** // 		USBEvent_Frame(SIEgetFrameNumber());
+ 197:usbhw.c       **** 		LPC_USB->USBDevIntClr = FRAME;
+ 637              	 .loc 1 197 0
+ 638 000a 44BF     	 itt mi
+ 639 000c 0122     	 movmi r2,#1
+ 640 000e C3F80822 	 strmi r2,[r3,#520]
+ 198:usbhw.c       **** 	}
+ 199:usbhw.c       **** 	if (LPC_USB->USBDevIntSt & DEV_STAT)
+ 641              	 .loc 1 199 0
+ 642 0012 D3F80022 	 ldr r2,[r3,#512]
+ 643 0016 1607     	 lsls r6,r2,#28
+ 644 0018 12D5     	 bpl .L58
+ 645              	.LBB34:
+ 200:usbhw.c       **** 	{
+ 201:usbhw.c       **** 		LPC_USB->USBDevIntClr = DEV_STAT;
+ 646              	 .loc 1 201 0
+ 647 001a 0822     	 movs r2,#8
+ 648 001c C3F80822 	 str r2,[r3,#520]
+ 202:usbhw.c       **** 
+ 203:usbhw.c       **** 		uint8_t devStat = SIE_GetDeviceStatus();
+ 649              	 .loc 1 203 0
+ 650 0020 284B     	 ldr r3,.L88+4
+ 651 0022 9847     	 blx r3
+ 652              	.LVL39:
+ 204:usbhw.c       **** 
+ 205:usbhw.c       **** 		if (devStat & SIE_DEVSTAT_SUS_CH)
+ 206:usbhw.c       **** 		{
+ 207:usbhw.c       **** // 			USBEvent_suspendStateChanged(devStat & SIE_DEVSTAT_SUS);
+ 208:usbhw.c       **** // 			printf("USB:Suspend\n");
+ 209:usbhw.c       **** 		}
+ 210:usbhw.c       **** 
+ 211:usbhw.c       **** 		if (devStat & SIE_DEVSTAT_RST)
+ 653              	 .loc 1 211 0
+ 654 0024 C506     	 lsls r5,r0,#27
+ 655 0026 0BD5     	 bpl .L58
+ 212:usbhw.c       **** 		{
+ 213:usbhw.c       **** 			printf("USB:Bus Reset\n");
+ 214:usbhw.c       **** 			USBEvent_busReset();
+ 656              	 .loc 1 214 0
+ 657 0028 274B     	 ldr r3,.L88+8
+ 658 002a 9847     	 blx r3
+ 659              	.LVL40:
+ 215:usbhw.c       **** 
+ 216:usbhw.c       **** 			usb_realise_endpoint(EP0IN , 64);
+ 660              	 .loc 1 216 0
+ 661 002c 274C     	 ldr r4,.L88+12
+ 662 002e 4021     	 movs r1,#64
+ 663 0030 8020     	 movs r0,#128
+ 664 0032 A047     	 blx r4
+ 665              	.LVL41:
+ 217:usbhw.c       **** 			usb_realise_endpoint(EP0OUT, 64);
+ 666              	 .loc 1 217 0
+ 667 0034 0020     	 movs r0,#0
+ 668 0036 4021     	 movs r1,#64
+ 669 0038 A047     	 blx r4
+ 670              	.LVL42:
+ 218:usbhw.c       **** 
+ 219:usbhw.c       **** 			SIE_SetMode(SIE_MODE_INAK_CI);
+ 671              	 .loc 1 219 0
+ 672 003a 0220     	 movs r0,#2
+ 673 003c 244B     	 ldr r3,.L88+16
+ 674 003e 9847     	 blx r3
+ 675              	.LVL43:
+ 676              	.L58:
+ 677              	.LBE34:
+ 220:usbhw.c       **** 		}
+ 221:usbhw.c       **** 
+ 222:usbhw.c       **** 		if (devStat & SIE_DEVSTAT_CON_CH)
+ 223:usbhw.c       **** 		{
+ 224:usbhw.c       **** // 			printf("USB:Connect\n");
+ 225:usbhw.c       **** // 			USBEvent_connectStateChanged(devStat & SIE_DEVSTAT_CON);
+ 226:usbhw.c       **** 		}
+ 227:usbhw.c       **** 	}
+ 228:usbhw.c       **** 	if (LPC_USB->USBDevIntSt & EP_SLOW)
+ 678              	 .loc 1 228 0
+ 679 0040 1F4B     	 ldr r3,.L88
+ 680 0042 D3F80022 	 ldr r2,[r3,#512]
+ 681 0046 5407     	 lsls r4,r2,#29
+ 682 0048 1AD5     	 bpl .L55
+ 683              	.LBB35:
+ 229:usbhw.c       **** 	{
+ 230:usbhw.c       **** 		int st = LPC_USB->USBEpIntSt;
+ 684              	 .loc 1 230 0
+ 685 004a D3F83042 	 ldr r4,[r3,#560]
+ 686              	.LVL44:
+ 231:usbhw.c       **** // 		printf("INTST: %x\n", st);
+ 232:usbhw.c       **** 		if (st & EP(EP0OUT))
+ 687              	 .loc 1 232 0
+ 688 004e E007     	 lsls r0,r4,#31
+ 689 0050 06D5     	 bpl .L61
+ 690              	.LBB36:
+ 233:usbhw.c       **** 		{
+ 234:usbhw.c       **** 			int st;
+ 235:usbhw.c       **** 			if ((st = SIE_SelectEndpointClearInterrupt(EP0OUT)) & SIE_EP_STP) // SETUP packet
+ 691              	 .loc 1 235 0
+ 692 0052 0020     	 movs r0,#0
+ 693 0054 1F4B     	 ldr r3,.L88+20
+ 694 0056 9847     	 blx r3
+ 695              	.LVL45:
+ 696 0058 4107     	 lsls r1,r0,#29
+ 697 005a 13D5     	 bpl .L62
+ 236:usbhw.c       **** 			{
+ 237:usbhw.c       **** // 				printf("EP0SETUP_ST: 0x%x\n", st);
+ 238:usbhw.c       **** 				// this is a setup packet
+ 239:usbhw.c       **** 				EP0setup();
+ 698              	 .loc 1 239 0
+ 699 005c 1E4B     	 ldr r3,.L88+24
+ 700              	.LVL46:
+ 701              	.L87:
+ 240:usbhw.c       **** 			}
+ 241:usbhw.c       **** 			else if (st & SIE_EP_FE) // OUT endpoint and FE = 1 (buffer has data)
+ 242:usbhw.c       **** 			{
+ 243:usbhw.c       **** // 				printf("EP0OUT_ST: 0x%x\n", st);
+ 244:usbhw.c       **** 				EP0out();
+ 702              	 .loc 1 244 0
+ 703 005e 9847     	 blx r3
+ 704              	.LVL47:
+ 705              	.L61:
+ 706              	.LBE36:
+ 245:usbhw.c       **** 			}
+ 246:usbhw.c       **** 			else // EP0OUT, FE = 0 (no data) - why are we interrupting?
+ 247:usbhw.c       **** 			{
+ 248:usbhw.c       **** 				uint8_t b[8];
+ 249:usbhw.c       **** // 				int l = usb_read_packet(EP0OUT, b, 8);
+ 250:usbhw.c       **** 				usb_read_packet(EP0OUT, b, 8);
+ 251:usbhw.c       **** // 				printf("EP0OUT: spurious interrupt (0x%x, %d)\n", st, l);
+ 252:usbhw.c       **** 			}
+ 253:usbhw.c       **** 		}
+ 254:usbhw.c       **** 		if (st & EP(EP0IN))
+ 707              	 .loc 1 254 0
+ 708 0060 A207     	 lsls r2,r4,#30
+ 709 0062 06D5     	 bpl .L65
+ 710              	.LBB38:
+ 255:usbhw.c       **** 		{
+ 256:usbhw.c       **** 			int st = SIE_SelectEndpointClearInterrupt(EP0IN);
+ 711              	 .loc 1 256 0
+ 712 0064 1B4B     	 ldr r3,.L88+20
+ 713 0066 8020     	 movs r0,#128
+ 714 0068 9847     	 blx r3
+ 715              	.LVL48:
+ 257:usbhw.c       **** 			if ((st & SIE_EP_FE) == 0)
+ 716              	 .loc 1 257 0
+ 717 006a C307     	 lsls r3,r0,#31
+ 718 006c 01D4     	 bmi .L65
+ 258:usbhw.c       **** 				EP0in();
+ 719              	 .loc 1 258 0
+ 720 006e 1B4B     	 ldr r3,.L88+28
+ 721 0070 9847     	 blx r3
+ 722              	.LVL49:
+ 723              	.L65:
+ 724              	.LBE38:
+ 259:usbhw.c       **** // 			else
+ 260:usbhw.c       **** // 				printf("Interrupt on EP0IN: FE:%d ST:%d STP:%d PO:%d EPN:%d B1:%d B2:%d\n", st & 1, (st >> 1
+ 261:usbhw.c       **** 		}
+ 262:usbhw.c       **** 		if (st & ~(3UL))
+ 725              	 .loc 1 262 0
+ 726 0072 34F00303 	 bics r3,r4,#3
+ 727 0076 0FD1     	 bne .L67
+ 728              	.LVL50:
+ 729              	.L70:
+ 263:usbhw.c       **** 		{
+ 264:usbhw.c       **** 			int i = 3;
+ 265:usbhw.c       **** 			uint32_t bitmask = 1<<3;
+ 266:usbhw.c       **** 			for (;
+ 267:usbhw.c       **** 				i < 32;
+ 268:usbhw.c       **** 				i++, bitmask <<= 1
+ 269:usbhw.c       **** 			)
+ 270:usbhw.c       **** 			{
+ 271:usbhw.c       **** 				if (LPC_USB->USBEpIntSt & bitmask)
+ 272:usbhw.c       **** 				{
+ 273:usbhw.c       **** 					int st = SIE_SelectEndpointClearInterrupt(IDX2EP(i));
+ 274:usbhw.c       **** 					if (
+ 275:usbhw.c       **** 						((i & 1) && ((st & SIE_EP_FE) == 0)) || // IN endpoint and FE = 0 (space in buffer)
+ 276:usbhw.c       **** 						(((i & 1) == 0) && (st & SIE_EP_FE))    // OUT endpoint and FE = 1 (buffer has data)
+ 277:usbhw.c       **** 						)
+ 278:usbhw.c       **** 					{
+ 279:usbhw.c       **** 						// TODO: check for event receivers
+ 280:usbhw.c       **** 					}
+ 281:usbhw.c       **** 				}
+ 282:usbhw.c       **** 			}
+ 283:usbhw.c       **** 		}
+ 284:usbhw.c       **** 		LPC_USB->USBDevIntClr = EP_SLOW;
+ 730              	 .loc 1 284 0
+ 731 0078 0422     	 movs r2,#4
+ 732 007a 114B     	 ldr r3,.L88
+ 733 007c C3F80822 	 str r2,[r3,#520]
+ 734              	.L55:
+ 735              	.LBE35:
+ 285:usbhw.c       **** 	}
+ 286:usbhw.c       **** }
+ 736              	 .loc 1 286 0
+ 737 0080 03B0     	 add sp,sp,#12
+ 738              	 .cfi_remember_state
+ 739              	 .cfi_def_cfa_offset 20
+ 740              	 
+ 741 0082 F0BD     	 pop {r4,r5,r6,r7,pc}
+ 742              	.LVL51:
+ 743              	.L62:
+ 744              	 .cfi_restore_state
+ 745              	.LBB43:
+ 746              	.LBB39:
+ 241:usbhw.c       **** 			{
+ 747              	 .loc 1 241 0
+ 748 0084 10F00100 	 ands r0,r0,#1
+ 749              	.LVL52:
+ 750 0088 01D0     	 beq .L63
+ 244:usbhw.c       **** 			}
+ 751              	 .loc 1 244 0
+ 752 008a 154B     	 ldr r3,.L88+32
+ 753 008c E7E7     	 b .L87
+ 754              	.L63:
+ 755              	.LBB37:
+ 250:usbhw.c       **** // 				printf("EP0OUT: spurious interrupt (0x%x, %d)\n", st, l);
+ 756              	 .loc 1 250 0
+ 757 008e 0822     	 movs r2,#8
+ 758 0090 6946     	 mov r1,sp
+ 759 0092 144B     	 ldr r3,.L88+36
+ 760 0094 9847     	 blx r3
+ 761              	.LVL53:
+ 762 0096 E3E7     	 b .L61
+ 763              	.L67:
+ 764              	.LBE37:
+ 765              	.LBE39:
+ 766 0098 0825     	 movs r5,#8
+ 767 009a 0324     	 movs r4,#3
+ 768              	.LVL54:
+ 769              	.LBB40:
+ 271:usbhw.c       **** 				{
+ 770              	 .loc 1 271 0
+ 771 009c 084E     	 ldr r6,.L88
+ 772              	.LBB41:
+ 273:usbhw.c       **** 					if (
+ 773              	 .loc 1 273 0
+ 774 009e 0D4F     	 ldr r7,.L88+20
+ 775              	.L69:
+ 776              	.LVL55:
+ 777              	.LBE41:
+ 271:usbhw.c       **** 				{
+ 778              	 .loc 1 271 0
+ 779 00a0 D6F83032 	 ldr r3,[r6,#560]
+ 780 00a4 2B42     	 tst r3,r5
+ 781 00a6 04D0     	 beq .L68
+ 782              	.LBB42:
+ 273:usbhw.c       **** 					if (
+ 783              	 .loc 1 273 0
+ 784 00a8 6010     	 asrs r0,r4,#1
+ 785 00aa 40EAC410 	 orr r0,r0,r4,lsl#7
+ 786 00ae C0B2     	 uxtb r0,r0
+ 787 00b0 B847     	 blx r7
+ 788              	.LVL56:
+ 789              	.L68:
+ 790              	.LBE42:
+ 268:usbhw.c       **** 			)
+ 791              	 .loc 1 268 0
+ 792 00b2 0134     	 adds r4,r4,#1
+ 793              	.LVL57:
+ 266:usbhw.c       **** 				i < 32;
+ 794              	 .loc 1 266 0
+ 795 00b4 202C     	 cmp r4,#32
+ 268:usbhw.c       **** 			)
+ 796              	 .loc 1 268 0
+ 797 00b6 4FEA4505 	 lsl r5,r5,#1
+ 798              	.LVL58:
+ 266:usbhw.c       **** 				i < 32;
+ 799              	 .loc 1 266 0
+ 800 00ba F1D1     	 bne .L69
+ 801 00bc DCE7     	 b .L70
+ 802              	.L89:
+ 803 00be 00BF     	 .align 2
+ 804              	.L88:
+ 805 00c0 00C00050 	 .word 1342226432
+ 806 00c4 00000000 	 .word SIE_GetDeviceStatus
+ 807 00c8 00000000 	 .word USBEvent_busReset
+ 808 00cc 00000000 	 .word usb_realise_endpoint
+ 809 00d0 00000000 	 .word SIE_SetMode
+ 810 00d4 00000000 	 .word SIE_SelectEndpointClearInterrupt
+ 811 00d8 00000000 	 .word EP0setup
+ 812 00dc 00000000 	 .word EP0in
+ 813 00e0 00000000 	 .word EP0out
+ 814 00e4 00000000 	 .word usb_read_packet
+ 815              	.LBE40:
+ 816              	.LBE43:
+ 817              	 .cfi_endproc
+ 818              	.LFE66:
+ 820              	 .section .text.USB_IRQHandler,"ax",%progbits
+ 821              	 .align 1
+ 822              	 .global USB_IRQHandler
+ 823              	 .syntax unified
+ 824              	 .thumb
+ 825              	 .thumb_func
+ 826              	 .fpu softvfp
+ 828              	USB_IRQHandler:
+ 829              	.LFB67:
+ 287:usbhw.c       **** 
+ 288:usbhw.c       **** #ifndef __CC_ARM
+ 289:usbhw.c       **** __attribute__ ((interrupt)) void USB_IRQHandler() {
+ 830              	 .loc 1 289 0
+ 831              	 .cfi_startproc
+ 832              	 
+ 833              	 
+ 834              	 
+ 835 0000 6846     	 mov r0,sp
+ 836              	 .cfi_register 13,0
+ 837 0002 20F00701 	 bic r1,r0,#7
+ 838 0006 8D46     	 mov sp,r1
+ 839 0008 01B5     	 push {r0,lr}
+ 840              	 .cfi_def_cfa_offset 8
+ 841              	 .cfi_offset 13,-8
+ 842              	 .cfi_offset 14,-4
+ 290:usbhw.c       **** // 	usb_task();
+ 291:usbhw.c       **** }
+ 843              	 .loc 1 291 0
+ 844 000a BDE80140 	 pop {r0,lr}
+ 845              	 .cfi_restore 14
+ 846              	 .cfi_restore 0
+ 847              	 .cfi_def_cfa_offset 0
+ 848 000e 8546     	 mov sp,r0
+ 849 0010 7047     	 bx lr
+ 850              	 .cfi_endproc
+ 851              	.LFE67:
+ 853              	 .comm EPcallbacks,120,4
+ 854              	 .text
+ 855              	.Letext0:
+ 856              	 .file 4 "/usr/include/newlib/machine/_default_types.h"
+ 857              	 .file 5 "/usr/include/newlib/sys/_stdint.h"
+ 858              	 .file 6 "usbhw.h"
+ 859              	 .file 7 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 860              	 .file 8 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 861              	 .file 9 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 862              	 .file 10 "/usr/include/newlib/sys/lock.h"
+ 863              	 .file 11 "/usr/include/newlib/sys/_types.h"
+ 864              	 .file 12 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 865              	 .file 13 "/usr/include/newlib/sys/reent.h"
+ 866              	 .file 14 "lpc17xx_usb.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 usbhw.c
+    {standard input}:16     .text.usb_init:0000000000000000 $t
+    {standard input}:23     .text.usb_init:0000000000000000 usb_init
+    {standard input}:74     .text.usb_init:0000000000000050 $d
+    {standard input}:82     .text.usb_disconnect:0000000000000000 $t
+    {standard input}:89     .text.usb_disconnect:0000000000000000 usb_disconnect
+    {standard input}:103    .text.usb_disconnect:0000000000000004 $d
+    {standard input}:108    .text.usb_set_callback:0000000000000000 $t
+    {standard input}:115    .text.usb_set_callback:0000000000000000 usb_set_callback
+    {standard input}:136    .text.usb_set_callback:0000000000000018 $d
+                            *COM*:0000000000000078 EPcallbacks
+    {standard input}:141    .text.usb_realise_endpoint:0000000000000000 $t
+    {standard input}:148    .text.usb_realise_endpoint:0000000000000000 usb_realise_endpoint
+    {standard input}:217    .text.usb_realise_endpoint:000000000000004c $d
+    {standard input}:222    .text.usb_connect:0000000000000000 $t
+    {standard input}:229    .text.usb_connect:0000000000000000 usb_connect
+    {standard input}:270    .text.usb_connect:0000000000000020 $d
+    {standard input}:277    .text.usb_read_packet:0000000000000000 $t
+    {standard input}:284    .text.usb_read_packet:0000000000000000 usb_read_packet
+    {standard input}:399    .text.usb_read_packet:0000000000000068 $d
+    {standard input}:406    .text.usb_write_packet:0000000000000000 $t
+    {standard input}:413    .text.usb_write_packet:0000000000000000 usb_write_packet
+    {standard input}:522    .text.usb_write_packet:0000000000000058 $d
+    {standard input}:529    .text.usb_ep_stall:0000000000000000 $t
+    {standard input}:536    .text.usb_ep_stall:0000000000000000 usb_ep_stall
+    {standard input}:552    .text.usb_ep_stall:0000000000000008 $d
+    {standard input}:557    .text.usb_ep_unstall:0000000000000000 $t
+    {standard input}:564    .text.usb_ep_unstall:0000000000000000 usb_ep_unstall
+    {standard input}:580    .text.usb_ep_unstall:0000000000000008 $d
+    {standard input}:585    .text.usb_ep0_stall:0000000000000000 $t
+    {standard input}:592    .text.usb_ep0_stall:0000000000000000 usb_ep0_stall
+    {standard input}:608    .text.usb_ep0_stall:0000000000000008 $d
+    {standard input}:613    .text.usb_task:0000000000000000 $t
+    {standard input}:620    .text.usb_task:0000000000000000 usb_task
+    {standard input}:805    .text.usb_task:00000000000000c0 $d
+    {standard input}:821    .text.USB_IRQHandler:0000000000000000 $t
+    {standard input}:828    .text.USB_IRQHandler:0000000000000000 USB_IRQHandler
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+SIE_Disconnect
+SIE_Connect
+SIE_SelectEndpoint
+SIE_ClearBuffer
+SIE_ValidateBuffer
+SIE_SetEndpointStatus
+SIE_GetDeviceStatus
+USBEvent_busReset
+SIE_SetMode
+SIE_SelectEndpointClearInterrupt
+EP0setup
+EP0in
+EP0out

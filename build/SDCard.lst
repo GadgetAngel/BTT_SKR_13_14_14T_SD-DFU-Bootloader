@@ -1,0 +1,2849 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "SDCard.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.ext_bits,"ax",%progbits
+  16              	 .align 1
+  17              	 .syntax unified
+  18              	 .thumb
+  19              	 .thumb_func
+  20              	 .fpu softvfp
+  22              	ext_bits:
+  23              	.LFB75:
+  24              	 .file 1 "SDCard.c"
+   1:SDCard.c      **** /*****************************************************************************
+   2:SDCard.c      ****  *                                                                            *
+   3:SDCard.c      ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:SDCard.c      ****  *                                                                            *
+   5:SDCard.c      ****  * by Triffid Hunter                                                          *
+   6:SDCard.c      ****  *                                                                            *
+   7:SDCard.c      ****  *                                                                            *
+   8:SDCard.c      ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:SDCard.c      ****  *                                                                            *
+  10:SDCard.c      ****  * This program is free software; you can redistribute it and/or modify       *
+  11:SDCard.c      ****  * it under the terms of the GNU General Public License as published by       *
+  12:SDCard.c      ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:SDCard.c      ****  * (at your option) any later version.                                        *
+  14:SDCard.c      ****  *                                                                            *
+  15:SDCard.c      ****  * This program is distributed in the hope that it will be useful,            *
+  16:SDCard.c      ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:SDCard.c      ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:SDCard.c      ****  * GNU General Public License for more details.                               *
+  19:SDCard.c      ****  *                                                                            *
+  20:SDCard.c      ****  * You should have received a copy of the GNU General Public License          *
+  21:SDCard.c      ****  * along with this program; if not, write to the Free Software                *
+  22:SDCard.c      ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:SDCard.c      ****  *                                                                            *
+  24:SDCard.c      ****  *****************************************************************************/
+  25:SDCard.c      **** 
+  26:SDCard.c      **** #include <stdio.h>
+  27:SDCard.c      **** #include <stdlib.h>
+  28:SDCard.c      **** 
+  29:SDCard.c      **** #include "SDCard.h"
+  30:SDCard.c      **** #include "gpio.h"
+  31:SDCard.c      **** #include "config.h"
+  32:SDCard.c      **** 
+  33:SDCard.c      **** //static const uint8_t OXFF = 0xFF;
+  34:SDCard.c      **** 
+  35:SDCard.c      **** //#define debug
+  36:SDCard.c      **** 
+  37:SDCard.c      **** int SDCard__cmd(int cmd, int arg);
+  38:SDCard.c      **** int SDCard__cmdx(int cmd, int arg);
+  39:SDCard.c      **** int SDCard__cmd8(void);
+  40:SDCard.c      **** int SDCard__cmd58(uint32_t *);
+  41:SDCard.c      **** int SDCard_initialise_card(void);
+  42:SDCard.c      **** int SDCard_initialise_card_v1(void);
+  43:SDCard.c      **** int SDCard_initialise_card_v2(void);
+  44:SDCard.c      **** 
+  45:SDCard.c      **** int SDCard__read(uint8_t *buffer, int length);
+  46:SDCard.c      **** int SDCard__write(const uint8_t *buffer, int length);
+  47:SDCard.c      **** 
+  48:SDCard.c      **** // int start_multi_write(uint32_t start_block, uint32_t n_blocks);
+  49:SDCard.c      **** // int validate_buffer(uint8_t *, int);
+  50:SDCard.c      **** // int end_multi_write(void);
+  51:SDCard.c      **** 
+  52:SDCard.c      **** // int start_multi_read(uint32_t start_block, uint32_t n_blocks);
+  53:SDCard.c      **** // int validate_buffer(uint8_t *, int);
+  54:SDCard.c      **** // int check_buffer(uint8_t *, int);
+  55:SDCard.c      **** // int end_multi_read(void);
+  56:SDCard.c      **** 
+  57:SDCard.c      **** uint32_t SDCard__sd_sectors(void);
+  58:SDCard.c      **** uint32_t _sectors;
+  59:SDCard.c      **** 
+  60:SDCard.c      **** // SPI _spi;
+  61:SDCard.c      **** PinName _cs;
+  62:SDCard.c      **** 
+  63:SDCard.c      **** int busyflags;
+  64:SDCard.c      **** // DMA *write_dma;
+  65:SDCard.c      **** // DMA *read_dma;
+  66:SDCard.c      **** 
+  67:SDCard.c      **** uint32_t busy_buffers;
+  68:SDCard.c      **** 
+  69:SDCard.c      **** int cardtype;
+  70:SDCard.c      **** 
+  71:SDCard.c      **** 
+  72:SDCard.c      **** #define SD_COMMAND_TIMEOUT 4096
+  73:SDCard.c      **** 
+  74:SDCard.c      **** void SDCard_init(PinName mosi, PinName miso, PinName sclk, PinName cs)
+  75:SDCard.c      **** {
+  76:SDCard.c      ****   SPI_init(mosi, miso, sclk);
+  77:SDCard.c      ****   GPIO_init(cs);
+  78:SDCard.c      ****   GPIO_output(cs);
+  79:SDCard.c      ****   GPIO_set(cs);
+  80:SDCard.c      ****   _cs = cs;
+  81:SDCard.c      **** }
+  82:SDCard.c      **** 
+  83:SDCard.c      **** #define R1_IDLE_STATE           (1 << 0)
+  84:SDCard.c      **** #define R1_ERASE_RESET          (1 << 1)
+  85:SDCard.c      **** #define R1_ILLEGAL_COMMAND      (1 << 2)
+  86:SDCard.c      **** #define R1_COM_CRC_ERROR        (1 << 3)
+  87:SDCard.c      **** #define R1_ERASE_SEQUENCE_ERROR (1 << 4)
+  88:SDCard.c      **** #define R1_ADDRESS_ERROR        (1 << 5)
+  89:SDCard.c      **** #define R1_PARAMETER_ERROR      (1 << 6)
+  90:SDCard.c      **** 
+  91:SDCard.c      **** // Types
+  92:SDCard.c      **** //  - v1.x Standard Capacity
+  93:SDCard.c      **** //  - v2.x Standard Capacity
+  94:SDCard.c      **** //  - v2.x High Capacity
+  95:SDCard.c      **** //  - Not recognised as an SD Card
+  96:SDCard.c      **** 
+  97:SDCard.c      **** #define SDCARD_FAIL 0
+  98:SDCard.c      **** #define SDCARD_V1   1
+  99:SDCard.c      **** #define SDCARD_V2   2
+ 100:SDCard.c      **** #define SDCARD_V2HC 3
+ 101:SDCard.c      **** 
+ 102:SDCard.c      **** #define BUSY_FLAG_MULTIREAD          1
+ 103:SDCard.c      **** #define BUSY_FLAG_MULTIWRITE         2
+ 104:SDCard.c      **** #define BUSY_FLAG_ENDREAD            4
+ 105:SDCard.c      **** #define BUSY_FLAG_ENDWRITE           8
+ 106:SDCard.c      **** #define BUSY_FLAG_WAITNOTBUSY       (1<<31)
+ 107:SDCard.c      **** 
+ 108:SDCard.c      **** #define SDCMD_GO_IDLE_STATE          0
+ 109:SDCard.c      **** #define SDCMD_ALL_SEND_CID           2
+ 110:SDCard.c      **** #define SDCMD_SEND_RELATIVE_ADDR     3
+ 111:SDCard.c      **** #define SDCMD_SET_DSR                4
+ 112:SDCard.c      **** #define SDCMD_SELECT_CARD            7
+ 113:SDCard.c      **** #define SDCMD_SEND_IF_COND           8
+ 114:SDCard.c      **** #define SDCMD_SEND_CSD               9
+ 115:SDCard.c      **** #define SDCMD_SEND_CID              10
+ 116:SDCard.c      **** #define SDCMD_STOP_TRANSMISSION     12
+ 117:SDCard.c      **** #define SDCMD_SEND_STATUS           13
+ 118:SDCard.c      **** #define SDCMD_GO_INACTIVE_STATE     15
+ 119:SDCard.c      **** #define SDCMD_SET_BLOCKLEN          16
+ 120:SDCard.c      **** #define SDCMD_READ_SINGLE_BLOCK     17
+ 121:SDCard.c      **** #define SDCMD_READ_MULTIPLE_BLOCK   18
+ 122:SDCard.c      **** #define SDCMD_WRITE_BLOCK           24
+ 123:SDCard.c      **** #define SDCMD_WRITE_MULTIPLE_BLOCK  25
+ 124:SDCard.c      **** #define SDCMD_PROGRAM_CSD           27
+ 125:SDCard.c      **** #define SDCMD_SET_WRITE_PROT        28
+ 126:SDCard.c      **** #define SDCMD_CLR_WRITE_PROT        29
+ 127:SDCard.c      **** #define SDCMD_SEND_WRITE_PROT       30
+ 128:SDCard.c      **** #define SDCMD_ERASE_WR_BLOCK_START  32
+ 129:SDCard.c      **** #define SDCMD_ERASE_WR_BLK_END      33
+ 130:SDCard.c      **** #define SDCMD_ERASE                 38
+ 131:SDCard.c      **** #define SDCMD_LOCK_UNLOCK           42
+ 132:SDCard.c      **** #define SDCMD_APP_CMD               55
+ 133:SDCard.c      **** #define SDCMD_GEN_CMD               56
+ 134:SDCard.c      **** 
+ 135:SDCard.c      **** #define SD_ACMD_SET_BUS_WIDTH            6
+ 136:SDCard.c      **** #define SD_ACMD_SD_STATUS               13
+ 137:SDCard.c      **** #define SD_ACMD_SEND_NUM_WR_BLOCKS      22
+ 138:SDCard.c      **** #define SD_ACMD_SET_WR_BLK_ERASE_COUNT  23
+ 139:SDCard.c      **** #define SD_ACMD_SD_SEND_OP_COND         41
+ 140:SDCard.c      **** #define SD_ACMD_SET_CLR_CARD_DETECT     42
+ 141:SDCard.c      **** #define SD_ACMD_SEND_CSR                51
+ 142:SDCard.c      **** 
+ 143:SDCard.c      **** #define BLOCK2ADDR(block)   (((cardtype == SDCARD_V1) || (cardtype == SDCARD_V2))?(block << 9):((ca
+ 144:SDCard.c      **** 
+ 145:SDCard.c      **** #define fprintf(...) do {} while (0)
+ 146:SDCard.c      **** // #define fputs(...) do {} while (0)
+ 147:SDCard.c      **** 
+ 148:SDCard.c      **** int SDCard_initialise_card() {
+ 149:SDCard.c      ****     // Set to 25kHz for initialisation, and clock card with cs = 1
+ 150:SDCard.c      ****     SPI_frequency(25000);
+ 151:SDCard.c      ****     GPIO_set(_cs);
+ 152:SDCard.c      **** 
+ 153:SDCard.c      ****     for(int i=0; i<16; i++) {
+ 154:SDCard.c      ****         SPI_write(0xFF);
+ 155:SDCard.c      ****     }
+ 156:SDCard.c      **** 
+ 157:SDCard.c      ****     // send CMD0, should return with all zeros except IDLE STATE set (bit 0)
+ 158:SDCard.c      ****     if(SDCard__cmd(SDCMD_GO_IDLE_STATE, 0) != R1_IDLE_STATE) {
+ 159:SDCard.c      **** #ifdef debug
+ 160:SDCard.c      ****         DBGPRINTF("Could not put SD card in to SPI idle state\n");
+ 161:SDCard.c      **** #endif
+ 162:SDCard.c      ****         return cardtype = SDCARD_FAIL;
+ 163:SDCard.c      ****     }
+ 164:SDCard.c      **** 
+ 165:SDCard.c      ****     // send CMD8 to determine whether it is ver 2.x
+ 166:SDCard.c      ****     int r = SDCard__cmd8();
+ 167:SDCard.c      ****     if(r == R1_IDLE_STATE) {
+ 168:SDCard.c      **** #ifdef debug
+ 169:SDCard.c      **** 		DBGPRINTF("Looks like a SDHC Card\n");
+ 170:SDCard.c      **** #endif
+ 171:SDCard.c      **** 		return SDCard_initialise_card_v2();
+ 172:SDCard.c      ****     } else if(r == (R1_IDLE_STATE | R1_ILLEGAL_COMMAND)) {
+ 173:SDCard.c      **** 		return SDCard_initialise_card_v1();
+ 174:SDCard.c      ****     } else {
+ 175:SDCard.c      **** #if ENABLED(DEBUG_MESSAGES)
+ 176:SDCard.c      ****         printf(EPFX "Not in idle state after sending CMD8 (not an SD card?)\n");
+ 177:SDCard.c      **** #endif
+ 178:SDCard.c      ****         return cardtype = SDCARD_FAIL;
+ 179:SDCard.c      ****     }
+ 180:SDCard.c      **** }
+ 181:SDCard.c      **** 
+ 182:SDCard.c      **** int SDCard_initialise_card_v1() {
+ 183:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 184:SDCard.c      **** 		SDCard__cmd(SDCMD_APP_CMD, 0);
+ 185:SDCard.c      **** 		if(SDCard__cmd(SD_ACMD_SD_SEND_OP_COND, 0) == 0) {
+ 186:SDCard.c      ****             return cardtype = SDCARD_V1;
+ 187:SDCard.c      ****         }
+ 188:SDCard.c      ****     }
+ 189:SDCard.c      ****     DBGPRINTF("Timeout waiting for v1.x card\n");
+ 190:SDCard.c      ****     return SDCARD_FAIL;
+ 191:SDCard.c      **** }
+ 192:SDCard.c      **** 
+ 193:SDCard.c      **** int SDCard_initialise_card_v2() {
+ 194:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 195:SDCard.c      ****         SDCard__cmd(SDCMD_APP_CMD, 0);
+ 196:SDCard.c      **** 		if(SDCard__cmd(SD_ACMD_SD_SEND_OP_COND, (1UL<<30)) == 0) {
+ 197:SDCard.c      **** 			uint32_t ocr;
+ 198:SDCard.c      **** 			SDCard__cmd58(&ocr);
+ 199:SDCard.c      **** 			if (ocr & (1UL<<30))
+ 200:SDCard.c      **** 				return cardtype = SDCARD_V2HC;
+ 201:SDCard.c      **** 			else
+ 202:SDCard.c      **** 				return cardtype = SDCARD_V2;
+ 203:SDCard.c      **** 		}
+ 204:SDCard.c      ****     }
+ 205:SDCard.c      ****     DBGPRINTF("Timeout waiting for v2.x card\n");
+ 206:SDCard.c      ****     return cardtype = SDCARD_FAIL;
+ 207:SDCard.c      **** }
+ 208:SDCard.c      **** 
+ 209:SDCard.c      **** int SDCard_disk_initialize()
+ 210:SDCard.c      **** {
+ 211:SDCard.c      ****     _sectors = 0;
+ 212:SDCard.c      **** 
+ 213:SDCard.c      ****     int i = SDCard_initialise_card();
+ 214:SDCard.c      **** 
+ 215:SDCard.c      ****     if (i == 0) {
+ 216:SDCard.c      ****         return 1;
+ 217:SDCard.c      ****     }
+ 218:SDCard.c      **** 
+ 219:SDCard.c      ****     _sectors = SDCard__sd_sectors();
+ 220:SDCard.c      **** 
+ 221:SDCard.c      ****     // Set block length to 512 (CMD16)
+ 222:SDCard.c      **** 	if(SDCard__cmd(SDCMD_SET_BLOCKLEN, 512) != 0) {
+ 223:SDCard.c      **** 		DBGPRINTF_E("Set 512-byte block timed out\n");
+ 224:SDCard.c      **** 		return 1;
+ 225:SDCard.c      ****     }
+ 226:SDCard.c      **** 
+ 227:SDCard.c      ****     SPI_frequency(SPI_SPEED);
+ 228:SDCard.c      ****     return 0;
+ 229:SDCard.c      **** }
+ 230:SDCard.c      **** 
+ 231:SDCard.c      **** int SDCard_disk_write(const uint8_t *buffer, uint32_t block_number)
+ 232:SDCard.c      **** {
+ 233:SDCard.c      ****     // set write address for single block (CMD24)
+ 234:SDCard.c      ****     if(SDCard__cmd(SDCMD_WRITE_BLOCK, BLOCK2ADDR(block_number)) != 0) {
+ 235:SDCard.c      ****         return 1;
+ 236:SDCard.c      ****     }
+ 237:SDCard.c      **** 
+ 238:SDCard.c      ****     // send the data block
+ 239:SDCard.c      ****     SDCard__write(buffer, 512);
+ 240:SDCard.c      ****     return 0;
+ 241:SDCard.c      **** }
+ 242:SDCard.c      **** 
+ 243:SDCard.c      **** int SDCard_disk_read(uint8_t *buffer, uint32_t block_number)
+ 244:SDCard.c      **** {
+ 245:SDCard.c      **** // 	DBGPRINTF("SD:read type %d: %d(%x) -> %d(%x)\n", cardtype, block_number, block_number, BLOCK2AD
+ 246:SDCard.c      ****     // set read address for single block (CMD17)
+ 247:SDCard.c      ****     if(SDCard__cmd(SDCMD_READ_SINGLE_BLOCK, BLOCK2ADDR(block_number)) != 0) {
+ 248:SDCard.c      ****         return 1;
+ 249:SDCard.c      ****     }
+ 250:SDCard.c      **** 
+ 251:SDCard.c      ****     // receive the data
+ 252:SDCard.c      ****     SDCard__read(buffer, 512);
+ 253:SDCard.c      ****     return 0;
+ 254:SDCard.c      **** }
+ 255:SDCard.c      **** 
+ 256:SDCard.c      **** int SDCard_disk_erase(uint32_t block_number, int count)
+ 257:SDCard.c      **** {
+ 258:SDCard.c      **** 	return -1;
+ 259:SDCard.c      **** }
+ 260:SDCard.c      **** 
+ 261:SDCard.c      **** int SDCard_disk_status() { return (_sectors > 0)?0:1; }
+ 262:SDCard.c      **** int SDCard_disk_sync() {
+ 263:SDCard.c      ****     // TODO: wait for DMA, wait for card not busy
+ 264:SDCard.c      ****     return 0;
+ 265:SDCard.c      **** }
+ 266:SDCard.c      **** uint32_t SDCard_disk_sectors() { return _sectors; }
+ 267:SDCard.c      **** uint64_t SDCard_disk_size() { return ((uint64_t) _sectors) << 9; }
+ 268:SDCard.c      **** uint32_t SDCard_disk_blocksize() { return (1<<9); }
+ 269:SDCard.c      **** // int SDCard_disk_canDMA() { return SPI_can_DMA(); }
+ 270:SDCard.c      **** //
+ 271:SDCard.c      **** // int SDCard_start_multi_write(uint32_t start_block, uint32_t n_blocks)
+ 272:SDCard.c      **** // {
+ 273:SDCard.c      **** //     if (!write_dma)
+ 274:SDCard.c      **** //         write_dma = DMA_create();
+ 275:SDCard.c      **** //     if (!write_dma)
+ 276:SDCard.c      **** //         return -1;
+ 277:SDCard.c      **** //
+ 278:SDCard.c      **** //     if (busyflags)
+ 279:SDCard.c      **** //         return -1;
+ 280:SDCard.c      **** //
+ 281:SDCard.c      **** //     if (n_blocks == 0)
+ 282:SDCard.c      **** //         return 0;
+ 283:SDCard.c      **** //
+ 284:SDCard.c      **** //     __disable_irq();
+ 285:SDCard.c      **** //     if (busyflags & ~BUSY_FLAG_WAITNOTBUSY) {
+ 286:SDCard.c      **** //         __enable_irq();
+ 287:SDCard.c      **** //         return -1;
+ 288:SDCard.c      **** //     }
+ 289:SDCard.c      **** //     __enable_irq();
+ 290:SDCard.c      **** //
+ 291:SDCard.c      **** //     busyflags |= BUSY_FLAG_MULTIWRITE;
+ 292:SDCard.c      **** //
+ 293:SDCard.c      **** //     // ACMD 23 - SET_WR_BLK_ERASE_COUNT - Set number of blocks to be pre-erased before writing
+ 294:SDCard.c      **** //     _cmd(SDCMD_APP_CMD, 0);
+ 295:SDCard.c      **** //     _cmd(SD_ACMD_SET_WR_BLK_ERASE_COUNT, n_blocks);
+ 296:SDCard.c      **** //
+ 297:SDCard.c      **** //     // start multi-write
+ 298:SDCard.c      **** //     _cmd(SDCMD_WRITE_MULTIPLE_BLOCK, BLOCK2ADDR(start_block));
+ 299:SDCard.c      **** //
+ 300:SDCard.c      **** //     return 0;
+ 301:SDCard.c      **** // }
+ 302:SDCard.c      **** 
+ 303:SDCard.c      **** // int SDCard_validate_buffer(uint8_t *buffer, int bufferlength)
+ 304:SDCard.c      **** // {
+ 305:SDCard.c      **** //     if (bufferlength != 512)
+ 306:SDCard.c      **** //         return -1;
+ 307:SDCard.c      **** //
+ 308:SDCard.c      **** //     if (busyflags & BUSY_FLAG_WAITNOTBUSY)
+ 309:SDCard.c      **** //         return -1;
+ 310:SDCard.c      **** //
+ 311:SDCard.c      **** //     if (busyflags & BUSY_FLAG_MULTIREAD) {
+ 312:SDCard.c      **** //         // disk user has provided an empty buffer for us to fill
+ 313:SDCard.c      **** //         // TODO: set up the DMA transfer, then flick the check flag when it's done
+ 314:SDCard.c      **** //         read_dma->destination(buffer, bufferlength);
+ 315:SDCard.c      **** //         read_dma->start();
+ 316:SDCard.c      **** //         write_dma->start();
+ 317:SDCard.c      **** //         busyflags |= BUSY_FLAG_WAITNOTBUSY;
+ 318:SDCard.c      **** //         return bufferlength;
+ 319:SDCard.c      **** //     }
+ 320:SDCard.c      **** //     else if (busyflags & BUSY_FLAG_MULTIWRITE) {
+ 321:SDCard.c      **** //         // disk user has provided a full buffer for us to empty
+ 322:SDCard.c      **** //         // TODO: continue DMA
+ 323:SDCard.c      **** //         SPI_write(0xFE);
+ 324:SDCard.c      **** //         write_dma->source(buffer, bufferlength);
+ 325:SDCard.c      **** //         write_dma->start();
+ 326:SDCard.c      **** //         busyflags |= BUSY_FLAG_WAITNOTBUSY;
+ 327:SDCard.c      **** //         return bufferlength;
+ 328:SDCard.c      **** //     }
+ 329:SDCard.c      **** //     else if (busyflags & BUSY_FLAG_ENDREAD) {
+ 330:SDCard.c      **** //         _cmd(SDCMD_STOP_TRANSMISSION, 0);
+ 331:SDCard.c      **** //         return 0;
+ 332:SDCard.c      **** //     }
+ 333:SDCard.c      **** //     else if (busyflags & BUSY_FLAG_ENDWRITE) {
+ 334:SDCard.c      **** //         _cmd(SDCMD_STOP_TRANSMISSION, 0);
+ 335:SDCard.c      **** //         return 0;
+ 336:SDCard.c      **** //     }
+ 337:SDCard.c      **** //     return -1;
+ 338:SDCard.c      **** // }
+ 339:SDCard.c      **** 
+ 340:SDCard.c      **** // int SDCard_end_multi_write()
+ 341:SDCard.c      **** // {
+ 342:SDCard.c      **** //     busyflags |= BUSY_FLAG_ENDWRITE;
+ 343:SDCard.c      **** //     return 0;
+ 344:SDCard.c      **** // }
+ 345:SDCard.c      **** //
+ 346:SDCard.c      **** // int SDCard_start_multi_read(uint32_t start_block, uint32_t n_blocks)
+ 347:SDCard.c      **** // {
+ 348:SDCard.c      **** //     if (!read_dma)
+ 349:SDCard.c      **** //         read_dma = DMA_create();
+ 350:SDCard.c      **** //     if (!read_dma)
+ 351:SDCard.c      **** //         return -1;
+ 352:SDCard.c      **** //
+ 353:SDCard.c      **** //
+ 354:SDCard.c      **** //     __disable_irq();
+ 355:SDCard.c      **** //     if (busyflags & ~BUSY_FLAG_WAITNOTBUSY) {
+ 356:SDCard.c      **** //         __enable_irq();
+ 357:SDCard.c      **** //         return -1;
+ 358:SDCard.c      **** //     }
+ 359:SDCard.c      **** //     __enable_irq();
+ 360:SDCard.c      **** //
+ 361:SDCard.c      **** //     busyflags |= BUSY_FLAG_MULTIREAD;
+ 362:SDCard.c      **** //
+ 363:SDCard.c      **** //     // CMD 18 - READ_MULTIPLE_BLOCK
+ 364:SDCard.c      **** //     _cmd(18, start_block);
+ 365:SDCard.c      **** //
+ 366:SDCard.c      **** //     return n_blocks;
+ 367:SDCard.c      **** // }
+ 368:SDCard.c      **** //
+ 369:SDCard.c      **** // bool SDCard_check_buffer(uint8_t *buffer, int bufferlength)
+ 370:SDCard.c      **** // {
+ 371:SDCard.c      **** //     if (busyflags & BUSY_FLAG_MULTIREAD)
+ 372:SDCard.c      **** //         return read_dma->busy();
+ 373:SDCard.c      **** //     if (busyflags & BUSY_FLAG_MULTIWRITE)
+ 374:SDCard.c      **** //         return write_dma->busy();
+ 375:SDCard.c      **** //     return false;
+ 376:SDCard.c      **** // }
+ 377:SDCard.c      **** //
+ 378:SDCard.c      **** // int SDCard_end_multi_read()
+ 379:SDCard.c      **** // {
+ 380:SDCard.c      **** //     busyflags |= BUSY_FLAG_ENDREAD;
+ 381:SDCard.c      **** //     return 0;
+ 382:SDCard.c      **** // }
+ 383:SDCard.c      **** //
+ 384:SDCard.c      **** // void SDCard_dma_source_event()
+ 385:SDCard.c      **** // {
+ 386:SDCard.c      **** //     if (busyflags & BUSY_FLAG_MULTIREAD)
+ 387:SDCard.c      **** //     {
+ 388:SDCard.c      **** //         if (read_dma->busy() == false)
+ 389:SDCard.c      **** //         {
+ 390:SDCard.c      **** //         }
+ 391:SDCard.c      **** //     }
+ 392:SDCard.c      **** //     else if (busyflags & BUSY_FLAG_MULTIWRITE)
+ 393:SDCard.c      **** //     {
+ 394:SDCard.c      **** //         if (write_dma->busy() == false)
+ 395:SDCard.c      **** //         {
+ 396:SDCard.c      **** //             // send checksum
+ 397:SDCard.c      **** //             SPI_write(0xFF);
+ 398:SDCard.c      **** //             SPI_write(0xFF);
+ 399:SDCard.c      **** //             busyflags |= BUSY_FLAG_WAITNOTBUSY;
+ 400:SDCard.c      **** //         }
+ 401:SDCard.c      **** //     }
+ 402:SDCard.c      **** // }
+ 403:SDCard.c      **** //
+ 404:SDCard.c      **** // void SDCard_dma_dest_event()
+ 405:SDCard.c      **** // {
+ 406:SDCard.c      **** // }
+ 407:SDCard.c      **** 
+ 408:SDCard.c      **** 
+ 409:SDCard.c      **** // void SDCard_on_main_loop()
+ 410:SDCard.c      **** // {
+ 411:SDCard.c      **** //     if (busyflags & BUSY_FLAG_MULTIREAD)
+ 412:SDCard.c      **** //     {
+ 413:SDCard.c      **** //         if (busyflags & BUSY_FLAG_ENDREAD)
+ 414:SDCard.c      **** //         {
+ 415:SDCard.c      **** //
+ 416:SDCard.c      **** //         }
+ 417:SDCard.c      **** //     }
+ 418:SDCard.c      **** //     if (busyflags & BUSY_FLAG_MULTIWRITE)
+ 419:SDCard.c      **** //     {
+ 420:SDCard.c      **** //         if (busyflags & BUSY_FLAG_ENDWRITE)
+ 421:SDCard.c      **** //         {
+ 422:SDCard.c      **** //             if (SPI_write(0xFF) == 0)
+ 423:SDCard.c      **** //             {
+ 424:SDCard.c      **** //                 busyflags &= ~BUSY_FLAG_ENDWRITE;
+ 425:SDCard.c      **** //             }
+ 426:SDCard.c      **** //         }
+ 427:SDCard.c      **** //     }
+ 428:SDCard.c      **** // }
+ 429:SDCard.c      **** 
+ 430:SDCard.c      **** // PRIVATE FUNCTIONS
+ 431:SDCard.c      **** 
+ 432:SDCard.c      **** int SDCard__cmd(int cmd, int arg) {
+ 433:SDCard.c      **** //     _cs = 0;
+ 434:SDCard.c      **** 	GPIO_clear(_cs);
+ 435:SDCard.c      **** #ifdef debug
+ 436:SDCard.c      ****     DBGPRINTF("SDCMD:%u ", cmd);
+ 437:SDCard.c      **** #endif
+ 438:SDCard.c      **** 
+ 439:SDCard.c      ****     // send a command
+ 440:SDCard.c      ****     SPI_write(0x40 | cmd);
+ 441:SDCard.c      ****     SPI_write(arg >> 24);
+ 442:SDCard.c      ****     SPI_write(arg >> 16);
+ 443:SDCard.c      ****     SPI_write(arg >> 8);
+ 444:SDCard.c      ****     SPI_write(arg >> 0);
+ 445:SDCard.c      ****     SPI_write(0x95);
+ 446:SDCard.c      **** 
+ 447:SDCard.c      ****     // wait for the repsonse (response[7] == 0)
+ 448:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 449:SDCard.c      ****         int response = SPI_write(0xFF);
+ 450:SDCard.c      ****         if(!(response & 0x80)) {
+ 451:SDCard.c      ****             GPIO_set(_cs);
+ 452:SDCard.c      ****             SPI_write(0xFF);
+ 453:SDCard.c      **** #ifdef debug
+ 454:SDCard.c      **** 	    printf(" <%u\n", response);
+ 455:SDCard.c      **** #endif
+ 456:SDCard.c      ****             return response;
+ 457:SDCard.c      ****         }
+ 458:SDCard.c      ****     }
+ 459:SDCard.c      **** #ifdef debug
+ 460:SDCard.c      ****     printf("Timeout\n");
+ 461:SDCard.c      **** #endif
+ 462:SDCard.c      **** //     _cs = 1;
+ 463:SDCard.c      **** 	GPIO_set(_cs);
+ 464:SDCard.c      ****     SPI_write(0xFF);
+ 465:SDCard.c      ****     return -1; // timeout
+ 466:SDCard.c      **** }
+ 467:SDCard.c      **** int SDCard__cmdx(int cmd, int arg) {
+ 468:SDCard.c      **** //     _cs = 0;
+ 469:SDCard.c      **** 	GPIO_clear(_cs);
+ 470:SDCard.c      **** 
+ 471:SDCard.c      **** #ifdef debug
+ 472:SDCard.c      ****     DBGPRINTF("SDCMDx:%u ", cmd);
+ 473:SDCard.c      **** #endif
+ 474:SDCard.c      ****     // send a command
+ 475:SDCard.c      ****     SPI_write(0x40 | cmd);
+ 476:SDCard.c      ****     SPI_write(arg >> 24);
+ 477:SDCard.c      ****     SPI_write(arg >> 16);
+ 478:SDCard.c      ****     SPI_write(arg >> 8);
+ 479:SDCard.c      ****     SPI_write(arg >> 0);
+ 480:SDCard.c      ****     SPI_write(0x95);
+ 481:SDCard.c      **** 
+ 482:SDCard.c      ****     // wait for the repsonse (response[7] == 0)
+ 483:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 484:SDCard.c      ****         int response = SPI_write(0xFF);
+ 485:SDCard.c      ****         if(!(response & 0x80)) {
+ 486:SDCard.c      **** #ifdef debug
+ 487:SDCard.c      **** 	    DBGPRINTF(" <%u\n", response);
+ 488:SDCard.c      **** #endif
+ 489:SDCard.c      ****             return response;
+ 490:SDCard.c      ****         }
+ 491:SDCard.c      ****     }
+ 492:SDCard.c      **** #ifdef debug
+ 493:SDCard.c      ****     DBGPRINTF_E("Timeout\n");
+ 494:SDCard.c      **** #endif
+ 495:SDCard.c      **** //     _cs = 1;
+ 496:SDCard.c      ****     GPIO_set(_cs);
+ 497:SDCard.c      ****     SPI_write(0xFF);
+ 498:SDCard.c      ****     return -1; // timeout
+ 499:SDCard.c      **** }
+ 500:SDCard.c      **** 
+ 501:SDCard.c      **** 
+ 502:SDCard.c      **** int SDCard__cmd58(uint32_t *ocr) {
+ 503:SDCard.c      **** //     _cs = 0;
+ 504:SDCard.c      **** 	GPIO_clear(_cs);
+ 505:SDCard.c      ****     int arg = 0;
+ 506:SDCard.c      **** 
+ 507:SDCard.c      ****     // send a command
+ 508:SDCard.c      ****     SPI_write(0x40 | 58);
+ 509:SDCard.c      ****     SPI_write(arg >> 24);
+ 510:SDCard.c      ****     SPI_write(arg >> 16);
+ 511:SDCard.c      ****     SPI_write(arg >> 8);
+ 512:SDCard.c      ****     SPI_write(arg >> 0);
+ 513:SDCard.c      ****     SPI_write(0x95);
+ 514:SDCard.c      **** 
+ 515:SDCard.c      ****     // wait for the repsonse (response[7] == 0)
+ 516:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 517:SDCard.c      ****         int response = SPI_write(0xFF);
+ 518:SDCard.c      ****         if(!(response & 0x80)) {
+ 519:SDCard.c      ****             *ocr = SPI_write(0xFF) << 24;
+ 520:SDCard.c      ****             *ocr |= SPI_write(0xFF) << 16;
+ 521:SDCard.c      ****             *ocr |= SPI_write(0xFF) << 8;
+ 522:SDCard.c      ****             *ocr |= SPI_write(0xFF) << 0;
+ 523:SDCard.c      **** //            printf("OCR = 0x%08X\n", *ocr);
+ 524:SDCard.c      **** //             _cs = 1;
+ 525:SDCard.c      **** 			GPIO_set(_cs);
+ 526:SDCard.c      ****             SPI_write(0xFF);
+ 527:SDCard.c      ****             return response;
+ 528:SDCard.c      ****         }
+ 529:SDCard.c      ****     }
+ 530:SDCard.c      **** //     _cs = 1;
+ 531:SDCard.c      **** 	GPIO_set(_cs);
+ 532:SDCard.c      ****     SPI_write(0xFF);
+ 533:SDCard.c      ****     return -1; // timeout
+ 534:SDCard.c      **** }
+ 535:SDCard.c      **** 
+ 536:SDCard.c      **** int SDCard__cmd8() {
+ 537:SDCard.c      **** //     _cs = 0;
+ 538:SDCard.c      **** 	GPIO_clear(_cs);
+ 539:SDCard.c      **** 
+ 540:SDCard.c      ****     // send a command
+ 541:SDCard.c      ****     SPI_write(0x40 | SDCMD_SEND_IF_COND); // CMD8
+ 542:SDCard.c      ****     SPI_write(0x00);     // reserved
+ 543:SDCard.c      ****     SPI_write(0x00);     // reserved
+ 544:SDCard.c      ****     SPI_write(0x01);     // 3.3v
+ 545:SDCard.c      ****     SPI_write(0xAA);     // check pattern
+ 546:SDCard.c      ****     SPI_write(0x87);     // crc
+ 547:SDCard.c      **** 
+ 548:SDCard.c      ****     // wait for the repsonse (response[7] == 0)
+ 549:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT * 1000; i++) {
+ 550:SDCard.c      ****         char response[5];
+ 551:SDCard.c      ****         response[0] = SPI_write(0xFF);
+ 552:SDCard.c      ****         if(!(response[0] & 0x80)) {
+ 553:SDCard.c      ****                 for(int j=1; j<5; j++) {
+ 554:SDCard.c      ****                     response[j] = SPI_write(0xFF);
+ 555:SDCard.c      ****                 }
+ 556:SDCard.c      **** //                 _cs = 1;
+ 557:SDCard.c      **** 				GPIO_set(_cs);
+ 558:SDCard.c      ****                 SPI_write(0xFF);
+ 559:SDCard.c      ****                 return response[0];
+ 560:SDCard.c      ****         }
+ 561:SDCard.c      ****     }
+ 562:SDCard.c      **** //     _cs = 1;
+ 563:SDCard.c      **** 	GPIO_set(_cs);
+ 564:SDCard.c      ****     SPI_write(0xFF);
+ 565:SDCard.c      ****     return -1; // timeout
+ 566:SDCard.c      **** }
+ 567:SDCard.c      **** 
+ 568:SDCard.c      **** int SDCard__read(uint8_t *buffer, int length) {
+ 569:SDCard.c      **** //     _cs = 0;
+ 570:SDCard.c      **** 	GPIO_clear(_cs);
+ 571:SDCard.c      **** 
+ 572:SDCard.c      ****     // read until start byte (0xFF)
+ 573:SDCard.c      ****     while(SPI_write(0xFF) != 0xFE);
+ 574:SDCard.c      **** 
+ 575:SDCard.c      ****     // read data
+ 576:SDCard.c      ****     for(int i=0; i<length; i++) {
+ 577:SDCard.c      ****         buffer[i] = SPI_write(0xFF);
+ 578:SDCard.c      ****     }
+ 579:SDCard.c      ****     SPI_write(0xFF); // checksum
+ 580:SDCard.c      ****     SPI_write(0xFF);
+ 581:SDCard.c      **** 
+ 582:SDCard.c      **** //     _cs = 1;
+ 583:SDCard.c      **** 	GPIO_set(_cs);
+ 584:SDCard.c      ****     SPI_write(0xFF);
+ 585:SDCard.c      ****     return 0;
+ 586:SDCard.c      **** }
+ 587:SDCard.c      **** 
+ 588:SDCard.c      **** int SDCard__write(const uint8_t *buffer, int length) {
+ 589:SDCard.c      **** //     _cs = 0;
+ 590:SDCard.c      **** 	GPIO_clear(_cs);
+ 591:SDCard.c      **** 
+ 592:SDCard.c      ****     // indicate start of block
+ 593:SDCard.c      ****     SPI_write(0xFE);
+ 594:SDCard.c      **** 
+ 595:SDCard.c      ****     // write the data
+ 596:SDCard.c      ****     for(int i=0; i<length; i++) {
+ 597:SDCard.c      ****         SPI_write(buffer[i]);
+ 598:SDCard.c      ****     }
+ 599:SDCard.c      **** 
+ 600:SDCard.c      ****     // write the checksum
+ 601:SDCard.c      ****     SPI_write(0xFF);
+ 602:SDCard.c      ****     SPI_write(0xFF);
+ 603:SDCard.c      **** 
+ 604:SDCard.c      ****     // check the repsonse token
+ 605:SDCard.c      ****     if((SPI_write(0xFF) & 0x1F) != 0x05) {
+ 606:SDCard.c      **** //         _cs = 1;
+ 607:SDCard.c      **** 		GPIO_set(_cs);
+ 608:SDCard.c      ****         SPI_write(0xFF);
+ 609:SDCard.c      ****         return 1;
+ 610:SDCard.c      ****     }
+ 611:SDCard.c      **** 
+ 612:SDCard.c      ****     // wait for write to finish
+ 613:SDCard.c      ****     while(SPI_write(0xFF) == 0);
+ 614:SDCard.c      **** 
+ 615:SDCard.c      **** //     _cs = 1;
+ 616:SDCard.c      ****     GPIO_set(_cs);
+ 617:SDCard.c      ****     SPI_write(0xFF);
+ 618:SDCard.c      ****     return 0;
+ 619:SDCard.c      **** }
+ 620:SDCard.c      **** 
+ 621:SDCard.c      **** static int ext_bits(uint8_t *data, int msb, int lsb)
+ 622:SDCard.c      **** {
+  25              	 .loc 1 622 0
+  26              	 .cfi_startproc
+  27              	 
+  28              	 
+  29              	.LVL0:
+  30 0000 70B5     	 push {r4,r5,r6,lr}
+  31              	 .cfi_def_cfa_offset 16
+  32              	 .cfi_offset 4,-16
+  33              	 .cfi_offset 5,-12
+  34              	 .cfi_offset 6,-8
+  35              	 .cfi_offset 14,-4
+  36              	.LBB12:
+ 623:SDCard.c      ****     int bits = 0;
+ 624:SDCard.c      ****     int size = 1 + msb - lsb;
+ 625:SDCard.c      ****     for(int i=0; i<size; i++) {
+  37              	 .loc 1 625 0
+  38 0002 0024     	 movs r4,#0
+  39              	.LBE12:
+ 622:SDCard.c      ****     int bits = 0;
+  40              	 .loc 1 622 0
+  41 0004 0646     	 mov r6,r0
+ 623:SDCard.c      ****     int bits = 0;
+  42              	 .loc 1 623 0
+  43 0006 2046     	 mov r0,r4
+  44              	.LVL1:
+ 624:SDCard.c      ****     for(int i=0; i<size; i++) {
+  45              	 .loc 1 624 0
+  46 0008 0131     	 adds r1,r1,#1
+  47              	.LVL2:
+  48 000a 891A     	 subs r1,r1,r2
+  49              	.LVL3:
+  50              	.L2:
+  51              	.LBB14:
+  52              	 .loc 1 625 0 discriminator 1
+  53 000c 8C42     	 cmp r4,r1
+  54 000e 00DB     	 blt .L3
+  55              	.LBE14:
+ 626:SDCard.c      ****         int position = lsb + i;
+ 627:SDCard.c      ****         int byte = 15 - (position >> 3);
+ 628:SDCard.c      ****         int bit = position & 0x7;
+ 629:SDCard.c      ****         int value = (data[byte] >> bit) & 1;
+ 630:SDCard.c      ****         bits |= value << i;
+ 631:SDCard.c      ****     }
+ 632:SDCard.c      ****     return bits;
+ 633:SDCard.c      **** }
+  56              	 .loc 1 633 0
+  57 0010 70BD     	 pop {r4,r5,r6,pc}
+  58              	.LVL4:
+  59              	.L3:
+  60 0012 A518     	 adds r5,r4,r2
+  61              	.LVL5:
+  62              	.LBB15:
+  63              	.LBB13:
+ 627:SDCard.c      ****         int bit = position & 0x7;
+  64              	 .loc 1 627 0 discriminator 3
+  65 0014 A6EBE503 	 sub r3,r6,r5,asr#3
+ 629:SDCard.c      ****         bits |= value << i;
+  66              	 .loc 1 629 0 discriminator 3
+  67 0018 DB7B     	 ldrb r3,[r3,#15]
+ 628:SDCard.c      ****         int value = (data[byte] >> bit) & 1;
+  68              	 .loc 1 628 0 discriminator 3
+  69 001a 05F00705 	 and r5,r5,#7
+  70              	.LVL6:
+ 629:SDCard.c      ****         bits |= value << i;
+  71              	 .loc 1 629 0 discriminator 3
+  72 001e 2B41     	 asrs r3,r3,r5
+  73 0020 03F00103 	 and r3,r3,#1
+ 630:SDCard.c      ****     }
+  74              	 .loc 1 630 0 discriminator 3
+  75 0024 A340     	 lsls r3,r3,r4
+  76 0026 1843     	 orrs r0,r0,r3
+  77              	.LVL7:
+  78              	.LBE13:
+ 625:SDCard.c      ****         int position = lsb + i;
+  79              	 .loc 1 625 0 discriminator 3
+  80 0028 0134     	 adds r4,r4,#1
+  81              	.LVL8:
+  82 002a EFE7     	 b .L2
+  83              	.LBE15:
+  84              	 .cfi_endproc
+  85              	.LFE75:
+  87              	 .section .text.SDCard_init,"ax",%progbits
+  88              	 .align 1
+  89              	 .global SDCard_init
+  90              	 .syntax unified
+  91              	 .thumb
+  92              	 .thumb_func
+  93              	 .fpu softvfp
+  95              	SDCard_init:
+  96              	.LFB56:
+  75:SDCard.c      ****   SPI_init(mosi, miso, sclk);
+  97              	 .loc 1 75 0
+  98              	 .cfi_startproc
+  99              	 
+ 100              	 
+ 101              	.LVL9:
+ 102 0000 10B5     	 push {r4,lr}
+ 103              	 .cfi_def_cfa_offset 8
+ 104              	 .cfi_offset 4,-8
+ 105              	 .cfi_offset 14,-4
+  75:SDCard.c      ****   SPI_init(mosi, miso, sclk);
+ 106              	 .loc 1 75 0
+ 107 0002 1C46     	 mov r4,r3
+  76:SDCard.c      ****   GPIO_init(cs);
+ 108              	 .loc 1 76 0
+ 109 0004 064B     	 ldr r3,.L5
+ 110              	.LVL10:
+ 111 0006 9847     	 blx r3
+ 112              	.LVL11:
+  77:SDCard.c      ****   GPIO_output(cs);
+ 113              	 .loc 1 77 0
+ 114 0008 2046     	 mov r0,r4
+ 115 000a 064B     	 ldr r3,.L5+4
+ 116 000c 9847     	 blx r3
+ 117              	.LVL12:
+  78:SDCard.c      ****   GPIO_set(cs);
+ 118              	 .loc 1 78 0
+ 119 000e 2046     	 mov r0,r4
+ 120 0010 054B     	 ldr r3,.L5+8
+ 121 0012 9847     	 blx r3
+ 122              	.LVL13:
+  79:SDCard.c      ****   _cs = cs;
+ 123              	 .loc 1 79 0
+ 124 0014 054B     	 ldr r3,.L5+12
+ 125 0016 2046     	 mov r0,r4
+ 126 0018 9847     	 blx r3
+ 127              	.LVL14:
+  80:SDCard.c      **** }
+ 128              	 .loc 1 80 0
+ 129 001a 054B     	 ldr r3,.L5+16
+ 130 001c 1C80     	 strh r4,[r3]
+ 131 001e 10BD     	 pop {r4,pc}
+ 132              	.L6:
+ 133              	 .align 2
+ 134              	.L5:
+ 135 0020 00000000 	 .word SPI_init
+ 136 0024 00000000 	 .word GPIO_init
+ 137 0028 00000000 	 .word GPIO_output
+ 138 002c 00000000 	 .word GPIO_set
+ 139 0030 00000000 	 .word _cs
+ 140              	 .cfi_endproc
+ 141              	.LFE56:
+ 143              	 .section .text.SDCard_disk_erase,"ax",%progbits
+ 144              	 .align 1
+ 145              	 .global SDCard_disk_erase
+ 146              	 .syntax unified
+ 147              	 .thumb
+ 148              	 .thumb_func
+ 149              	 .fpu softvfp
+ 151              	SDCard_disk_erase:
+ 152              	.LFB63:
+ 257:SDCard.c      **** 	return -1;
+ 153              	 .loc 1 257 0
+ 154              	 .cfi_startproc
+ 155              	 
+ 156              	 
+ 157              	 
+ 158              	.LVL15:
+ 259:SDCard.c      **** 
+ 159              	 .loc 1 259 0
+ 160 0000 4FF0FF30 	 mov r0,#-1
+ 161              	.LVL16:
+ 162 0004 7047     	 bx lr
+ 163              	 .cfi_endproc
+ 164              	.LFE63:
+ 166              	 .section .text.SDCard_disk_status,"ax",%progbits
+ 167              	 .align 1
+ 168              	 .global SDCard_disk_status
+ 169              	 .syntax unified
+ 170              	 .thumb
+ 171              	 .thumb_func
+ 172              	 .fpu softvfp
+ 174              	SDCard_disk_status:
+ 175              	.LFB64:
+ 261:SDCard.c      **** int SDCard_disk_sync() {
+ 176              	 .loc 1 261 0
+ 177              	 .cfi_startproc
+ 178              	 
+ 179              	 
+ 180              	 
+ 261:SDCard.c      **** int SDCard_disk_sync() {
+ 181              	 .loc 1 261 0
+ 182 0000 024B     	 ldr r3,.L9
+ 183 0002 1868     	 ldr r0,[r3]
+ 184 0004 B0FA80F0 	 clz r0,r0
+ 185 0008 4009     	 lsrs r0,r0,#5
+ 186 000a 7047     	 bx lr
+ 187              	.L10:
+ 188              	 .align 2
+ 189              	.L9:
+ 190 000c 00000000 	 .word _sectors
+ 191              	 .cfi_endproc
+ 192              	.LFE64:
+ 194              	 .section .text.SDCard_disk_sync,"ax",%progbits
+ 195              	 .align 1
+ 196              	 .global SDCard_disk_sync
+ 197              	 .syntax unified
+ 198              	 .thumb
+ 199              	 .thumb_func
+ 200              	 .fpu softvfp
+ 202              	SDCard_disk_sync:
+ 203              	.LFB65:
+ 262:SDCard.c      ****     // TODO: wait for DMA, wait for card not busy
+ 204              	 .loc 1 262 0
+ 205              	 .cfi_startproc
+ 206              	 
+ 207              	 
+ 208              	 
+ 265:SDCard.c      **** uint32_t SDCard_disk_sectors() { return _sectors; }
+ 209              	 .loc 1 265 0
+ 210 0000 0020     	 movs r0,#0
+ 211 0002 7047     	 bx lr
+ 212              	 .cfi_endproc
+ 213              	.LFE65:
+ 215              	 .section .text.SDCard_disk_sectors,"ax",%progbits
+ 216              	 .align 1
+ 217              	 .global SDCard_disk_sectors
+ 218              	 .syntax unified
+ 219              	 .thumb
+ 220              	 .thumb_func
+ 221              	 .fpu softvfp
+ 223              	SDCard_disk_sectors:
+ 224              	.LFB66:
+ 266:SDCard.c      **** uint64_t SDCard_disk_size() { return ((uint64_t) _sectors) << 9; }
+ 225              	 .loc 1 266 0
+ 226              	 .cfi_startproc
+ 227              	 
+ 228              	 
+ 229              	 
+ 266:SDCard.c      **** uint64_t SDCard_disk_size() { return ((uint64_t) _sectors) << 9; }
+ 230              	 .loc 1 266 0
+ 231 0000 014B     	 ldr r3,.L13
+ 232 0002 1868     	 ldr r0,[r3]
+ 233 0004 7047     	 bx lr
+ 234              	.L14:
+ 235 0006 00BF     	 .align 2
+ 236              	.L13:
+ 237 0008 00000000 	 .word _sectors
+ 238              	 .cfi_endproc
+ 239              	.LFE66:
+ 241              	 .section .text.SDCard_disk_size,"ax",%progbits
+ 242              	 .align 1
+ 243              	 .global SDCard_disk_size
+ 244              	 .syntax unified
+ 245              	 .thumb
+ 246              	 .thumb_func
+ 247              	 .fpu softvfp
+ 249              	SDCard_disk_size:
+ 250              	.LFB67:
+ 267:SDCard.c      **** uint32_t SDCard_disk_blocksize() { return (1<<9); }
+ 251              	 .loc 1 267 0
+ 252              	 .cfi_startproc
+ 253              	 
+ 254              	 
+ 255              	 
+ 267:SDCard.c      **** uint32_t SDCard_disk_blocksize() { return (1<<9); }
+ 256              	 .loc 1 267 0
+ 257 0000 024B     	 ldr r3,.L16
+ 258 0002 1968     	 ldr r1,[r3]
+ 259 0004 4802     	 lsls r0,r1,#9
+ 260 0006 C90D     	 lsrs r1,r1,#23
+ 261 0008 7047     	 bx lr
+ 262              	.L17:
+ 263 000a 00BF     	 .align 2
+ 264              	.L16:
+ 265 000c 00000000 	 .word _sectors
+ 266              	 .cfi_endproc
+ 267              	.LFE67:
+ 269              	 .section .text.SDCard_disk_blocksize,"ax",%progbits
+ 270              	 .align 1
+ 271              	 .global SDCard_disk_blocksize
+ 272              	 .syntax unified
+ 273              	 .thumb
+ 274              	 .thumb_func
+ 275              	 .fpu softvfp
+ 277              	SDCard_disk_blocksize:
+ 278              	.LFB68:
+ 268:SDCard.c      **** // int SDCard_disk_canDMA() { return SPI_can_DMA(); }
+ 279              	 .loc 1 268 0
+ 280              	 .cfi_startproc
+ 281              	 
+ 282              	 
+ 283              	 
+ 268:SDCard.c      **** // int SDCard_disk_canDMA() { return SPI_can_DMA(); }
+ 284              	 .loc 1 268 0
+ 285 0000 4FF40070 	 mov r0,#512
+ 286 0004 7047     	 bx lr
+ 287              	 .cfi_endproc
+ 288              	.LFE68:
+ 290              	 .section .text.SDCard__cmd,"ax",%progbits
+ 291              	 .align 1
+ 292              	 .global SDCard__cmd
+ 293              	 .syntax unified
+ 294              	 .thumb
+ 295              	 .thumb_func
+ 296              	 .fpu softvfp
+ 298              	SDCard__cmd:
+ 299              	.LFB69:
+ 432:SDCard.c      **** //     _cs = 0;
+ 300              	 .loc 1 432 0
+ 301              	 .cfi_startproc
+ 302              	 
+ 303              	 
+ 304              	.LVL17:
+ 305 0000 70B5     	 push {r4,r5,r6,lr}
+ 306              	 .cfi_def_cfa_offset 16
+ 307              	 .cfi_offset 4,-16
+ 308              	 .cfi_offset 5,-12
+ 309              	 .cfi_offset 6,-8
+ 310              	 .cfi_offset 14,-4
+ 432:SDCard.c      **** //     _cs = 0;
+ 311              	 .loc 1 432 0
+ 312 0002 0446     	 mov r4,r0
+ 313 0004 0D46     	 mov r5,r1
+ 434:SDCard.c      **** #ifdef debug
+ 314              	 .loc 1 434 0
+ 315 0006 184E     	 ldr r6,.L24
+ 316 0008 184B     	 ldr r3,.L24+4
+ 317 000a B6F90000 	 ldrsh r0,[r6]
+ 318              	.LVL18:
+ 319 000e 9847     	 blx r3
+ 320              	.LVL19:
+ 440:SDCard.c      ****     SPI_write(arg >> 24);
+ 321              	 .loc 1 440 0
+ 322 0010 44F04000 	 orr r0,r4,#64
+ 323 0014 C0B2     	 uxtb r0,r0
+ 324 0016 164C     	 ldr r4,.L24+8
+ 325              	.LVL20:
+ 326 0018 A047     	 blx r4
+ 327              	.LVL21:
+ 441:SDCard.c      ****     SPI_write(arg >> 16);
+ 328              	 .loc 1 441 0
+ 329 001a 280E     	 lsrs r0,r5,#24
+ 330 001c A047     	 blx r4
+ 331              	.LVL22:
+ 442:SDCard.c      ****     SPI_write(arg >> 8);
+ 332              	 .loc 1 442 0
+ 333 001e C5F30740 	 ubfx r0,r5,#16,#8
+ 334 0022 A047     	 blx r4
+ 335              	.LVL23:
+ 443:SDCard.c      ****     SPI_write(arg >> 0);
+ 336              	 .loc 1 443 0
+ 337 0024 C5F30720 	 ubfx r0,r5,#8,#8
+ 338 0028 A047     	 blx r4
+ 339              	.LVL24:
+ 444:SDCard.c      ****     SPI_write(0x95);
+ 340              	 .loc 1 444 0
+ 341 002a E8B2     	 uxtb r0,r5
+ 342 002c A047     	 blx r4
+ 343              	.LVL25:
+ 445:SDCard.c      **** 
+ 344              	 .loc 1 445 0
+ 345 002e 9520     	 movs r0,#149
+ 346 0030 A047     	 blx r4
+ 347              	.LVL26:
+ 348 0032 4FF48055 	 mov r5,#4096
+ 349              	.LVL27:
+ 350              	.L22:
+ 351              	.LBB22:
+ 352              	.LBB23:
+ 449:SDCard.c      ****         if(!(response & 0x80)) {
+ 353              	 .loc 1 449 0
+ 354 0036 FF20     	 movs r0,#255
+ 355 0038 A047     	 blx r4
+ 356              	.LVL28:
+ 450:SDCard.c      ****             GPIO_set(_cs);
+ 357              	 .loc 1 450 0
+ 358 003a 0306     	 lsls r3,r0,#24
+ 359 003c 08D4     	 bmi .L20
+ 449:SDCard.c      ****         if(!(response & 0x80)) {
+ 360              	 .loc 1 449 0
+ 361 003e 0546     	 mov r5,r0
+ 362              	.LVL29:
+ 451:SDCard.c      ****             SPI_write(0xFF);
+ 363              	 .loc 1 451 0
+ 364 0040 0C4B     	 ldr r3,.L24+12
+ 365 0042 B6F90000 	 ldrsh r0,[r6]
+ 366              	.LVL30:
+ 367 0046 9847     	 blx r3
+ 368              	.LVL31:
+ 452:SDCard.c      **** #ifdef debug
+ 369              	 .loc 1 452 0
+ 370 0048 FF20     	 movs r0,#255
+ 371 004a A047     	 blx r4
+ 372              	.LVL32:
+ 373              	.L19:
+ 374              	.LBE23:
+ 375              	.LBE22:
+ 466:SDCard.c      **** int SDCard__cmdx(int cmd, int arg) {
+ 376              	 .loc 1 466 0
+ 377 004c 2846     	 mov r0,r5
+ 378 004e 70BD     	 pop {r4,r5,r6,pc}
+ 379              	.LVL33:
+ 380              	.L20:
+ 381              	.LBB24:
+ 448:SDCard.c      ****         int response = SPI_write(0xFF);
+ 382              	 .loc 1 448 0 discriminator 2
+ 383 0050 013D     	 subs r5,r5,#1
+ 384              	.LVL34:
+ 385 0052 F0D1     	 bne .L22
+ 386              	.LVL35:
+ 387              	.LBE24:
+ 388              	.LBB25:
+ 389              	.LBB26:
+ 496:SDCard.c      ****     SPI_write(0xFF);
+ 390              	 .loc 1 496 0
+ 391 0054 B6F90000 	 ldrsh r0,[r6]
+ 392              	.LVL36:
+ 393 0058 064B     	 ldr r3,.L24+12
+ 394 005a 9847     	 blx r3
+ 395              	.LVL37:
+ 497:SDCard.c      ****     return -1; // timeout
+ 396              	 .loc 1 497 0
+ 397 005c FF20     	 movs r0,#255
+ 398 005e A047     	 blx r4
+ 399              	.LVL38:
+ 400 0060 4FF0FF35 	 mov r5,#-1
+ 401              	.LVL39:
+ 402 0064 F2E7     	 b .L19
+ 403              	.L25:
+ 404 0066 00BF     	 .align 2
+ 405              	.L24:
+ 406 0068 00000000 	 .word _cs
+ 407 006c 00000000 	 .word GPIO_clear
+ 408 0070 00000000 	 .word SPI_write
+ 409 0074 00000000 	 .word GPIO_set
+ 410              	.LBE26:
+ 411              	.LBE25:
+ 412              	 .cfi_endproc
+ 413              	.LFE69:
+ 415              	 .section .text.SDCard_initialise_card_v1,"ax",%progbits
+ 416              	 .align 1
+ 417              	 .global SDCard_initialise_card_v1
+ 418              	 .syntax unified
+ 419              	 .thumb
+ 420              	 .thumb_func
+ 421              	 .fpu softvfp
+ 423              	SDCard_initialise_card_v1:
+ 424              	.LFB58:
+ 182:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 425              	 .loc 1 182 0
+ 426              	 .cfi_startproc
+ 427              	 
+ 428              	 
+ 429              	.LVL40:
+ 430 0000 38B5     	 push {r3,r4,r5,lr}
+ 431              	 .cfi_def_cfa_offset 16
+ 432              	 .cfi_offset 3,-16
+ 433              	 .cfi_offset 4,-12
+ 434              	 .cfi_offset 5,-8
+ 435              	 .cfi_offset 14,-4
+ 182:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 436              	 .loc 1 182 0
+ 437 0002 4FF48054 	 mov r4,#4096
+ 438              	.LBB27:
+ 184:SDCard.c      **** 		if(SDCard__cmd(SD_ACMD_SD_SEND_OP_COND, 0) == 0) {
+ 439              	 .loc 1 184 0
+ 440 0006 094D     	 ldr r5,.L31
+ 441              	.LVL41:
+ 442              	.L29:
+ 443 0008 0021     	 movs r1,#0
+ 444 000a 3720     	 movs r0,#55
+ 445 000c A847     	 blx r5
+ 446              	.LVL42:
+ 185:SDCard.c      ****             return cardtype = SDCARD_V1;
+ 447              	 .loc 1 185 0
+ 448 000e 0021     	 movs r1,#0
+ 449 0010 2920     	 movs r0,#41
+ 450 0012 A847     	 blx r5
+ 451              	.LVL43:
+ 452 0014 18B9     	 cbnz r0,.L27
+ 186:SDCard.c      ****         }
+ 453              	 .loc 1 186 0
+ 454 0016 0120     	 movs r0,#1
+ 455 0018 054B     	 ldr r3,.L31+4
+ 456 001a 1860     	 str r0,[r3]
+ 457 001c 38BD     	 pop {r3,r4,r5,pc}
+ 458              	.LVL44:
+ 459              	.L27:
+ 183:SDCard.c      **** 		SDCard__cmd(SDCMD_APP_CMD, 0);
+ 460              	 .loc 1 183 0 discriminator 2
+ 461 001e 013C     	 subs r4,r4,#1
+ 462              	.LVL45:
+ 463 0020 F2D1     	 bne .L29
+ 464              	.LBE27:
+ 189:SDCard.c      ****     return SDCARD_FAIL;
+ 465              	 .loc 1 189 0 discriminator 1
+ 466 0022 044B     	 ldr r3,.L31+8
+ 467 0024 0448     	 ldr r0,.L31+12
+ 468 0026 9847     	 blx r3
+ 469              	.LVL46:
+ 190:SDCard.c      **** }
+ 470              	 .loc 1 190 0 discriminator 1
+ 471 0028 2046     	 mov r0,r4
+ 191:SDCard.c      **** 
+ 472              	 .loc 1 191 0 discriminator 1
+ 473 002a 38BD     	 pop {r3,r4,r5,pc}
+ 474              	.LVL47:
+ 475              	.L32:
+ 476              	 .align 2
+ 477              	.L31:
+ 478 002c 00000000 	 .word SDCard__cmd
+ 479 0030 00000000 	 .word cardtype
+ 480 0034 00000000 	 .word printf
+ 481 0038 00000000 	 .word .LC0
+ 482              	 .cfi_endproc
+ 483              	.LFE58:
+ 485              	 .section .text.SDCard__cmdx,"ax",%progbits
+ 486              	 .align 1
+ 487              	 .global SDCard__cmdx
+ 488              	 .syntax unified
+ 489              	 .thumb
+ 490              	 .thumb_func
+ 491              	 .fpu softvfp
+ 493              	SDCard__cmdx:
+ 494              	.LFB70:
+ 467:SDCard.c      **** //     _cs = 0;
+ 495              	 .loc 1 467 0
+ 496              	 .cfi_startproc
+ 497              	 
+ 498              	 
+ 499              	.LVL48:
+ 500 0000 70B5     	 push {r4,r5,r6,lr}
+ 501              	 .cfi_def_cfa_offset 16
+ 502              	 .cfi_offset 4,-16
+ 503              	 .cfi_offset 5,-12
+ 504              	 .cfi_offset 6,-8
+ 505              	 .cfi_offset 14,-4
+ 467:SDCard.c      **** //     _cs = 0;
+ 506              	 .loc 1 467 0
+ 507 0002 0446     	 mov r4,r0
+ 508 0004 0E46     	 mov r6,r1
+ 469:SDCard.c      **** 
+ 509              	 .loc 1 469 0
+ 510 0006 134D     	 ldr r5,.L38
+ 511 0008 134B     	 ldr r3,.L38+4
+ 512 000a B5F90000 	 ldrsh r0,[r5]
+ 513              	.LVL49:
+ 514 000e 9847     	 blx r3
+ 515              	.LVL50:
+ 475:SDCard.c      ****     SPI_write(arg >> 24);
+ 516              	 .loc 1 475 0
+ 517 0010 44F04000 	 orr r0,r4,#64
+ 518 0014 C0B2     	 uxtb r0,r0
+ 519 0016 114C     	 ldr r4,.L38+8
+ 520              	.LVL51:
+ 521 0018 A047     	 blx r4
+ 522              	.LVL52:
+ 476:SDCard.c      ****     SPI_write(arg >> 16);
+ 523              	 .loc 1 476 0
+ 524 001a 300E     	 lsrs r0,r6,#24
+ 525 001c A047     	 blx r4
+ 526              	.LVL53:
+ 477:SDCard.c      ****     SPI_write(arg >> 8);
+ 527              	 .loc 1 477 0
+ 528 001e C6F30740 	 ubfx r0,r6,#16,#8
+ 529 0022 A047     	 blx r4
+ 530              	.LVL54:
+ 478:SDCard.c      ****     SPI_write(arg >> 0);
+ 531              	 .loc 1 478 0
+ 532 0024 C6F30720 	 ubfx r0,r6,#8,#8
+ 533 0028 A047     	 blx r4
+ 534              	.LVL55:
+ 479:SDCard.c      ****     SPI_write(0x95);
+ 535              	 .loc 1 479 0
+ 536 002a F0B2     	 uxtb r0,r6
+ 537 002c A047     	 blx r4
+ 538              	.LVL56:
+ 480:SDCard.c      **** 
+ 539              	 .loc 1 480 0
+ 540 002e 9520     	 movs r0,#149
+ 541 0030 A047     	 blx r4
+ 542              	.LVL57:
+ 543 0032 4FF48056 	 mov r6,#4096
+ 544              	.LVL58:
+ 545              	.L36:
+ 546              	.LBB34:
+ 547              	.LBB35:
+ 484:SDCard.c      ****         if(!(response & 0x80)) {
+ 548              	 .loc 1 484 0
+ 549 0036 FF20     	 movs r0,#255
+ 550 0038 A047     	 blx r4
+ 551              	.LVL59:
+ 485:SDCard.c      **** #ifdef debug
+ 552              	 .loc 1 485 0
+ 553 003a 0306     	 lsls r3,r0,#24
+ 554 003c 09D5     	 bpl .L33
+ 555              	.LVL60:
+ 556              	.LBE35:
+ 483:SDCard.c      ****         int response = SPI_write(0xFF);
+ 557              	 .loc 1 483 0 discriminator 2
+ 558 003e 013E     	 subs r6,r6,#1
+ 559              	.LVL61:
+ 560 0040 F9D1     	 bne .L36
+ 561              	.LVL62:
+ 562              	.LBE34:
+ 563              	.LBB36:
+ 564              	.LBB37:
+ 496:SDCard.c      ****     SPI_write(0xFF);
+ 565              	 .loc 1 496 0
+ 566 0042 B5F90000 	 ldrsh r0,[r5]
+ 567              	.LVL63:
+ 568 0046 064B     	 ldr r3,.L38+12
+ 569 0048 9847     	 blx r3
+ 570              	.LVL64:
+ 497:SDCard.c      ****     return -1; // timeout
+ 571              	 .loc 1 497 0
+ 572 004a FF20     	 movs r0,#255
+ 573 004c A047     	 blx r4
+ 574              	.LVL65:
+ 575 004e 4FF0FF30 	 mov r0,#-1
+ 576              	.LVL66:
+ 577              	.L33:
+ 578              	.LBE37:
+ 579              	.LBE36:
+ 499:SDCard.c      **** 
+ 580              	 .loc 1 499 0
+ 581 0052 70BD     	 pop {r4,r5,r6,pc}
+ 582              	.L39:
+ 583              	 .align 2
+ 584              	.L38:
+ 585 0054 00000000 	 .word _cs
+ 586 0058 00000000 	 .word GPIO_clear
+ 587 005c 00000000 	 .word SPI_write
+ 588 0060 00000000 	 .word GPIO_set
+ 589              	 .cfi_endproc
+ 590              	.LFE70:
+ 592              	 .section .text.SDCard__cmd58,"ax",%progbits
+ 593              	 .align 1
+ 594              	 .global SDCard__cmd58
+ 595              	 .syntax unified
+ 596              	 .thumb
+ 597              	 .thumb_func
+ 598              	 .fpu softvfp
+ 600              	SDCard__cmd58:
+ 601              	.LFB71:
+ 502:SDCard.c      **** //     _cs = 0;
+ 602              	 .loc 1 502 0
+ 603              	 .cfi_startproc
+ 604              	 
+ 605              	 
+ 606              	.LVL67:
+ 607 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 608              	 .cfi_def_cfa_offset 24
+ 609              	 .cfi_offset 4,-24
+ 610              	 .cfi_offset 5,-20
+ 611              	 .cfi_offset 6,-16
+ 612              	 .cfi_offset 7,-12
+ 613              	 .cfi_offset 8,-8
+ 614              	 .cfi_offset 14,-4
+ 504:SDCard.c      ****     int arg = 0;
+ 615              	 .loc 1 504 0
+ 616 0004 214F     	 ldr r7,.L45
+ 617 0006 224B     	 ldr r3,.L45+4
+ 502:SDCard.c      **** //     _cs = 0;
+ 618              	 .loc 1 502 0
+ 619 0008 0546     	 mov r5,r0
+ 504:SDCard.c      ****     int arg = 0;
+ 620              	 .loc 1 504 0
+ 621 000a B7F90000 	 ldrsh r0,[r7]
+ 622              	.LVL68:
+ 623 000e 9847     	 blx r3
+ 624              	.LVL69:
+ 508:SDCard.c      ****     SPI_write(arg >> 24);
+ 625              	 .loc 1 508 0
+ 626 0010 204C     	 ldr r4,.L45+8
+ 627 0012 7A20     	 movs r0,#122
+ 628 0014 A047     	 blx r4
+ 629              	.LVL70:
+ 509:SDCard.c      ****     SPI_write(arg >> 16);
+ 630              	 .loc 1 509 0
+ 631 0016 0020     	 movs r0,#0
+ 632 0018 A047     	 blx r4
+ 633              	.LVL71:
+ 510:SDCard.c      ****     SPI_write(arg >> 8);
+ 634              	 .loc 1 510 0
+ 635 001a 0020     	 movs r0,#0
+ 636 001c A047     	 blx r4
+ 637              	.LVL72:
+ 511:SDCard.c      ****     SPI_write(arg >> 0);
+ 638              	 .loc 1 511 0
+ 639 001e 0020     	 movs r0,#0
+ 640 0020 A047     	 blx r4
+ 641              	.LVL73:
+ 512:SDCard.c      ****     SPI_write(0x95);
+ 642              	 .loc 1 512 0
+ 643 0022 0020     	 movs r0,#0
+ 644 0024 A047     	 blx r4
+ 645              	.LVL74:
+ 513:SDCard.c      **** 
+ 646              	 .loc 1 513 0
+ 647 0026 9520     	 movs r0,#149
+ 648 0028 A047     	 blx r4
+ 649              	.LVL75:
+ 650 002a 4FF48058 	 mov r8,#4096
+ 651              	.LVL76:
+ 652              	.L43:
+ 653              	.LBB38:
+ 654              	.LBB39:
+ 517:SDCard.c      ****         if(!(response & 0x80)) {
+ 655              	 .loc 1 517 0
+ 656 002e FF20     	 movs r0,#255
+ 657 0030 A047     	 blx r4
+ 658              	.LVL77:
+ 518:SDCard.c      ****             *ocr = SPI_write(0xFF) << 24;
+ 659              	 .loc 1 518 0
+ 660 0032 0306     	 lsls r3,r0,#24
+ 661 0034 1ED4     	 bmi .L41
+ 517:SDCard.c      ****         if(!(response & 0x80)) {
+ 662              	 .loc 1 517 0
+ 663 0036 0646     	 mov r6,r0
+ 519:SDCard.c      ****             *ocr |= SPI_write(0xFF) << 16;
+ 664              	 .loc 1 519 0
+ 665 0038 FF20     	 movs r0,#255
+ 666              	.LVL78:
+ 667 003a A047     	 blx r4
+ 668              	.LVL79:
+ 669 003c 0006     	 lsls r0,r0,#24
+ 670 003e 2860     	 str r0,[r5]
+ 520:SDCard.c      ****             *ocr |= SPI_write(0xFF) << 8;
+ 671              	 .loc 1 520 0
+ 672 0040 FF20     	 movs r0,#255
+ 673 0042 A047     	 blx r4
+ 674              	.LVL80:
+ 675 0044 2B68     	 ldr r3,[r5]
+ 676 0046 43EA0040 	 orr r0,r3,r0,lsl#16
+ 677 004a 2860     	 str r0,[r5]
+ 521:SDCard.c      ****             *ocr |= SPI_write(0xFF) << 0;
+ 678              	 .loc 1 521 0
+ 679 004c FF20     	 movs r0,#255
+ 680 004e A047     	 blx r4
+ 681              	.LVL81:
+ 682 0050 2B68     	 ldr r3,[r5]
+ 683 0052 43EA0020 	 orr r0,r3,r0,lsl#8
+ 684 0056 2860     	 str r0,[r5]
+ 522:SDCard.c      **** //            printf("OCR = 0x%08X\n", *ocr);
+ 685              	 .loc 1 522 0
+ 686 0058 FF20     	 movs r0,#255
+ 687 005a A047     	 blx r4
+ 688              	.LVL82:
+ 689 005c 2B68     	 ldr r3,[r5]
+ 690 005e 1843     	 orrs r0,r0,r3
+ 691 0060 2860     	 str r0,[r5]
+ 525:SDCard.c      ****             SPI_write(0xFF);
+ 692              	 .loc 1 525 0
+ 693 0062 0D4B     	 ldr r3,.L45+12
+ 694 0064 B7F90000 	 ldrsh r0,[r7]
+ 695 0068 9847     	 blx r3
+ 696              	.LVL83:
+ 526:SDCard.c      ****             return response;
+ 697              	 .loc 1 526 0
+ 698 006a FF20     	 movs r0,#255
+ 699 006c A047     	 blx r4
+ 700              	.LVL84:
+ 701              	.L40:
+ 702              	.LBE39:
+ 703              	.LBE38:
+ 534:SDCard.c      **** 
+ 704              	 .loc 1 534 0
+ 705 006e 3046     	 mov r0,r6
+ 706 0070 BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 707              	.LVL85:
+ 708              	.L41:
+ 709              	.LBB40:
+ 516:SDCard.c      ****         int response = SPI_write(0xFF);
+ 710              	 .loc 1 516 0 discriminator 2
+ 711 0074 B8F10108 	 subs r8,r8,#1
+ 712              	.LVL86:
+ 713 0078 D9D1     	 bne .L43
+ 714              	.LBE40:
+ 531:SDCard.c      ****     SPI_write(0xFF);
+ 715              	 .loc 1 531 0
+ 716 007a B7F90000 	 ldrsh r0,[r7]
+ 717              	.LVL87:
+ 718 007e 064B     	 ldr r3,.L45+12
+ 719 0080 9847     	 blx r3
+ 720              	.LVL88:
+ 532:SDCard.c      ****     return -1; // timeout
+ 721              	 .loc 1 532 0
+ 722 0082 FF20     	 movs r0,#255
+ 723 0084 A047     	 blx r4
+ 724              	.LVL89:
+ 533:SDCard.c      **** }
+ 725              	 .loc 1 533 0
+ 726 0086 4FF0FF36 	 mov r6,#-1
+ 727 008a F0E7     	 b .L40
+ 728              	.L46:
+ 729              	 .align 2
+ 730              	.L45:
+ 731 008c 00000000 	 .word _cs
+ 732 0090 00000000 	 .word GPIO_clear
+ 733 0094 00000000 	 .word SPI_write
+ 734 0098 00000000 	 .word GPIO_set
+ 735              	 .cfi_endproc
+ 736              	.LFE71:
+ 738              	 .section .text.SDCard_initialise_card_v2,"ax",%progbits
+ 739              	 .align 1
+ 740              	 .global SDCard_initialise_card_v2
+ 741              	 .syntax unified
+ 742              	 .thumb
+ 743              	 .thumb_func
+ 744              	 .fpu softvfp
+ 746              	SDCard_initialise_card_v2:
+ 747              	.LFB59:
+ 193:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 748              	 .loc 1 193 0
+ 749              	 .cfi_startproc
+ 750              	 
+ 751              	 
+ 752              	.LVL90:
+ 753 0000 37B5     	 push {r0,r1,r2,r4,r5,lr}
+ 754              	 .cfi_def_cfa_offset 24
+ 755              	 .cfi_offset 4,-12
+ 756              	 .cfi_offset 5,-8
+ 757              	 .cfi_offset 14,-4
+ 193:SDCard.c      ****     for(int i=0; i<SD_COMMAND_TIMEOUT; i++) {
+ 758              	 .loc 1 193 0
+ 759 0002 4FF48054 	 mov r4,#4096
+ 760              	.LBB47:
+ 195:SDCard.c      **** 		if(SDCard__cmd(SD_ACMD_SD_SEND_OP_COND, (1UL<<30)) == 0) {
+ 761              	 .loc 1 195 0
+ 762 0006 0F4D     	 ldr r5,.L55
+ 763              	.LVL91:
+ 764              	.L52:
+ 765 0008 0021     	 movs r1,#0
+ 766 000a 3720     	 movs r0,#55
+ 767 000c A847     	 blx r5
+ 768              	.LVL92:
+ 196:SDCard.c      **** 			uint32_t ocr;
+ 769              	 .loc 1 196 0
+ 770 000e 4FF08041 	 mov r1,#1073741824
+ 771 0012 2920     	 movs r0,#41
+ 772 0014 A847     	 blx r5
+ 773              	.LVL93:
+ 774 0016 60B9     	 cbnz r0,.L48
+ 775              	.LBB48:
+ 198:SDCard.c      **** 			if (ocr & (1UL<<30))
+ 776              	 .loc 1 198 0
+ 777 0018 0B4B     	 ldr r3,.L55+4
+ 778 001a 01A8     	 add r0,sp,#4
+ 779 001c 9847     	 blx r3
+ 780              	.LVL94:
+ 199:SDCard.c      **** 				return cardtype = SDCARD_V2HC;
+ 781              	 .loc 1 199 0
+ 782 001e 019B     	 ldr r3,[sp,#4]
+ 783 0020 13F0804F 	 tst r3,#1073741824
+ 200:SDCard.c      **** 			else
+ 784              	 .loc 1 200 0
+ 785 0024 14BF     	 ite ne
+ 786 0026 0320     	 movne r0,#3
+ 202:SDCard.c      **** 		}
+ 787              	 .loc 1 202 0
+ 788 0028 0220     	 moveq r0,#2
+ 789 002a 084B     	 ldr r3,.L55+8
+ 790 002c 1860     	 str r0,[r3]
+ 791              	.LVL95:
+ 792              	.L47:
+ 793              	.LBE48:
+ 794              	.LBE47:
+ 207:SDCard.c      **** 
+ 795              	 .loc 1 207 0
+ 796 002e 03B0     	 add sp,sp,#12
+ 797              	 .cfi_remember_state
+ 798              	 .cfi_def_cfa_offset 12
+ 799              	 
+ 800 0030 30BD     	 pop {r4,r5,pc}
+ 801              	.LVL96:
+ 802              	.L48:
+ 803              	 .cfi_restore_state
+ 804              	.LBB49:
+ 194:SDCard.c      ****         SDCard__cmd(SDCMD_APP_CMD, 0);
+ 805              	 .loc 1 194 0 discriminator 2
+ 806 0032 013C     	 subs r4,r4,#1
+ 807              	.LVL97:
+ 808 0034 E8D1     	 bne .L52
+ 809              	.LBE49:
+ 810              	.LBB50:
+ 811              	.LBB51:
+ 205:SDCard.c      ****     return cardtype = SDCARD_FAIL;
+ 812              	 .loc 1 205 0
+ 813 0036 064B     	 ldr r3,.L55+12
+ 814 0038 0648     	 ldr r0,.L55+16
+ 815 003a 9847     	 blx r3
+ 816              	.LVL98:
+ 206:SDCard.c      **** }
+ 817              	 .loc 1 206 0
+ 818 003c 034B     	 ldr r3,.L55+8
+ 819 003e 2046     	 mov r0,r4
+ 820 0040 1C60     	 str r4,[r3]
+ 821 0042 F4E7     	 b .L47
+ 822              	.L56:
+ 823              	 .align 2
+ 824              	.L55:
+ 825 0044 00000000 	 .word SDCard__cmd
+ 826 0048 00000000 	 .word SDCard__cmd58
+ 827 004c 00000000 	 .word cardtype
+ 828 0050 00000000 	 .word printf
+ 829 0054 00000000 	 .word .LC1
+ 830              	.LBE51:
+ 831              	.LBE50:
+ 832              	 .cfi_endproc
+ 833              	.LFE59:
+ 835              	 .section .text.SDCard__cmd8,"ax",%progbits
+ 836              	 .align 1
+ 837              	 .global SDCard__cmd8
+ 838              	 .syntax unified
+ 839              	 .thumb
+ 840              	 .thumb_func
+ 841              	 .fpu softvfp
+ 843              	SDCard__cmd8:
+ 844              	.LFB72:
+ 536:SDCard.c      **** //     _cs = 0;
+ 845              	 .loc 1 536 0
+ 846              	 .cfi_startproc
+ 847              	 
+ 848              	 
+ 849 0000 F7B5     	 push {r0,r1,r2,r4,r5,r6,r7,lr}
+ 850              	 .cfi_def_cfa_offset 32
+ 851              	 .cfi_offset 4,-20
+ 852              	 .cfi_offset 5,-16
+ 853              	 .cfi_offset 6,-12
+ 854              	 .cfi_offset 7,-8
+ 855              	 .cfi_offset 14,-4
+ 538:SDCard.c      **** 
+ 856              	 .loc 1 538 0
+ 857 0002 1B4D     	 ldr r5,.L64
+ 858 0004 1B4B     	 ldr r3,.L64+4
+ 859 0006 B5F90000 	 ldrsh r0,[r5]
+ 860 000a 9847     	 blx r3
+ 861              	.LVL99:
+ 541:SDCard.c      ****     SPI_write(0x00);     // reserved
+ 862              	 .loc 1 541 0
+ 863 000c 1A4C     	 ldr r4,.L64+8
+ 864 000e 4820     	 movs r0,#72
+ 865 0010 A047     	 blx r4
+ 866              	.LVL100:
+ 542:SDCard.c      ****     SPI_write(0x00);     // reserved
+ 867              	 .loc 1 542 0
+ 868 0012 0020     	 movs r0,#0
+ 869 0014 A047     	 blx r4
+ 870              	.LVL101:
+ 543:SDCard.c      ****     SPI_write(0x01);     // 3.3v
+ 871              	 .loc 1 543 0
+ 872 0016 0020     	 movs r0,#0
+ 873 0018 A047     	 blx r4
+ 874              	.LVL102:
+ 544:SDCard.c      ****     SPI_write(0xAA);     // check pattern
+ 875              	 .loc 1 544 0
+ 876 001a 0120     	 movs r0,#1
+ 877 001c A047     	 blx r4
+ 878              	.LVL103:
+ 545:SDCard.c      ****     SPI_write(0x87);     // crc
+ 879              	 .loc 1 545 0
+ 880 001e AA20     	 movs r0,#170
+ 881 0020 A047     	 blx r4
+ 882              	.LVL104:
+ 546:SDCard.c      **** 
+ 883              	 .loc 1 546 0
+ 884 0022 8720     	 movs r0,#135
+ 885 0024 A047     	 blx r4
+ 886              	.LVL105:
+ 887 0026 4FF47A16 	 mov r6,#4096000
+ 888              	.LVL106:
+ 889              	.L61:
+ 890              	.LBB52:
+ 891              	.LBB53:
+ 551:SDCard.c      ****         if(!(response[0] & 0x80)) {
+ 892              	 .loc 1 551 0
+ 893 002a FF20     	 movs r0,#255
+ 894 002c A047     	 blx r4
+ 895              	.LVL107:
+ 552:SDCard.c      ****                 for(int j=1; j<5; j++) {
+ 896              	 .loc 1 552 0
+ 897 002e 0306     	 lsls r3,r0,#24
+ 898 0030 13D4     	 bmi .L58
+ 551:SDCard.c      ****         if(!(response[0] & 0x80)) {
+ 899              	 .loc 1 551 0
+ 900 0032 0126     	 movs r6,#1
+ 901              	.LVL108:
+ 902 0034 02AF     	 add r7,sp,#8
+ 903 0036 07F8080D 	 strb r0,[r7,#-8]!
+ 904              	.L59:
+ 905              	.LVL109:
+ 906              	.LBB54:
+ 554:SDCard.c      ****                 }
+ 907              	 .loc 1 554 0 discriminator 3
+ 908 003a FF20     	 movs r0,#255
+ 909 003c A047     	 blx r4
+ 910              	.LVL110:
+ 911 003e B855     	 strb r0,[r7,r6]
+ 553:SDCard.c      ****                     response[j] = SPI_write(0xFF);
+ 912              	 .loc 1 553 0 discriminator 3
+ 913 0040 0136     	 adds r6,r6,#1
+ 914              	.LVL111:
+ 915 0042 052E     	 cmp r6,#5
+ 916 0044 F9D1     	 bne .L59
+ 917              	.LBE54:
+ 557:SDCard.c      ****                 SPI_write(0xFF);
+ 918              	 .loc 1 557 0
+ 919 0046 B5F90000 	 ldrsh r0,[r5]
+ 920 004a 0C4B     	 ldr r3,.L64+12
+ 921 004c 9847     	 blx r3
+ 922              	.LVL112:
+ 558:SDCard.c      ****                 return response[0];
+ 923              	 .loc 1 558 0
+ 924 004e FF20     	 movs r0,#255
+ 925 0050 A047     	 blx r4
+ 926              	.LVL113:
+ 559:SDCard.c      ****         }
+ 927              	 .loc 1 559 0
+ 928 0052 9DF80000 	 ldrb r0,[sp]
+ 929              	.LVL114:
+ 930              	.L57:
+ 931              	.LBE53:
+ 932              	.LBE52:
+ 566:SDCard.c      **** 
+ 933              	 .loc 1 566 0
+ 934 0056 03B0     	 add sp,sp,#12
+ 935              	 .cfi_remember_state
+ 936              	 .cfi_def_cfa_offset 20
+ 937              	 
+ 938 0058 F0BD     	 pop {r4,r5,r6,r7,pc}
+ 939              	.LVL115:
+ 940              	.L58:
+ 941              	 .cfi_restore_state
+ 942              	.LBB55:
+ 549:SDCard.c      ****         char response[5];
+ 943              	 .loc 1 549 0
+ 944 005a 013E     	 subs r6,r6,#1
+ 945              	.LVL116:
+ 946 005c E5D1     	 bne .L61
+ 947              	.LBE55:
+ 563:SDCard.c      ****     SPI_write(0xFF);
+ 948              	 .loc 1 563 0
+ 949 005e B5F90000 	 ldrsh r0,[r5]
+ 950 0062 064B     	 ldr r3,.L64+12
+ 951 0064 9847     	 blx r3
+ 952              	.LVL117:
+ 564:SDCard.c      ****     return -1; // timeout
+ 953              	 .loc 1 564 0
+ 954 0066 FF20     	 movs r0,#255
+ 955 0068 A047     	 blx r4
+ 956              	.LVL118:
+ 565:SDCard.c      **** }
+ 957              	 .loc 1 565 0
+ 958 006a 4FF0FF30 	 mov r0,#-1
+ 959 006e F2E7     	 b .L57
+ 960              	.L65:
+ 961              	 .align 2
+ 962              	.L64:
+ 963 0070 00000000 	 .word _cs
+ 964 0074 00000000 	 .word GPIO_clear
+ 965 0078 00000000 	 .word SPI_write
+ 966 007c 00000000 	 .word GPIO_set
+ 967              	 .cfi_endproc
+ 968              	.LFE72:
+ 970              	 .section .text.SDCard_initialise_card,"ax",%progbits
+ 971              	 .align 1
+ 972              	 .global SDCard_initialise_card
+ 973              	 .syntax unified
+ 974              	 .thumb
+ 975              	 .thumb_func
+ 976              	 .fpu softvfp
+ 978              	SDCard_initialise_card:
+ 979              	.LFB57:
+ 148:SDCard.c      ****     // Set to 25kHz for initialisation, and clock card with cs = 1
+ 980              	 .loc 1 148 0
+ 981              	 .cfi_startproc
+ 982              	 
+ 983              	 
+ 984 0000 70B5     	 push {r4,r5,r6,lr}
+ 985              	 .cfi_def_cfa_offset 16
+ 986              	 .cfi_offset 4,-16
+ 987              	 .cfi_offset 5,-12
+ 988              	 .cfi_offset 6,-8
+ 989              	 .cfi_offset 14,-4
+ 150:SDCard.c      ****     GPIO_set(_cs);
+ 990              	 .loc 1 150 0
+ 991 0002 46F2A810 	 movw r0,#25000
+ 992 0006 134B     	 ldr r3,.L75
+ 993 0008 9847     	 blx r3
+ 994              	.LVL119:
+ 151:SDCard.c      **** 
+ 995              	 .loc 1 151 0
+ 996 000a 134B     	 ldr r3,.L75+4
+ 997 000c 1024     	 movs r4,#16
+ 998 000e B3F90000 	 ldrsh r0,[r3]
+ 999 0012 124B     	 ldr r3,.L75+8
+ 1000 0014 9847     	 blx r3
+ 1001              	.LVL120:
+ 1002              	.LBB60:
+ 154:SDCard.c      ****     }
+ 1003              	 .loc 1 154 0
+ 1004 0016 124D     	 ldr r5,.L75+12
+ 1005              	.LVL121:
+ 1006              	.L67:
+ 154:SDCard.c      ****     }
+ 1007              	 .loc 1 154 0 is_stmt 0 discriminator 3
+ 1008 0018 FF20     	 movs r0,#255
+ 1009 001a A847     	 blx r5
+ 1010              	.LVL122:
+ 153:SDCard.c      ****         SPI_write(0xFF);
+ 1011              	 .loc 1 153 0 is_stmt 1 discriminator 3
+ 1012 001c 013C     	 subs r4,r4,#1
+ 1013              	.LVL123:
+ 1014 001e FBD1     	 bne .L67
+ 1015              	.LBE60:
+ 158:SDCard.c      **** #ifdef debug
+ 1016              	 .loc 1 158 0
+ 1017 0020 2146     	 mov r1,r4
+ 1018 0022 2046     	 mov r0,r4
+ 1019 0024 0F4B     	 ldr r3,.L75+16
+ 1020 0026 9847     	 blx r3
+ 1021              	.LVL124:
+ 1022 0028 0128     	 cmp r0,#1
+ 1023 002a 03D0     	 beq .L68
+ 1024              	.L73:
+ 1025              	.LBB61:
+ 1026              	.LBB62:
+ 178:SDCard.c      ****     }
+ 1027              	 .loc 1 178 0
+ 1028 002c 0E4B     	 ldr r3,.L75+20
+ 1029              	.LBE62:
+ 1030              	.LBE61:
+ 180:SDCard.c      **** 
+ 1031              	 .loc 1 180 0
+ 1032 002e 0020     	 movs r0,#0
+ 1033              	.LBB65:
+ 1034              	.LBB63:
+ 178:SDCard.c      ****     }
+ 1035              	 .loc 1 178 0
+ 1036 0030 1C60     	 str r4,[r3]
+ 1037              	.LBE63:
+ 1038              	.LBE65:
+ 180:SDCard.c      **** 
+ 1039              	 .loc 1 180 0
+ 1040 0032 70BD     	 pop {r4,r5,r6,pc}
+ 1041              	.LVL125:
+ 1042              	.L68:
+ 166:SDCard.c      ****     if(r == R1_IDLE_STATE) {
+ 1043              	 .loc 1 166 0
+ 1044 0034 0D4B     	 ldr r3,.L75+24
+ 1045 0036 9847     	 blx r3
+ 1046              	.LVL126:
+ 167:SDCard.c      **** #ifdef debug
+ 1047              	 .loc 1 167 0
+ 1048 0038 0128     	 cmp r0,#1
+ 1049 003a 03D1     	 bne .L70
+ 171:SDCard.c      ****     } else if(r == (R1_IDLE_STATE | R1_ILLEGAL_COMMAND)) {
+ 1050              	 .loc 1 171 0
+ 1051 003c 0C4B     	 ldr r3,.L75+28
+ 1052              	.L74:
+ 180:SDCard.c      **** 
+ 1053              	 .loc 1 180 0
+ 1054 003e BDE87040 	 pop {r4,r5,r6,lr}
+ 1055              	 .cfi_remember_state
+ 1056              	 .cfi_restore 14
+ 1057              	 .cfi_restore 6
+ 1058              	 .cfi_restore 5
+ 1059              	 .cfi_restore 4
+ 1060              	 .cfi_def_cfa_offset 0
+ 1061              	.LVL127:
+ 173:SDCard.c      ****     } else {
+ 1062              	 .loc 1 173 0
+ 1063 0042 1847     	 bx r3
+ 1064              	.LVL128:
+ 1065              	.L70:
+ 1066              	 .cfi_restore_state
+ 172:SDCard.c      **** 		return SDCard_initialise_card_v1();
+ 1067              	 .loc 1 172 0
+ 1068 0044 0528     	 cmp r0,#5
+ 1069 0046 01D1     	 bne .L71
+ 173:SDCard.c      ****     } else {
+ 1070              	 .loc 1 173 0
+ 1071 0048 0A4B     	 ldr r3,.L75+32
+ 1072 004a F8E7     	 b .L74
+ 1073              	.L71:
+ 1074              	.LBB66:
+ 1075              	.LBB64:
+ 176:SDCard.c      **** #endif
+ 1076              	 .loc 1 176 0
+ 1077 004c 0A4B     	 ldr r3,.L75+36
+ 1078 004e 0B48     	 ldr r0,.L75+40
+ 1079              	.LVL129:
+ 1080 0050 9847     	 blx r3
+ 1081              	.LVL130:
+ 1082 0052 EBE7     	 b .L73
+ 1083              	.L76:
+ 1084              	 .align 2
+ 1085              	.L75:
+ 1086 0054 00000000 	 .word SPI_frequency
+ 1087 0058 00000000 	 .word _cs
+ 1088 005c 00000000 	 .word GPIO_set
+ 1089 0060 00000000 	 .word SPI_write
+ 1090 0064 00000000 	 .word SDCard__cmd
+ 1091 0068 00000000 	 .word cardtype
+ 1092 006c 00000000 	 .word SDCard__cmd8
+ 1093 0070 00000000 	 .word SDCard_initialise_card_v2
+ 1094 0074 00000000 	 .word SDCard_initialise_card_v1
+ 1095 0078 00000000 	 .word printf
+ 1096 007c 00000000 	 .word .LC2
+ 1097              	.LBE64:
+ 1098              	.LBE66:
+ 1099              	 .cfi_endproc
+ 1100              	.LFE57:
+ 1102              	 .section .text.SDCard__read,"ax",%progbits
+ 1103              	 .align 1
+ 1104              	 .global SDCard__read
+ 1105              	 .syntax unified
+ 1106              	 .thumb
+ 1107              	 .thumb_func
+ 1108              	 .fpu softvfp
+ 1110              	SDCard__read:
+ 1111              	.LFB73:
+ 568:SDCard.c      **** //     _cs = 0;
+ 1112              	 .loc 1 568 0
+ 1113              	 .cfi_startproc
+ 1114              	 
+ 1115              	 
+ 1116              	.LVL131:
+ 1117 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 1118              	 .cfi_def_cfa_offset 24
+ 1119              	 .cfi_offset 4,-24
+ 1120              	 .cfi_offset 5,-20
+ 1121              	 .cfi_offset 6,-16
+ 1122              	 .cfi_offset 7,-12
+ 1123              	 .cfi_offset 8,-8
+ 1124              	 .cfi_offset 14,-4
+ 570:SDCard.c      **** 
+ 1125              	 .loc 1 570 0
+ 1126 0004 114D     	 ldr r5,.L82
+ 573:SDCard.c      **** 
+ 1127              	 .loc 1 573 0
+ 1128 0006 124E     	 ldr r6,.L82+4
+ 568:SDCard.c      **** //     _cs = 0;
+ 1129              	 .loc 1 568 0
+ 1130 0008 0746     	 mov r7,r0
+ 570:SDCard.c      **** 
+ 1131              	 .loc 1 570 0
+ 1132 000a 124B     	 ldr r3,.L82+8
+ 1133 000c B5F90000 	 ldrsh r0,[r5]
+ 1134              	.LVL132:
+ 568:SDCard.c      **** //     _cs = 0;
+ 1135              	 .loc 1 568 0
+ 1136 0010 8846     	 mov r8,r1
+ 1137 0012 3446     	 mov r4,r6
+ 570:SDCard.c      **** 
+ 1138              	 .loc 1 570 0
+ 1139 0014 9847     	 blx r3
+ 1140              	.LVL133:
+ 1141              	.L78:
+ 573:SDCard.c      **** 
+ 1142              	 .loc 1 573 0 discriminator 1
+ 1143 0016 FF20     	 movs r0,#255
+ 1144 0018 B047     	 blx r6
+ 1145              	.LVL134:
+ 1146 001a FE28     	 cmp r0,#254
+ 1147 001c FBD1     	 bne .L78
+ 573:SDCard.c      **** 
+ 1148              	 .loc 1 573 0 is_stmt 0
+ 1149 001e 3E46     	 mov r6,r7
+ 1150              	.L79:
+ 1151              	.LVL135:
+ 1152              	.LBB67:
+ 576:SDCard.c      ****         buffer[i] = SPI_write(0xFF);
+ 1153              	 .loc 1 576 0 is_stmt 1 discriminator 1
+ 1154 0020 F31B     	 subs r3,r6,r7
+ 1155 0022 9845     	 cmp r8,r3
+ 577:SDCard.c      ****     }
+ 1156              	 .loc 1 577 0 discriminator 1
+ 1157 0024 4FF0FF00 	 mov r0,#255
+ 576:SDCard.c      ****         buffer[i] = SPI_write(0xFF);
+ 1158              	 .loc 1 576 0 discriminator 1
+ 1159 0028 0BDC     	 bgt .L80
+ 1160              	.LBE67:
+ 579:SDCard.c      ****     SPI_write(0xFF);
+ 1161              	 .loc 1 579 0
+ 1162 002a A047     	 blx r4
+ 1163              	.LVL136:
+ 580:SDCard.c      **** 
+ 1164              	 .loc 1 580 0
+ 1165 002c FF20     	 movs r0,#255
+ 1166 002e A047     	 blx r4
+ 1167              	.LVL137:
+ 583:SDCard.c      ****     SPI_write(0xFF);
+ 1168              	 .loc 1 583 0
+ 1169 0030 B5F90000 	 ldrsh r0,[r5]
+ 1170 0034 084B     	 ldr r3,.L82+12
+ 1171 0036 9847     	 blx r3
+ 1172              	.LVL138:
+ 584:SDCard.c      ****     return 0;
+ 1173              	 .loc 1 584 0
+ 1174 0038 FF20     	 movs r0,#255
+ 1175 003a A047     	 blx r4
+ 1176              	.LVL139:
+ 586:SDCard.c      **** 
+ 1177              	 .loc 1 586 0
+ 1178 003c 0020     	 movs r0,#0
+ 1179 003e BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 1180              	.LVL140:
+ 1181              	.L80:
+ 1182              	.LBB68:
+ 577:SDCard.c      ****     }
+ 1183              	 .loc 1 577 0 discriminator 3
+ 1184 0042 A047     	 blx r4
+ 1185              	.LVL141:
+ 1186 0044 06F8010B 	 strb r0,[r6],#1
+ 1187              	.LVL142:
+ 1188 0048 EAE7     	 b .L79
+ 1189              	.L83:
+ 1190 004a 00BF     	 .align 2
+ 1191              	.L82:
+ 1192 004c 00000000 	 .word _cs
+ 1193 0050 00000000 	 .word SPI_write
+ 1194 0054 00000000 	 .word GPIO_clear
+ 1195 0058 00000000 	 .word GPIO_set
+ 1196              	.LBE68:
+ 1197              	 .cfi_endproc
+ 1198              	.LFE73:
+ 1200              	 .section .text.SDCard_disk_read,"ax",%progbits
+ 1201              	 .align 1
+ 1202              	 .global SDCard_disk_read
+ 1203              	 .syntax unified
+ 1204              	 .thumb
+ 1205              	 .thumb_func
+ 1206              	 .fpu softvfp
+ 1208              	SDCard_disk_read:
+ 1209              	.LFB62:
+ 244:SDCard.c      **** // 	DBGPRINTF("SD:read type %d: %d(%x) -> %d(%x)\n", cardtype, block_number, block_number, BLOCK2AD
+ 1210              	 .loc 1 244 0
+ 1211              	 .cfi_startproc
+ 1212              	 
+ 1213              	 
+ 1214              	.LVL143:
+ 1215 0000 38B5     	 push {r3,r4,r5,lr}
+ 1216              	 .cfi_def_cfa_offset 16
+ 1217              	 .cfi_offset 3,-16
+ 1218              	 .cfi_offset 4,-12
+ 1219              	 .cfi_offset 5,-8
+ 1220              	 .cfi_offset 14,-4
+ 247:SDCard.c      ****         return 1;
+ 1221              	 .loc 1 247 0
+ 1222 0002 0C4B     	 ldr r3,.L90
+ 244:SDCard.c      **** // 	DBGPRINTF("SD:read type %d: %d(%x) -> %d(%x)\n", cardtype, block_number, block_number, BLOCK2AD
+ 1223              	 .loc 1 244 0
+ 1224 0004 0546     	 mov r5,r0
+ 247:SDCard.c      ****         return 1;
+ 1225              	 .loc 1 247 0
+ 1226 0006 1B68     	 ldr r3,[r3]
+ 1227 0008 5A1E     	 subs r2,r3,#1
+ 1228 000a 012A     	 cmp r2,#1
+ 1229 000c 0CD8     	 bhi .L85
+ 247:SDCard.c      ****         return 1;
+ 1230              	 .loc 1 247 0 is_stmt 0 discriminator 1
+ 1231 000e 4902     	 lsls r1,r1,#9
+ 1232              	.LVL144:
+ 1233              	.L86:
+ 247:SDCard.c      ****         return 1;
+ 1234              	 .loc 1 247 0 discriminator 8
+ 1235 0010 1120     	 movs r0,#17
+ 1236              	.LVL145:
+ 1237 0012 094B     	 ldr r3,.L90+4
+ 1238 0014 9847     	 blx r3
+ 1239              	.LVL146:
+ 1240 0016 0446     	 mov r4,r0
+ 1241 0018 50B9     	 cbnz r0,.L89
+ 252:SDCard.c      ****     return 0;
+ 1242              	 .loc 1 252 0 is_stmt 1
+ 1243 001a 4FF40071 	 mov r1,#512
+ 1244 001e 2846     	 mov r0,r5
+ 1245 0020 064B     	 ldr r3,.L90+8
+ 1246 0022 9847     	 blx r3
+ 1247              	.LVL147:
+ 1248              	.L84:
+ 254:SDCard.c      **** 
+ 1249              	 .loc 1 254 0
+ 1250 0024 2046     	 mov r0,r4
+ 1251 0026 38BD     	 pop {r3,r4,r5,pc}
+ 1252              	.LVL148:
+ 1253              	.L85:
+ 247:SDCard.c      ****         return 1;
+ 1254              	 .loc 1 247 0 discriminator 2
+ 1255 0028 032B     	 cmp r3,#3
+ 1256 002a 18BF     	 it ne
+ 1257 002c 0021     	 movne r1,#0
+ 1258              	.LVL149:
+ 1259 002e EFE7     	 b .L86
+ 1260              	.LVL150:
+ 1261              	.L89:
+ 248:SDCard.c      ****     }
+ 1262              	 .loc 1 248 0
+ 1263 0030 0124     	 movs r4,#1
+ 1264 0032 F7E7     	 b .L84
+ 1265              	.L91:
+ 1266              	 .align 2
+ 1267              	.L90:
+ 1268 0034 00000000 	 .word cardtype
+ 1269 0038 00000000 	 .word SDCard__cmd
+ 1270 003c 00000000 	 .word SDCard__read
+ 1271              	 .cfi_endproc
+ 1272              	.LFE62:
+ 1274              	 .section .text.SDCard__write,"ax",%progbits
+ 1275              	 .align 1
+ 1276              	 .global SDCard__write
+ 1277              	 .syntax unified
+ 1278              	 .thumb
+ 1279              	 .thumb_func
+ 1280              	 .fpu softvfp
+ 1282              	SDCard__write:
+ 1283              	.LFB74:
+ 588:SDCard.c      **** //     _cs = 0;
+ 1284              	 .loc 1 588 0
+ 1285              	 .cfi_startproc
+ 1286              	 
+ 1287              	 
+ 1288              	.LVL151:
+ 1289 0000 2DE9F041 	 push {r4,r5,r6,r7,r8,lr}
+ 1290              	 .cfi_def_cfa_offset 24
+ 1291              	 .cfi_offset 4,-24
+ 1292              	 .cfi_offset 5,-20
+ 1293              	 .cfi_offset 6,-16
+ 1294              	 .cfi_offset 7,-12
+ 1295              	 .cfi_offset 8,-8
+ 1296              	 .cfi_offset 14,-4
+ 588:SDCard.c      **** //     _cs = 0;
+ 1297              	 .loc 1 588 0
+ 1298 0004 0746     	 mov r7,r0
+ 590:SDCard.c      **** 
+ 1299              	 .loc 1 590 0
+ 1300 0006 184D     	 ldr r5,.L100
+ 1301 0008 184B     	 ldr r3,.L100+4
+ 1302 000a B5F90000 	 ldrsh r0,[r5]
+ 1303              	.LVL152:
+ 588:SDCard.c      **** //     _cs = 0;
+ 1304              	 .loc 1 588 0
+ 1305 000e 8846     	 mov r8,r1
+ 593:SDCard.c      **** 
+ 1306              	 .loc 1 593 0
+ 1307 0010 174C     	 ldr r4,.L100+8
+ 590:SDCard.c      **** 
+ 1308              	 .loc 1 590 0
+ 1309 0012 9847     	 blx r3
+ 1310              	.LVL153:
+ 593:SDCard.c      **** 
+ 1311              	 .loc 1 593 0
+ 1312 0014 FE20     	 movs r0,#254
+ 1313 0016 A047     	 blx r4
+ 1314              	.LVL154:
+ 1315              	.LBB73:
+ 596:SDCard.c      ****         SPI_write(buffer[i]);
+ 1316              	 .loc 1 596 0
+ 1317 0018 3E46     	 mov r6,r7
+ 1318              	.LVL155:
+ 1319              	.L93:
+ 596:SDCard.c      ****         SPI_write(buffer[i]);
+ 1320              	 .loc 1 596 0 is_stmt 0 discriminator 1
+ 1321 001a F31B     	 subs r3,r6,r7
+ 1322 001c 9845     	 cmp r8,r3
+ 1323 001e 12DC     	 bgt .L94
+ 1324              	.LBE73:
+ 601:SDCard.c      ****     SPI_write(0xFF);
+ 1325              	 .loc 1 601 0 is_stmt 1
+ 1326 0020 FF20     	 movs r0,#255
+ 1327 0022 A047     	 blx r4
+ 1328              	.LVL156:
+ 602:SDCard.c      **** 
+ 1329              	 .loc 1 602 0
+ 1330 0024 FF20     	 movs r0,#255
+ 1331 0026 A047     	 blx r4
+ 1332              	.LVL157:
+ 605:SDCard.c      **** //         _cs = 1;
+ 1333              	 .loc 1 605 0
+ 1334 0028 FF20     	 movs r0,#255
+ 1335 002a A047     	 blx r4
+ 1336              	.LVL158:
+ 1337 002c 00F01F00 	 and r0,r0,#31
+ 1338 0030 0528     	 cmp r0,#5
+ 1339 0032 0CD0     	 beq .L95
+ 1340              	.LVL159:
+ 1341              	.LBB74:
+ 1342              	.LBB75:
+ 607:SDCard.c      ****         SPI_write(0xFF);
+ 1343              	 .loc 1 607 0
+ 1344 0034 B5F90000 	 ldrsh r0,[r5]
+ 1345 0038 0E4B     	 ldr r3,.L100+12
+ 1346 003a 9847     	 blx r3
+ 1347              	.LVL160:
+ 608:SDCard.c      ****         return 1;
+ 1348              	 .loc 1 608 0
+ 1349 003c FF20     	 movs r0,#255
+ 1350 003e A047     	 blx r4
+ 1351              	.LVL161:
+ 1352 0040 0120     	 movs r0,#1
+ 1353 0042 BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 1354              	.LVL162:
+ 1355              	.L94:
+ 1356              	.LBE75:
+ 1357              	.LBE74:
+ 1358              	.LBB76:
+ 597:SDCard.c      ****     }
+ 1359              	 .loc 1 597 0 discriminator 3
+ 1360 0046 16F8010B 	 ldrb r0,[r6],#1
+ 1361              	.LVL163:
+ 1362 004a A047     	 blx r4
+ 1363              	.LVL164:
+ 1364 004c E5E7     	 b .L93
+ 1365              	.L95:
+ 1366              	.LBE76:
+ 613:SDCard.c      **** 
+ 1367              	 .loc 1 613 0 discriminator 1
+ 1368 004e FF20     	 movs r0,#255
+ 1369 0050 A047     	 blx r4
+ 1370              	.LVL165:
+ 1371 0052 0028     	 cmp r0,#0
+ 1372 0054 FBD0     	 beq .L95
+ 616:SDCard.c      ****     SPI_write(0xFF);
+ 1373              	 .loc 1 616 0
+ 1374 0056 B5F90000 	 ldrsh r0,[r5]
+ 1375 005a 064B     	 ldr r3,.L100+12
+ 1376 005c 9847     	 blx r3
+ 1377              	.LVL166:
+ 617:SDCard.c      ****     return 0;
+ 1378              	 .loc 1 617 0
+ 1379 005e FF20     	 movs r0,#255
+ 1380 0060 A047     	 blx r4
+ 1381              	.LVL167:
+ 618:SDCard.c      **** }
+ 1382              	 .loc 1 618 0
+ 1383 0062 0020     	 movs r0,#0
+ 619:SDCard.c      **** 
+ 1384              	 .loc 1 619 0
+ 1385 0064 BDE8F081 	 pop {r4,r5,r6,r7,r8,pc}
+ 1386              	.LVL168:
+ 1387              	.L101:
+ 1388              	 .align 2
+ 1389              	.L100:
+ 1390 0068 00000000 	 .word _cs
+ 1391 006c 00000000 	 .word GPIO_clear
+ 1392 0070 00000000 	 .word SPI_write
+ 1393 0074 00000000 	 .word GPIO_set
+ 1394              	 .cfi_endproc
+ 1395              	.LFE74:
+ 1397              	 .section .text.SDCard_disk_write,"ax",%progbits
+ 1398              	 .align 1
+ 1399              	 .global SDCard_disk_write
+ 1400              	 .syntax unified
+ 1401              	 .thumb
+ 1402              	 .thumb_func
+ 1403              	 .fpu softvfp
+ 1405              	SDCard_disk_write:
+ 1406              	.LFB61:
+ 232:SDCard.c      ****     // set write address for single block (CMD24)
+ 1407              	 .loc 1 232 0
+ 1408              	 .cfi_startproc
+ 1409              	 
+ 1410              	 
+ 1411              	.LVL169:
+ 1412 0000 38B5     	 push {r3,r4,r5,lr}
+ 1413              	 .cfi_def_cfa_offset 16
+ 1414              	 .cfi_offset 3,-16
+ 1415              	 .cfi_offset 4,-12
+ 1416              	 .cfi_offset 5,-8
+ 1417              	 .cfi_offset 14,-4
+ 234:SDCard.c      ****         return 1;
+ 1418              	 .loc 1 234 0
+ 1419 0002 0C4B     	 ldr r3,.L108
+ 232:SDCard.c      ****     // set write address for single block (CMD24)
+ 1420              	 .loc 1 232 0
+ 1421 0004 0546     	 mov r5,r0
+ 234:SDCard.c      ****         return 1;
+ 1422              	 .loc 1 234 0
+ 1423 0006 1B68     	 ldr r3,[r3]
+ 1424 0008 5A1E     	 subs r2,r3,#1
+ 1425 000a 012A     	 cmp r2,#1
+ 1426 000c 0CD8     	 bhi .L103
+ 234:SDCard.c      ****         return 1;
+ 1427              	 .loc 1 234 0 is_stmt 0 discriminator 1
+ 1428 000e 4902     	 lsls r1,r1,#9
+ 1429              	.LVL170:
+ 1430              	.L104:
+ 234:SDCard.c      ****         return 1;
+ 1431              	 .loc 1 234 0 discriminator 8
+ 1432 0010 1820     	 movs r0,#24
+ 1433              	.LVL171:
+ 1434 0012 094B     	 ldr r3,.L108+4
+ 1435 0014 9847     	 blx r3
+ 1436              	.LVL172:
+ 1437 0016 0446     	 mov r4,r0
+ 1438 0018 50B9     	 cbnz r0,.L107
+ 239:SDCard.c      ****     return 0;
+ 1439              	 .loc 1 239 0 is_stmt 1
+ 1440 001a 4FF40071 	 mov r1,#512
+ 1441 001e 2846     	 mov r0,r5
+ 1442 0020 064B     	 ldr r3,.L108+8
+ 1443 0022 9847     	 blx r3
+ 1444              	.LVL173:
+ 1445              	.L102:
+ 241:SDCard.c      **** 
+ 1446              	 .loc 1 241 0
+ 1447 0024 2046     	 mov r0,r4
+ 1448 0026 38BD     	 pop {r3,r4,r5,pc}
+ 1449              	.LVL174:
+ 1450              	.L103:
+ 234:SDCard.c      ****         return 1;
+ 1451              	 .loc 1 234 0 discriminator 2
+ 1452 0028 032B     	 cmp r3,#3
+ 1453 002a 18BF     	 it ne
+ 1454 002c 0021     	 movne r1,#0
+ 1455              	.LVL175:
+ 1456 002e EFE7     	 b .L104
+ 1457              	.LVL176:
+ 1458              	.L107:
+ 235:SDCard.c      ****     }
+ 1459              	 .loc 1 235 0
+ 1460 0030 0124     	 movs r4,#1
+ 1461 0032 F7E7     	 b .L102
+ 1462              	.L109:
+ 1463              	 .align 2
+ 1464              	.L108:
+ 1465 0034 00000000 	 .word cardtype
+ 1466 0038 00000000 	 .word SDCard__cmd
+ 1467 003c 00000000 	 .word SDCard__write
+ 1468              	 .cfi_endproc
+ 1469              	.LFE61:
+ 1471              	 .section .text.SDCard__sd_sectors,"ax",%progbits
+ 1472              	 .align 1
+ 1473              	 .global SDCard__sd_sectors
+ 1474              	 .syntax unified
+ 1475              	 .thumb
+ 1476              	 .thumb_func
+ 1477              	 .fpu softvfp
+ 1479              	SDCard__sd_sectors:
+ 1480              	.LFB76:
+ 634:SDCard.c      **** 
+ 635:SDCard.c      **** uint32_t SDCard__sd_sectors()
+ 636:SDCard.c      **** {
+ 1481              	 .loc 1 636 0
+ 1482              	 .cfi_startproc
+ 1483              	 
+ 1484              	 
+ 1485 0000 7FB5     	 push {r0,r1,r2,r3,r4,r5,r6,lr}
+ 1486              	 .cfi_def_cfa_offset 32
+ 1487              	 .cfi_offset 4,-16
+ 1488              	 .cfi_offset 5,-12
+ 1489              	 .cfi_offset 6,-8
+ 1490              	 .cfi_offset 14,-4
+ 637:SDCard.c      ****     // CMD9, Response R2 (R1 byte + 16-byte block read)
+ 638:SDCard.c      ****     if(SDCard__cmdx(SDCMD_SEND_CSD, 0) != 0) {
+ 1491              	 .loc 1 638 0
+ 1492 0002 0021     	 movs r1,#0
+ 1493 0004 0920     	 movs r0,#9
+ 1494 0006 2A4B     	 ldr r3,.L122
+ 1495 0008 9847     	 blx r3
+ 1496              	.LVL177:
+ 1497 000a 0446     	 mov r4,r0
+ 1498 000c 30B1     	 cbz r0,.L111
+ 639:SDCard.c      ****         DBGPRINTF_E("Didn't get a response from the disk\n");
+ 1499              	 .loc 1 639 0 discriminator 1
+ 1500 000e 2948     	 ldr r0,.L122+4
+ 1501 0010 294B     	 ldr r3,.L122+8
+ 1502 0012 9847     	 blx r3
+ 1503              	.LVL178:
+ 640:SDCard.c      ****         return 0;
+ 1504              	 .loc 1 640 0 discriminator 1
+ 1505 0014 0024     	 movs r4,#0
+ 1506              	.L110:
+ 641:SDCard.c      ****     }
+ 642:SDCard.c      **** 
+ 643:SDCard.c      ****     uint8_t csd[16];
+ 644:SDCard.c      ****     if(SDCard__read(csd, 16) != 0) {
+ 645:SDCard.c      **** #if ENABLED(DEBUG_MESSAGES)
+ 646:SDCard.c      ****         printf(EPFX "Couldn't read csd response from disk\n");
+ 647:SDCard.c      **** #endif
+ 648:SDCard.c      ****         return 0;
+ 649:SDCard.c      ****     }
+ 650:SDCard.c      **** 
+ 651:SDCard.c      ****     // csd_structure : csd[127:126]
+ 652:SDCard.c      ****     // c_size        : csd[73:62]
+ 653:SDCard.c      ****     // c_size_mult   : csd[49:47]
+ 654:SDCard.c      ****     // read_bl_len   : csd[83:80] - the *maximum* read block length
+ 655:SDCard.c      **** 
+ 656:SDCard.c      ****     uint32_t csd_structure = ext_bits(csd, 127, 126);
+ 657:SDCard.c      **** 
+ 658:SDCard.c      **** //    printf("CSD_STRUCT = %d\n", csd_structure);
+ 659:SDCard.c      **** 
+ 660:SDCard.c      ****     if (csd_structure == 0)
+ 661:SDCard.c      **** 	{
+ 662:SDCard.c      **** 		if (cardtype == SDCARD_V2HC)
+ 663:SDCard.c      **** 		{
+ 664:SDCard.c      ****  			DBGPRINTF_E("SDHC card with regular SD descriptor\n");
+ 665:SDCard.c      **** 			return 0;
+ 666:SDCard.c      **** 		}
+ 667:SDCard.c      **** 		uint32_t c_size = ext_bits(csd, 73, 62);
+ 668:SDCard.c      **** 		uint32_t c_size_mult = ext_bits(csd, 49, 47);
+ 669:SDCard.c      **** 		uint32_t read_bl_len = ext_bits(csd, 83, 80);
+ 670:SDCard.c      **** 
+ 671:SDCard.c      **** 		uint32_t block_len = 1 << read_bl_len;
+ 672:SDCard.c      **** 		uint32_t mult = 1 << (c_size_mult + 2);
+ 673:SDCard.c      **** 		uint32_t blocknr = (c_size + 1) * mult;
+ 674:SDCard.c      **** 
+ 675:SDCard.c      **** 		if (block_len >= 512) return blocknr * (block_len >> 9);
+ 676:SDCard.c      **** 		else return (blocknr * block_len) >> 9;
+ 677:SDCard.c      **** 	}
+ 678:SDCard.c      **** 	else if (csd_structure == 1)
+ 679:SDCard.c      **** 	{
+ 680:SDCard.c      **** 		if (cardtype != SDCARD_V2HC)
+ 681:SDCard.c      **** 		{
+ 682:SDCard.c      ****  			DBGPRINTF_E("SD V1 or V2 card with SDHC descriptor\n");
+ 683:SDCard.c      **** 			return 0;
+ 684:SDCard.c      **** 		}
+ 685:SDCard.c      **** 		uint32_t c_size = ext_bits(csd, 69, 48);
+ 686:SDCard.c      **** 		uint32_t blocknr = (c_size + 1) * 1024;
+ 687:SDCard.c      **** 
+ 688:SDCard.c      **** 		return blocknr;
+ 689:SDCard.c      **** 	}
+ 690:SDCard.c      **** 	else
+ 691:SDCard.c      **** 	{
+ 692:SDCard.c      **** 	DBGPRINTF_E("Invalid CSD %lu\n", csd_structure);
+ 693:SDCard.c      ****         return 0;
+ 694:SDCard.c      ****     }
+ 695:SDCard.c      **** 
+ 696:SDCard.c      ****     // memory capacity = BLOCKNR * BLOCK_LEN
+ 697:SDCard.c      ****     // where
+ 698:SDCard.c      ****     //  BLOCKNR = (C_SIZE+1) * MULT
+ 699:SDCard.c      ****     //  MULT = 2^(C_SIZE_MULT+2) (C_SIZE_MULT < 8)
+ 700:SDCard.c      ****     //  BLOCK_LEN = 2^READ_BL_LEN, (READ_BL_LEN < 12)
+ 701:SDCard.c      **** 
+ 702:SDCard.c      **** //     uint32_t block_len = 1 << read_bl_len;
+ 703:SDCard.c      **** //     uint32_t mult = 1 << (c_size_mult + 2);
+ 704:SDCard.c      **** //     uint32_t blocknr = (c_size + 1) * mult;
+ 705:SDCard.c      **** 
+ 706:SDCard.c      **** //     uint32_t capacity = blocknr * block_len;
+ 707:SDCard.c      **** 
+ 708:SDCard.c      **** //     uint32_t blocks = capacity / 512;
+ 709:SDCard.c      **** //     uint32_t blocks;
+ 710:SDCard.c      **** 
+ 711:SDCard.c      **** //     if (block_len >= 512) return blocknr * (block_len >> 9);
+ 712:SDCard.c      **** //     else return (blocknr * block_len) >> 9;
+ 713:SDCard.c      **** 
+ 714:SDCard.c      **** //     return blocks;
+ 715:SDCard.c      **** }
+ 1507              	 .loc 1 715 0
+ 1508 0016 2046     	 mov r0,r4
+ 1509 0018 04B0     	 add sp,sp,#16
+ 1510              	 .cfi_remember_state
+ 1511              	 .cfi_def_cfa_offset 16
+ 1512              	 
+ 1513 001a 70BD     	 pop {r4,r5,r6,pc}
+ 1514              	.L111:
+ 1515              	 .cfi_restore_state
+ 1516              	.LBB81:
+ 1517              	.LBB82:
+ 644:SDCard.c      **** #if ENABLED(DEBUG_MESSAGES)
+ 1518              	 .loc 1 644 0
+ 1519 001c 1021     	 movs r1,#16
+ 1520 001e 6846     	 mov r0,sp
+ 1521 0020 264B     	 ldr r3,.L122+12
+ 1522 0022 9847     	 blx r3
+ 1523              	.LVL179:
+ 1524 0024 0546     	 mov r5,r0
+ 1525 0026 18B1     	 cbz r0,.L113
+ 646:SDCard.c      **** #endif
+ 1526              	 .loc 1 646 0
+ 1527 0028 2548     	 ldr r0,.L122+16
+ 1528              	.L121:
+ 1529              	.LBB83:
+ 664:SDCard.c      **** 			return 0;
+ 1530              	 .loc 1 664 0
+ 1531 002a 234B     	 ldr r3,.L122+8
+ 1532 002c 9847     	 blx r3
+ 1533              	.LVL180:
+ 1534 002e F2E7     	 b .L110
+ 1535              	.L113:
+ 1536              	.LBE83:
+ 656:SDCard.c      **** 
+ 1537              	 .loc 1 656 0
+ 1538 0030 7E22     	 movs r2,#126
+ 1539 0032 7F21     	 movs r1,#127
+ 1540 0034 6846     	 mov r0,sp
+ 1541 0036 234E     	 ldr r6,.L122+20
+ 1542 0038 B047     	 blx r6
+ 1543              	.LVL181:
+ 660:SDCard.c      **** 	{
+ 1544              	 .loc 1 660 0
+ 1545 003a 0446     	 mov r4,r0
+ 1546 003c 08BB     	 cbnz r0,.L115
+ 1547              	.LBB84:
+ 662:SDCard.c      **** 		{
+ 1548              	 .loc 1 662 0
+ 1549 003e 224B     	 ldr r3,.L122+24
+ 1550 0040 1B68     	 ldr r3,[r3]
+ 1551 0042 032B     	 cmp r3,#3
+ 1552 0044 01D1     	 bne .L116
+ 664:SDCard.c      **** 			return 0;
+ 1553              	 .loc 1 664 0
+ 1554 0046 2148     	 ldr r0,.L122+28
+ 1555              	.LVL182:
+ 1556 0048 EFE7     	 b .L121
+ 1557              	.LVL183:
+ 1558              	.L116:
+ 667:SDCard.c      **** 		uint32_t c_size_mult = ext_bits(csd, 49, 47);
+ 1559              	 .loc 1 667 0
+ 1560 004a 3E22     	 movs r2,#62
+ 1561 004c 4921     	 movs r1,#73
+ 1562 004e 6846     	 mov r0,sp
+ 1563              	.LVL184:
+ 1564 0050 B047     	 blx r6
+ 1565              	.LVL185:
+ 668:SDCard.c      **** 		uint32_t read_bl_len = ext_bits(csd, 83, 80);
+ 1566              	 .loc 1 668 0
+ 1567 0052 2F22     	 movs r2,#47
+ 667:SDCard.c      **** 		uint32_t c_size_mult = ext_bits(csd, 49, 47);
+ 1568              	 .loc 1 667 0
+ 1569 0054 0546     	 mov r5,r0
+ 1570              	.LVL186:
+ 668:SDCard.c      **** 		uint32_t read_bl_len = ext_bits(csd, 83, 80);
+ 1571              	 .loc 1 668 0
+ 1572 0056 3121     	 movs r1,#49
+ 1573 0058 6846     	 mov r0,sp
+ 1574              	.LVL187:
+ 1575 005a B047     	 blx r6
+ 1576              	.LVL188:
+ 669:SDCard.c      **** 
+ 1577              	 .loc 1 669 0
+ 1578 005c 5022     	 movs r2,#80
+ 668:SDCard.c      **** 		uint32_t read_bl_len = ext_bits(csd, 83, 80);
+ 1579              	 .loc 1 668 0
+ 1580 005e 0446     	 mov r4,r0
+ 1581              	.LVL189:
+ 669:SDCard.c      **** 
+ 1582              	 .loc 1 669 0
+ 1583 0060 5321     	 movs r1,#83
+ 1584 0062 6846     	 mov r0,sp
+ 1585              	.LVL190:
+ 1586 0064 B047     	 blx r6
+ 1587              	.LVL191:
+ 671:SDCard.c      **** 		uint32_t mult = 1 << (c_size_mult + 2);
+ 1588              	 .loc 1 671 0
+ 1589 0066 0123     	 movs r3,#1
+ 673:SDCard.c      **** 
+ 1590              	 .loc 1 673 0
+ 1591 0068 0135     	 adds r5,r5,#1
+ 1592              	.LVL192:
+ 671:SDCard.c      **** 		uint32_t mult = 1 << (c_size_mult + 2);
+ 1593              	 .loc 1 671 0
+ 1594 006a 8340     	 lsls r3,r3,r0
+ 1595              	.LVL193:
+ 672:SDCard.c      **** 		uint32_t blocknr = (c_size + 1) * mult;
+ 1596              	 .loc 1 672 0
+ 1597 006c 0234     	 adds r4,r4,#2
+ 1598              	.LVL194:
+ 675:SDCard.c      **** 		else return (blocknr * block_len) >> 9;
+ 1599              	 .loc 1 675 0
+ 1600 006e B3F5007F 	 cmp r3,#512
+ 673:SDCard.c      **** 
+ 1601              	 .loc 1 673 0
+ 1602 0072 05FA04F4 	 lsl r4,r5,r4
+ 1603              	.LVL195:
+ 675:SDCard.c      **** 		else return (blocknr * block_len) >> 9;
+ 1604              	 .loc 1 675 0
+ 1605 0076 2BBF     	 itete cs
+ 1606 0078 5B0A     	 lsrcs r3,r3,#9
+ 1607              	.LVL196:
+ 676:SDCard.c      **** 	}
+ 1608              	 .loc 1 676 0
+ 1609 007a 8440     	 lslcc r4,r4,r0
+ 1610              	.LVL197:
+ 675:SDCard.c      **** 		else return (blocknr * block_len) >> 9;
+ 1611              	 .loc 1 675 0
+ 1612 007c 5C43     	 mulcs r4,r4,r3
+ 676:SDCard.c      **** 	}
+ 1613              	 .loc 1 676 0
+ 1614 007e 640A     	 lsrcc r4,r4,#9
+ 1615 0080 C9E7     	 b .L110
+ 1616              	.LVL198:
+ 1617              	.L115:
+ 1618              	.LBE84:
+ 678:SDCard.c      **** 	{
+ 1619              	 .loc 1 678 0
+ 1620 0082 0128     	 cmp r0,#1
+ 1621 0084 0FD1     	 bne .L118
+ 1622              	.LBB85:
+ 680:SDCard.c      **** 		{
+ 1623              	 .loc 1 680 0
+ 1624 0086 104B     	 ldr r3,.L122+24
+ 1625 0088 1B68     	 ldr r3,[r3]
+ 1626 008a 032B     	 cmp r3,#3
+ 1627 008c 04D0     	 beq .L119
+ 682:SDCard.c      **** 			return 0;
+ 1628              	 .loc 1 682 0
+ 1629 008e 1048     	 ldr r0,.L122+32
+ 1630              	.LVL199:
+ 1631 0090 094B     	 ldr r3,.L122+8
+ 1632 0092 9847     	 blx r3
+ 1633              	.LVL200:
+ 1634              	.L120:
+ 1635              	.LBE85:
+ 693:SDCard.c      ****     }
+ 1636              	 .loc 1 693 0
+ 1637 0094 2C46     	 mov r4,r5
+ 1638              	.LVL201:
+ 1639 0096 BEE7     	 b .L110
+ 1640              	.LVL202:
+ 1641              	.L119:
+ 1642              	.LBB86:
+ 685:SDCard.c      **** 		uint32_t blocknr = (c_size + 1) * 1024;
+ 1643              	 .loc 1 685 0
+ 1644 0098 3022     	 movs r2,#48
+ 1645 009a 4521     	 movs r1,#69
+ 1646 009c 6846     	 mov r0,sp
+ 1647              	.LVL203:
+ 1648 009e B047     	 blx r6
+ 1649              	.LVL204:
+ 686:SDCard.c      **** 
+ 1650              	 .loc 1 686 0
+ 1651 00a0 0130     	 adds r0,r0,#1
+ 1652              	.LVL205:
+ 1653 00a2 8402     	 lsls r4,r0,#10
+ 1654              	.LVL206:
+ 1655 00a4 B7E7     	 b .L110
+ 1656              	.LVL207:
+ 1657              	.L118:
+ 1658              	.LBE86:
+ 692:SDCard.c      ****         return 0;
+ 1659              	 .loc 1 692 0
+ 1660 00a6 0146     	 mov r1,r0
+ 1661 00a8 034B     	 ldr r3,.L122+8
+ 1662 00aa 0A48     	 ldr r0,.L122+36
+ 1663              	.LVL208:
+ 1664 00ac 9847     	 blx r3
+ 1665              	.LVL209:
+ 1666 00ae F1E7     	 b .L120
+ 1667              	.L123:
+ 1668              	 .align 2
+ 1669              	.L122:
+ 1670 00b0 00000000 	 .word SDCard__cmdx
+ 1671 00b4 00000000 	 .word .LC3
+ 1672 00b8 00000000 	 .word printf
+ 1673 00bc 00000000 	 .word SDCard__read
+ 1674 00c0 31000000 	 .word .LC4
+ 1675 00c4 00000000 	 .word ext_bits
+ 1676 00c8 00000000 	 .word cardtype
+ 1677 00cc 63000000 	 .word .LC5
+ 1678 00d0 95000000 	 .word .LC6
+ 1679 00d4 C8000000 	 .word .LC7
+ 1680              	.LBE82:
+ 1681              	.LBE81:
+ 1682              	 .cfi_endproc
+ 1683              	.LFE76:
+ 1685              	 .section .text.SDCard_disk_initialize,"ax",%progbits
+ 1686              	 .align 1
+ 1687              	 .global SDCard_disk_initialize
+ 1688              	 .syntax unified
+ 1689              	 .thumb
+ 1690              	 .thumb_func
+ 1691              	 .fpu softvfp
+ 1693              	SDCard_disk_initialize:
+ 1694              	.LFB60:
+ 210:SDCard.c      ****     _sectors = 0;
+ 1695              	 .loc 1 210 0
+ 1696              	 .cfi_startproc
+ 1697              	 
+ 1698              	 
+ 211:SDCard.c      **** 
+ 1699              	 .loc 1 211 0
+ 1700 0000 0023     	 movs r3,#0
+ 210:SDCard.c      ****     _sectors = 0;
+ 1701              	 .loc 1 210 0
+ 1702 0002 10B5     	 push {r4,lr}
+ 1703              	 .cfi_def_cfa_offset 8
+ 1704              	 .cfi_offset 4,-8
+ 1705              	 .cfi_offset 14,-4
+ 211:SDCard.c      **** 
+ 1706              	 .loc 1 211 0
+ 1707 0004 0C4C     	 ldr r4,.L128
+ 1708 0006 2360     	 str r3,[r4]
+ 213:SDCard.c      **** 
+ 1709              	 .loc 1 213 0
+ 1710 0008 0C4B     	 ldr r3,.L128+4
+ 1711 000a 9847     	 blx r3
+ 1712              	.LVL210:
+ 215:SDCard.c      ****         return 1;
+ 1713              	 .loc 1 215 0
+ 1714 000c 60B1     	 cbz r0,.L127
+ 219:SDCard.c      **** 
+ 1715              	 .loc 1 219 0
+ 1716 000e 0C4B     	 ldr r3,.L128+8
+ 1717 0010 9847     	 blx r3
+ 1718              	.LVL211:
+ 222:SDCard.c      **** 		DBGPRINTF_E("Set 512-byte block timed out\n");
+ 1719              	 .loc 1 222 0
+ 1720 0012 4FF40071 	 mov r1,#512
+ 219:SDCard.c      **** 
+ 1721              	 .loc 1 219 0
+ 1722 0016 2060     	 str r0,[r4]
+ 222:SDCard.c      **** 		DBGPRINTF_E("Set 512-byte block timed out\n");
+ 1723              	 .loc 1 222 0
+ 1724 0018 0A4B     	 ldr r3,.L128+12
+ 1725 001a 1020     	 movs r0,#16
+ 1726 001c 9847     	 blx r3
+ 1727              	.LVL212:
+ 1728 001e 0446     	 mov r4,r0
+ 1729 0020 20B1     	 cbz r0,.L126
+ 223:SDCard.c      **** 		return 1;
+ 1730              	 .loc 1 223 0 discriminator 1
+ 1731 0022 0948     	 ldr r0,.L128+16
+ 1732 0024 094B     	 ldr r3,.L128+20
+ 1733 0026 9847     	 blx r3
+ 1734              	.LVL213:
+ 1735              	.L127:
+ 216:SDCard.c      ****     }
+ 1736              	 .loc 1 216 0
+ 1737 0028 0124     	 movs r4,#1
+ 1738 002a 02E0     	 b .L124
+ 1739              	.L126:
+ 227:SDCard.c      ****     return 0;
+ 1740              	 .loc 1 227 0
+ 1741 002c 0848     	 ldr r0,.L128+24
+ 1742 002e 094B     	 ldr r3,.L128+28
+ 1743 0030 9847     	 blx r3
+ 1744              	.LVL214:
+ 1745              	.L124:
+ 229:SDCard.c      **** 
+ 1746              	 .loc 1 229 0
+ 1747 0032 2046     	 mov r0,r4
+ 1748 0034 10BD     	 pop {r4,pc}
+ 1749              	.L129:
+ 1750 0036 00BF     	 .align 2
+ 1751              	.L128:
+ 1752 0038 00000000 	 .word _sectors
+ 1753 003c 00000000 	 .word SDCard_initialise_card
+ 1754 0040 00000000 	 .word SDCard__sd_sectors
+ 1755 0044 00000000 	 .word SDCard__cmd
+ 1756 0048 00000000 	 .word .LC8
+ 1757 004c 00000000 	 .word printf
+ 1758 0050 80841E00 	 .word 2000000
+ 1759 0054 00000000 	 .word SPI_frequency
+ 1760              	 .cfi_endproc
+ 1761              	.LFE60:
+ 1763              	 .comm cardtype,4,4
+ 1764              	 .comm busy_buffers,4,4
+ 1765              	 .comm busyflags,4,4
+ 1766              	 .comm _cs,2,2
+ 1767              	 .comm _sectors,4,4
+ 1768              	 .section .rodata.SDCard__sd_sectors.str1.1,"aMS",%progbits,1
+ 1769              	.LC3:
+ 1770 0000 426F6F74 	 .ascii "Boot-error: Didn't get a response from the disk\012"
+ 1770      2D657272 
+ 1770      6F723A20 
+ 1770      4469646E 
+ 1770      27742067 
+ 1771 0030 00       	 .ascii "\000"
+ 1772              	.LC4:
+ 1773 0031 426F6F74 	 .ascii "Boot-error: Couldn't read csd response from disk\012"
+ 1773      2D657272 
+ 1773      6F723A20 
+ 1773      436F756C 
+ 1773      646E2774 
+ 1774 0062 00       	 .ascii "\000"
+ 1775              	.LC5:
+ 1776 0063 426F6F74 	 .ascii "Boot-error: SDHC card with regular SD descriptor\012"
+ 1776      2D657272 
+ 1776      6F723A20 
+ 1776      53444843 
+ 1776      20636172 
+ 1777 0094 00       	 .ascii "\000"
+ 1778              	.LC6:
+ 1779 0095 426F6F74 	 .ascii "Boot-error: SD V1 or V2 card with SDHC descriptor\012"
+ 1779      2D657272 
+ 1779      6F723A20 
+ 1779      53442056 
+ 1779      31206F72 
+ 1780 00c7 00       	 .ascii "\000"
+ 1781              	.LC7:
+ 1782 00c8 426F6F74 	 .ascii "Boot-error: Invalid CSD %lu\012\000"
+ 1782      2D657272 
+ 1782      6F723A20 
+ 1782      496E7661 
+ 1782      6C696420 
+ 1783              	 .section .rodata.SDCard_disk_initialize.str1.1,"aMS",%progbits,1
+ 1784              	.LC8:
+ 1785 0000 426F6F74 	 .ascii "Boot-error: Set 512-byte block timed out\012\000"
+ 1785      2D657272 
+ 1785      6F723A20 
+ 1785      53657420 
+ 1785      3531322D 
+ 1786              	 .section .rodata.SDCard_initialise_card.str1.1,"aMS",%progbits,1
+ 1787              	.LC2:
+ 1788 0000 426F6F74 	 .ascii "Boot-error: Not in idle state after sending CMD8 (n"
+ 1788      2D657272 
+ 1788      6F723A20 
+ 1788      4E6F7420 
+ 1788      696E2069 
+ 1789 0033 6F742061 	 .ascii "ot an SD card?)\012\000"
+ 1789      6E205344 
+ 1789      20636172 
+ 1789      643F290A 
+ 1789      00
+ 1790              	 .section .rodata.SDCard_initialise_card_v1.str1.1,"aMS",%progbits,1
+ 1791              	.LC0:
+ 1792 0000 426F6F74 	 .ascii "Boot: Timeout waiting for v1.x card\012\000"
+ 1792      3A205469 
+ 1792      6D656F75 
+ 1792      74207761 
+ 1792      6974696E 
+ 1793              	 .section .rodata.SDCard_initialise_card_v2.str1.1,"aMS",%progbits,1
+ 1794              	.LC1:
+ 1795 0000 426F6F74 	 .ascii "Boot: Timeout waiting for v2.x card\012\000"
+ 1795      3A205469 
+ 1795      6D656F75 
+ 1795      74207761 
+ 1795      6974696E 
+ 1796              	 .text
+ 1797              	.Letext0:
+ 1798              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 1799              	 .file 3 "/usr/include/newlib/sys/lock.h"
+ 1800              	 .file 4 "/usr/include/newlib/sys/_types.h"
+ 1801              	 .file 5 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 1802              	 .file 6 "/usr/include/newlib/sys/reent.h"
+ 1803              	 .file 7 "/usr/include/newlib/sys/_stdint.h"
+ 1804              	 .file 8 "/usr/include/newlib/stdlib.h"
+ 1805              	 .file 9 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 1806              	 .file 10 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 1807              	 .file 11 "pins.h"
+ 1808              	 .file 12 "spi.h"
+ 1809              	 .file 13 "gpio.h"
+ 1810              	 .file 14 "/usr/include/newlib/stdio.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 SDCard.c
+    {standard input}:16     .text.ext_bits:0000000000000000 $t
+    {standard input}:22     .text.ext_bits:0000000000000000 ext_bits
+    {standard input}:88     .text.SDCard_init:0000000000000000 $t
+    {standard input}:95     .text.SDCard_init:0000000000000000 SDCard_init
+    {standard input}:135    .text.SDCard_init:0000000000000020 $d
+                            *COM*:0000000000000002 _cs
+    {standard input}:144    .text.SDCard_disk_erase:0000000000000000 $t
+    {standard input}:151    .text.SDCard_disk_erase:0000000000000000 SDCard_disk_erase
+    {standard input}:167    .text.SDCard_disk_status:0000000000000000 $t
+    {standard input}:174    .text.SDCard_disk_status:0000000000000000 SDCard_disk_status
+    {standard input}:190    .text.SDCard_disk_status:000000000000000c $d
+                            *COM*:0000000000000004 _sectors
+    {standard input}:195    .text.SDCard_disk_sync:0000000000000000 $t
+    {standard input}:202    .text.SDCard_disk_sync:0000000000000000 SDCard_disk_sync
+    {standard input}:216    .text.SDCard_disk_sectors:0000000000000000 $t
+    {standard input}:223    .text.SDCard_disk_sectors:0000000000000000 SDCard_disk_sectors
+    {standard input}:237    .text.SDCard_disk_sectors:0000000000000008 $d
+    {standard input}:242    .text.SDCard_disk_size:0000000000000000 $t
+    {standard input}:249    .text.SDCard_disk_size:0000000000000000 SDCard_disk_size
+    {standard input}:265    .text.SDCard_disk_size:000000000000000c $d
+    {standard input}:270    .text.SDCard_disk_blocksize:0000000000000000 $t
+    {standard input}:277    .text.SDCard_disk_blocksize:0000000000000000 SDCard_disk_blocksize
+    {standard input}:291    .text.SDCard__cmd:0000000000000000 $t
+    {standard input}:298    .text.SDCard__cmd:0000000000000000 SDCard__cmd
+    {standard input}:406    .text.SDCard__cmd:0000000000000068 $d
+    {standard input}:416    .text.SDCard_initialise_card_v1:0000000000000000 $t
+    {standard input}:423    .text.SDCard_initialise_card_v1:0000000000000000 SDCard_initialise_card_v1
+    {standard input}:478    .text.SDCard_initialise_card_v1:000000000000002c $d
+                            *COM*:0000000000000004 cardtype
+    {standard input}:486    .text.SDCard__cmdx:0000000000000000 $t
+    {standard input}:493    .text.SDCard__cmdx:0000000000000000 SDCard__cmdx
+    {standard input}:585    .text.SDCard__cmdx:0000000000000054 $d
+    {standard input}:593    .text.SDCard__cmd58:0000000000000000 $t
+    {standard input}:600    .text.SDCard__cmd58:0000000000000000 SDCard__cmd58
+    {standard input}:731    .text.SDCard__cmd58:000000000000008c $d
+    {standard input}:739    .text.SDCard_initialise_card_v2:0000000000000000 $t
+    {standard input}:746    .text.SDCard_initialise_card_v2:0000000000000000 SDCard_initialise_card_v2
+    {standard input}:825    .text.SDCard_initialise_card_v2:0000000000000044 $d
+    {standard input}:836    .text.SDCard__cmd8:0000000000000000 $t
+    {standard input}:843    .text.SDCard__cmd8:0000000000000000 SDCard__cmd8
+    {standard input}:963    .text.SDCard__cmd8:0000000000000070 $d
+    {standard input}:971    .text.SDCard_initialise_card:0000000000000000 $t
+    {standard input}:978    .text.SDCard_initialise_card:0000000000000000 SDCard_initialise_card
+    {standard input}:1086   .text.SDCard_initialise_card:0000000000000054 $d
+    {standard input}:1103   .text.SDCard__read:0000000000000000 $t
+    {standard input}:1110   .text.SDCard__read:0000000000000000 SDCard__read
+    {standard input}:1192   .text.SDCard__read:000000000000004c $d
+    {standard input}:1201   .text.SDCard_disk_read:0000000000000000 $t
+    {standard input}:1208   .text.SDCard_disk_read:0000000000000000 SDCard_disk_read
+    {standard input}:1268   .text.SDCard_disk_read:0000000000000034 $d
+    {standard input}:1275   .text.SDCard__write:0000000000000000 $t
+    {standard input}:1282   .text.SDCard__write:0000000000000000 SDCard__write
+    {standard input}:1390   .text.SDCard__write:0000000000000068 $d
+    {standard input}:1398   .text.SDCard_disk_write:0000000000000000 $t
+    {standard input}:1405   .text.SDCard_disk_write:0000000000000000 SDCard_disk_write
+    {standard input}:1465   .text.SDCard_disk_write:0000000000000034 $d
+    {standard input}:1472   .text.SDCard__sd_sectors:0000000000000000 $t
+    {standard input}:1479   .text.SDCard__sd_sectors:0000000000000000 SDCard__sd_sectors
+    {standard input}:1670   .text.SDCard__sd_sectors:00000000000000b0 $d
+    {standard input}:1686   .text.SDCard_disk_initialize:0000000000000000 $t
+    {standard input}:1693   .text.SDCard_disk_initialize:0000000000000000 SDCard_disk_initialize
+    {standard input}:1752   .text.SDCard_disk_initialize:0000000000000038 $d
+                            *COM*:0000000000000004 busy_buffers
+                            *COM*:0000000000000004 busyflags
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+SPI_init
+GPIO_init
+GPIO_output
+GPIO_set
+GPIO_clear
+SPI_write
+printf
+SPI_frequency

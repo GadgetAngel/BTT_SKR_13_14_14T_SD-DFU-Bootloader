@@ -1,0 +1,341 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_dac.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.DAC_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global DAC_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	DAC_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_dac.c"
+   1:LPC17xxLib/src/lpc17xx_dac.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_dac.c **** 
+   3:LPC17xxLib/src/lpc17xx_dac.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_dac.c **** * $Id$		lpc17xx_dac.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_dac.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_dac.c **** * @file		lpc17xx_dac.c
+   7:LPC17xxLib/src/lpc17xx_dac.c **** * @brief	Contains all functions support for DAC firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_dac.c **** * @version	2.0
+   9:LPC17xxLib/src/lpc17xx_dac.c **** * @date		21. May. 2010
+  10:LPC17xxLib/src/lpc17xx_dac.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_dac.c **** *
+  12:LPC17xxLib/src/lpc17xx_dac.c **** * Copyright(C) 2010, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_dac.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_dac.c **** *
+  15:LPC17xxLib/src/lpc17xx_dac.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_dac.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_dac.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_dac.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_dac.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_dac.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_dac.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_dac.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_dac.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_dac.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_dac.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_dac.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_dac.c **** 
+  28:LPC17xxLib/src/lpc17xx_dac.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_dac.c **** /** @addtogroup DAC
+  30:LPC17xxLib/src/lpc17xx_dac.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_dac.c ****  */
+  32:LPC17xxLib/src/lpc17xx_dac.c **** 
+  33:LPC17xxLib/src/lpc17xx_dac.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_dac.c **** #include "lpc17xx_dac.h"
+  35:LPC17xxLib/src/lpc17xx_dac.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_dac.c **** 
+  37:LPC17xxLib/src/lpc17xx_dac.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  38:LPC17xxLib/src/lpc17xx_dac.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  39:LPC17xxLib/src/lpc17xx_dac.c ****  * otherwise the default FW library configuration file must be included instead
+  40:LPC17xxLib/src/lpc17xx_dac.c ****  */
+  41:LPC17xxLib/src/lpc17xx_dac.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  42:LPC17xxLib/src/lpc17xx_dac.c **** #include "lpc17xx_libcfg.h"
+  43:LPC17xxLib/src/lpc17xx_dac.c **** #else
+  44:LPC17xxLib/src/lpc17xx_dac.c **** #include "lpc17xx_libcfg_default.h"
+  45:LPC17xxLib/src/lpc17xx_dac.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  46:LPC17xxLib/src/lpc17xx_dac.c **** 
+  47:LPC17xxLib/src/lpc17xx_dac.c **** 
+  48:LPC17xxLib/src/lpc17xx_dac.c **** #ifdef _DAC
+  49:LPC17xxLib/src/lpc17xx_dac.c **** 
+  50:LPC17xxLib/src/lpc17xx_dac.c **** /* Public Functions ----------------------------------------------------------- */
+  51:LPC17xxLib/src/lpc17xx_dac.c **** /** @addtogroup DAC_Public_Functions
+  52:LPC17xxLib/src/lpc17xx_dac.c ****  * @{
+  53:LPC17xxLib/src/lpc17xx_dac.c ****  */
+  54:LPC17xxLib/src/lpc17xx_dac.c **** 
+  55:LPC17xxLib/src/lpc17xx_dac.c **** /*********************************************************************//**
+  56:LPC17xxLib/src/lpc17xx_dac.c ****  * @brief 		Initial ADC configuration
+  57:LPC17xxLib/src/lpc17xx_dac.c ****  * 					- Maximum	current is 700 uA
+  58:LPC17xxLib/src/lpc17xx_dac.c ****  * 					- Value to AOUT is 0
+  59:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	DACx pointer to LPC_DAC_TypeDef, should be: LPC_DAC
+  60:LPC17xxLib/src/lpc17xx_dac.c ****  * @return 		None
+  61:LPC17xxLib/src/lpc17xx_dac.c ****  ***********************************************************************/
+  62:LPC17xxLib/src/lpc17xx_dac.c **** void DAC_Init(LPC_DAC_TypeDef *DACx)
+  63:LPC17xxLib/src/lpc17xx_dac.c **** {
+  26              	 .loc 1 63 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  31              	.LVL0:
+  32              	.LBB4:
+  33              	.LBB5:
+  64:LPC17xxLib/src/lpc17xx_dac.c **** 	CHECK_PARAM(PARAM_DACx(DACx));
+  65:LPC17xxLib/src/lpc17xx_dac.c **** 	/* Set default clock divider for DAC */
+  66:LPC17xxLib/src/lpc17xx_dac.c **** 	// CLKPWR_SetPCLKDiv (CLKPWR_PCLKSEL_DAC, CLKPWR_PCLKSEL_CCLK_DIV_4);
+  67:LPC17xxLib/src/lpc17xx_dac.c **** 	//Set maximum current output
+  68:LPC17xxLib/src/lpc17xx_dac.c **** 	DAC_SetBias(LPC_DAC,DAC_MAX_CURRENT_700uA);
+  69:LPC17xxLib/src/lpc17xx_dac.c **** }
+  70:LPC17xxLib/src/lpc17xx_dac.c **** 
+  71:LPC17xxLib/src/lpc17xx_dac.c **** /*********************************************************************//**
+  72:LPC17xxLib/src/lpc17xx_dac.c ****  * @brief 		Update value to DAC
+  73:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	DACx pointer to LPC_DAC_TypeDef, should be: LPC_DAC
+  74:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	dac_value : value 10 bit to be converted to output
+  75:LPC17xxLib/src/lpc17xx_dac.c ****  * @return 		None
+  76:LPC17xxLib/src/lpc17xx_dac.c ****  ***********************************************************************/
+  77:LPC17xxLib/src/lpc17xx_dac.c **** void DAC_UpdateValue (LPC_DAC_TypeDef *DACx,uint32_t dac_value)
+  78:LPC17xxLib/src/lpc17xx_dac.c **** {
+  79:LPC17xxLib/src/lpc17xx_dac.c **** 	uint32_t tmp;
+  80:LPC17xxLib/src/lpc17xx_dac.c **** 	CHECK_PARAM(PARAM_DACx(DACx));
+  81:LPC17xxLib/src/lpc17xx_dac.c **** 	tmp = DACx->DACR & DAC_BIAS_EN;
+  82:LPC17xxLib/src/lpc17xx_dac.c **** 	tmp |= DAC_VALUE(dac_value);
+  83:LPC17xxLib/src/lpc17xx_dac.c **** 	// Update value
+  84:LPC17xxLib/src/lpc17xx_dac.c **** 	DACx->DACR = tmp;
+  85:LPC17xxLib/src/lpc17xx_dac.c **** }
+  86:LPC17xxLib/src/lpc17xx_dac.c **** 
+  87:LPC17xxLib/src/lpc17xx_dac.c **** /*********************************************************************//**
+  88:LPC17xxLib/src/lpc17xx_dac.c ****  * @brief 		Set Maximum current for DAC
+  89:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	DACx pointer to LPC_DAC_TypeDef, should be: LPC_DAC
+  90:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	bias : 0 is 700 uA
+  91:LPC17xxLib/src/lpc17xx_dac.c ****  * 					   1    350 uA
+  92:LPC17xxLib/src/lpc17xx_dac.c ****  * @return 		None
+  93:LPC17xxLib/src/lpc17xx_dac.c ****  ***********************************************************************/
+  94:LPC17xxLib/src/lpc17xx_dac.c **** void DAC_SetBias (LPC_DAC_TypeDef *DACx,uint32_t bias)
+  95:LPC17xxLib/src/lpc17xx_dac.c **** {
+  96:LPC17xxLib/src/lpc17xx_dac.c **** 	CHECK_PARAM(PARAM_DAC_CURRENT_OPT(bias));
+  97:LPC17xxLib/src/lpc17xx_dac.c **** 	DACx->DACR &=~DAC_BIAS_EN;
+  34              	 .loc 1 97 0
+  35 0000 024A     	 ldr r2,.L2
+  36 0002 1368     	 ldr r3,[r2]
+  37 0004 23F48033 	 bic r3,r3,#65536
+  38 0008 1360     	 str r3,[r2]
+  39              	.LVL1:
+  40 000a 7047     	 bx lr
+  41              	.L3:
+  42              	 .align 2
+  43              	.L2:
+  44 000c 00C00840 	 .word 1074315264
+  45              	.LBE5:
+  46              	.LBE4:
+  47              	 .cfi_endproc
+  48              	.LFE55:
+  50              	 .section .text.DAC_UpdateValue,"ax",%progbits
+  51              	 .align 1
+  52              	 .global DAC_UpdateValue
+  53              	 .syntax unified
+  54              	 .thumb
+  55              	 .thumb_func
+  56              	 .fpu softvfp
+  58              	DAC_UpdateValue:
+  59              	.LFB56:
+  78:LPC17xxLib/src/lpc17xx_dac.c **** 	uint32_t tmp;
+  60              	 .loc 1 78 0
+  61              	 .cfi_startproc
+  62              	 
+  63              	 
+  64              	 
+  65              	.LVL2:
+  81:LPC17xxLib/src/lpc17xx_dac.c **** 	tmp |= DAC_VALUE(dac_value);
+  66              	 .loc 1 81 0
+  67 0000 0368     	 ldr r3,[r0]
+  82:LPC17xxLib/src/lpc17xx_dac.c **** 	// Update value
+  68              	 .loc 1 82 0
+  69 0002 8901     	 lsls r1,r1,#6
+  70              	.LVL3:
+  81:LPC17xxLib/src/lpc17xx_dac.c **** 	tmp |= DAC_VALUE(dac_value);
+  71              	 .loc 1 81 0
+  72 0004 03F48033 	 and r3,r3,#65536
+  73              	.LVL4:
+  82:LPC17xxLib/src/lpc17xx_dac.c **** 	// Update value
+  74              	 .loc 1 82 0
+  75 0008 89B2     	 uxth r1,r1
+  76 000a 1943     	 orrs r1,r1,r3
+  77              	.LVL5:
+  84:LPC17xxLib/src/lpc17xx_dac.c **** }
+  78              	 .loc 1 84 0
+  79 000c 0160     	 str r1,[r0]
+  80 000e 7047     	 bx lr
+  81              	 .cfi_endproc
+  82              	.LFE56:
+  84              	 .section .text.DAC_SetBias,"ax",%progbits
+  85              	 .align 1
+  86              	 .global DAC_SetBias
+  87              	 .syntax unified
+  88              	 .thumb
+  89              	 .thumb_func
+  90              	 .fpu softvfp
+  92              	DAC_SetBias:
+  93              	.LFB57:
+  95:LPC17xxLib/src/lpc17xx_dac.c **** 	CHECK_PARAM(PARAM_DAC_CURRENT_OPT(bias));
+  94              	 .loc 1 95 0
+  95              	 .cfi_startproc
+  96              	 
+  97              	 
+  98              	 
+  99              	.LVL6:
+ 100              	 .loc 1 97 0
+ 101 0000 0368     	 ldr r3,[r0]
+  98:LPC17xxLib/src/lpc17xx_dac.c **** 	if (bias  == DAC_MAX_CURRENT_350uA)
+ 102              	 .loc 1 98 0
+ 103 0002 0129     	 cmp r1,#1
+  97:LPC17xxLib/src/lpc17xx_dac.c **** 	if (bias  == DAC_MAX_CURRENT_350uA)
+ 104              	 .loc 1 97 0
+ 105 0004 23F48033 	 bic r3,r3,#65536
+ 106 0008 0360     	 str r3,[r0]
+  99:LPC17xxLib/src/lpc17xx_dac.c **** 	{
+ 100:LPC17xxLib/src/lpc17xx_dac.c **** 		DACx->DACR |= DAC_BIAS_EN;
+ 107              	 .loc 1 100 0
+ 108 000a 02BF     	 ittt eq
+ 109 000c 0368     	 ldreq r3,[r0]
+ 110 000e 43F48033 	 orreq r3,r3,#65536
+ 111 0012 0360     	 streq r3,[r0]
+ 112 0014 7047     	 bx lr
+ 113              	 .cfi_endproc
+ 114              	.LFE57:
+ 116              	 .section .text.DAC_ConfigDAConverterControl,"ax",%progbits
+ 117              	 .align 1
+ 118              	 .global DAC_ConfigDAConverterControl
+ 119              	 .syntax unified
+ 120              	 .thumb
+ 121              	 .thumb_func
+ 122              	 .fpu softvfp
+ 124              	DAC_ConfigDAConverterControl:
+ 125              	.LFB58:
+ 101:LPC17xxLib/src/lpc17xx_dac.c **** 	}
+ 102:LPC17xxLib/src/lpc17xx_dac.c **** }
+ 103:LPC17xxLib/src/lpc17xx_dac.c **** 
+ 104:LPC17xxLib/src/lpc17xx_dac.c **** /*********************************************************************//**
+ 105:LPC17xxLib/src/lpc17xx_dac.c ****  * @brief 		To enable the DMA operation and control DMA timer
+ 106:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in]	DACx pointer to LPC_DAC_TypeDef, should be: LPC_DAC
+ 107:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	DAC_ConverterConfigStruct pointer to DAC_CONVERTER_CFG_Type
+ 108:LPC17xxLib/src/lpc17xx_dac.c ****  * 					- DBLBUF_ENA :  enable/disable DACR double buffering feature
+ 109:LPC17xxLib/src/lpc17xx_dac.c ****  * 					- CNT_ENA    :  enable/disable timer out counter
+ 110:LPC17xxLib/src/lpc17xx_dac.c ****  * 					- DMA_ENA    :	enable/disable DMA access
+ 111:LPC17xxLib/src/lpc17xx_dac.c ****  * @return 		None
+ 112:LPC17xxLib/src/lpc17xx_dac.c ****  ***********************************************************************/
+ 113:LPC17xxLib/src/lpc17xx_dac.c **** void DAC_ConfigDAConverterControl (LPC_DAC_TypeDef *DACx,DAC_CONVERTER_CFG_Type *DAC_ConverterConfi
+ 114:LPC17xxLib/src/lpc17xx_dac.c **** {
+ 126              	 .loc 1 114 0
+ 127              	 .cfi_startproc
+ 128              	 
+ 129              	 
+ 130              	 
+ 131              	.LVL7:
+ 115:LPC17xxLib/src/lpc17xx_dac.c **** 	CHECK_PARAM(PARAM_DACx(DACx));
+ 116:LPC17xxLib/src/lpc17xx_dac.c **** 	DACx->DACCTRL &= ~DAC_DACCTRL_MASK;
+ 132              	 .loc 1 116 0
+ 133 0000 4368     	 ldr r3,[r0,#4]
+ 134 0002 23F00F03 	 bic r3,r3,#15
+ 135 0006 4360     	 str r3,[r0,#4]
+ 117:LPC17xxLib/src/lpc17xx_dac.c **** 	if (DAC_ConverterConfigStruct->DBLBUF_ENA)
+ 136              	 .loc 1 117 0
+ 137 0008 0B78     	 ldrb r3,[r1]
+ 138 000a 1BB1     	 cbz r3,.L8
+ 118:LPC17xxLib/src/lpc17xx_dac.c **** 		DACx->DACCTRL	|= DAC_DBLBUF_ENA;
+ 139              	 .loc 1 118 0
+ 140 000c 4368     	 ldr r3,[r0,#4]
+ 141 000e 43F00203 	 orr r3,r3,#2
+ 142 0012 4360     	 str r3,[r0,#4]
+ 143              	.L8:
+ 119:LPC17xxLib/src/lpc17xx_dac.c **** 	if (DAC_ConverterConfigStruct->CNT_ENA)
+ 144              	 .loc 1 119 0
+ 145 0014 4B78     	 ldrb r3,[r1,#1]
+ 146 0016 1BB1     	 cbz r3,.L9
+ 120:LPC17xxLib/src/lpc17xx_dac.c **** 		DACx->DACCTRL	|= DAC_CNT_ENA;
+ 147              	 .loc 1 120 0
+ 148 0018 4368     	 ldr r3,[r0,#4]
+ 149 001a 43F00403 	 orr r3,r3,#4
+ 150 001e 4360     	 str r3,[r0,#4]
+ 151              	.L9:
+ 121:LPC17xxLib/src/lpc17xx_dac.c **** 	if (DAC_ConverterConfigStruct->DMA_ENA)
+ 152              	 .loc 1 121 0
+ 153 0020 8B78     	 ldrb r3,[r1,#2]
+ 154 0022 1BB1     	 cbz r3,.L7
+ 122:LPC17xxLib/src/lpc17xx_dac.c **** 		DACx->DACCTRL	|= DAC_DMA_ENA;
+ 155              	 .loc 1 122 0
+ 156 0024 4368     	 ldr r3,[r0,#4]
+ 157 0026 43F00803 	 orr r3,r3,#8
+ 158 002a 4360     	 str r3,[r0,#4]
+ 159              	.L7:
+ 160 002c 7047     	 bx lr
+ 161              	 .cfi_endproc
+ 162              	.LFE58:
+ 164              	 .section .text.DAC_SetDMATimeOut,"ax",%progbits
+ 165              	 .align 1
+ 166              	 .global DAC_SetDMATimeOut
+ 167              	 .syntax unified
+ 168              	 .thumb
+ 169              	 .thumb_func
+ 170              	 .fpu softvfp
+ 172              	DAC_SetDMATimeOut:
+ 173              	.LFB59:
+ 123:LPC17xxLib/src/lpc17xx_dac.c **** }
+ 124:LPC17xxLib/src/lpc17xx_dac.c **** 
+ 125:LPC17xxLib/src/lpc17xx_dac.c **** /*********************************************************************//**
+ 126:LPC17xxLib/src/lpc17xx_dac.c ****  * @brief 		Set reload value for interrupt/DMA counter
+ 127:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	DACx pointer to LPC_DAC_TypeDef, should be: LPC_DAC
+ 128:LPC17xxLib/src/lpc17xx_dac.c ****  * @param[in] 	time_out time out to reload for interrupt/DMA counter
+ 129:LPC17xxLib/src/lpc17xx_dac.c ****  * @return 		None
+ 130:LPC17xxLib/src/lpc17xx_dac.c ****  ***********************************************************************/
+ 131:LPC17xxLib/src/lpc17xx_dac.c **** void DAC_SetDMATimeOut(LPC_DAC_TypeDef *DACx, uint32_t time_out)
+ 132:LPC17xxLib/src/lpc17xx_dac.c **** {
+ 174              	 .loc 1 132 0
+ 175              	 .cfi_startproc
+ 176              	 
+ 177              	 
+ 178              	 
+ 179              	.LVL8:
+ 133:LPC17xxLib/src/lpc17xx_dac.c **** 	CHECK_PARAM(PARAM_DACx(DACx));
+ 134:LPC17xxLib/src/lpc17xx_dac.c **** 	DACx->DACCNTVAL = DAC_CCNT_VALUE(time_out);
+ 180              	 .loc 1 134 0
+ 181 0000 0181     	 strh r1,[r0,#8]
+ 182 0002 7047     	 bx lr
+ 183              	 .cfi_endproc
+ 184              	.LFE59:
+ 186              	 .text
+ 187              	.Letext0:
+ 188              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 189              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 190              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 191              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 192              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 193              	 .file 7 "LPC17xxLib/inc/lpc17xx_dac.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_dac.c
+    {standard input}:16     .text.DAC_Init:0000000000000000 $t
+    {standard input}:23     .text.DAC_Init:0000000000000000 DAC_Init
+    {standard input}:44     .text.DAC_Init:000000000000000c $d
+    {standard input}:51     .text.DAC_UpdateValue:0000000000000000 $t
+    {standard input}:58     .text.DAC_UpdateValue:0000000000000000 DAC_UpdateValue
+    {standard input}:85     .text.DAC_SetBias:0000000000000000 $t
+    {standard input}:92     .text.DAC_SetBias:0000000000000000 DAC_SetBias
+    {standard input}:117    .text.DAC_ConfigDAConverterControl:0000000000000000 $t
+    {standard input}:124    .text.DAC_ConfigDAConverterControl:0000000000000000 DAC_ConfigDAConverterControl
+    {standard input}:165    .text.DAC_SetDMATimeOut:0000000000000000 $t
+    {standard input}:172    .text.DAC_SetDMATimeOut:0000000000000000 DAC_SetDMATimeOut
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

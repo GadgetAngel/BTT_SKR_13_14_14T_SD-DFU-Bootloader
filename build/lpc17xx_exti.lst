@@ -1,0 +1,446 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_exti.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.EXTI_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global EXTI_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	EXTI_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_exti.c"
+   1:LPC17xxLib/src/lpc17xx_exti.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_exti.c **** 
+   3:LPC17xxLib/src/lpc17xx_exti.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_exti.c **** * $Id$		lpc17xx_exti.c				2010-06-18
+   5:LPC17xxLib/src/lpc17xx_exti.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_exti.c **** * @file		lpc17xx_exti.c
+   7:LPC17xxLib/src/lpc17xx_exti.c **** * @brief	Contains all functions support for External interrupt firmware
+   8:LPC17xxLib/src/lpc17xx_exti.c **** * 			library on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_exti.c **** * @version	3.0
+  10:LPC17xxLib/src/lpc17xx_exti.c **** * @date		18. June. 2010
+  11:LPC17xxLib/src/lpc17xx_exti.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_exti.c **** *
+  13:LPC17xxLib/src/lpc17xx_exti.c **** * Copyright(C) 2010, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_exti.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_exti.c **** *
+  16:LPC17xxLib/src/lpc17xx_exti.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_exti.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_exti.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_exti.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_exti.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_exti.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_exti.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_exti.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_exti.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_exti.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_exti.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_exti.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_exti.c **** 
+  29:LPC17xxLib/src/lpc17xx_exti.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_exti.c **** /** @addtogroup EXTI
+  31:LPC17xxLib/src/lpc17xx_exti.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_exti.c ****  */
+  33:LPC17xxLib/src/lpc17xx_exti.c **** 
+  34:LPC17xxLib/src/lpc17xx_exti.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_exti.c **** #include "lpc17xx_exti.h"
+  36:LPC17xxLib/src/lpc17xx_exti.c **** 
+  37:LPC17xxLib/src/lpc17xx_exti.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  38:LPC17xxLib/src/lpc17xx_exti.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  39:LPC17xxLib/src/lpc17xx_exti.c ****  * otherwise the default FW library configuration file must be included instead
+  40:LPC17xxLib/src/lpc17xx_exti.c ****  */
+  41:LPC17xxLib/src/lpc17xx_exti.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  42:LPC17xxLib/src/lpc17xx_exti.c **** #include "lpc17xx_libcfg.h"
+  43:LPC17xxLib/src/lpc17xx_exti.c **** #else
+  44:LPC17xxLib/src/lpc17xx_exti.c **** #include "lpc17xx_libcfg_default.h"
+  45:LPC17xxLib/src/lpc17xx_exti.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  46:LPC17xxLib/src/lpc17xx_exti.c **** 
+  47:LPC17xxLib/src/lpc17xx_exti.c **** 
+  48:LPC17xxLib/src/lpc17xx_exti.c **** #ifdef _EXTI
+  49:LPC17xxLib/src/lpc17xx_exti.c **** 
+  50:LPC17xxLib/src/lpc17xx_exti.c **** /* Public Functions ----------------------------------------------------------- */
+  51:LPC17xxLib/src/lpc17xx_exti.c **** /** @addtogroup EXTI_Public_Functions
+  52:LPC17xxLib/src/lpc17xx_exti.c ****  * @{
+  53:LPC17xxLib/src/lpc17xx_exti.c ****  */
+  54:LPC17xxLib/src/lpc17xx_exti.c **** 
+  55:LPC17xxLib/src/lpc17xx_exti.c **** /*********************************************************************//**
+  56:LPC17xxLib/src/lpc17xx_exti.c ****  * @brief 		Initial for EXT
+  57:LPC17xxLib/src/lpc17xx_exti.c ****  * 				- Set EXTINT, EXTMODE, EXTPOLAR registers to default value
+  58:LPC17xxLib/src/lpc17xx_exti.c ****  * @param[in]	None
+  59:LPC17xxLib/src/lpc17xx_exti.c ****  * @return 		None
+  60:LPC17xxLib/src/lpc17xx_exti.c ****  **********************************************************************/
+  61:LPC17xxLib/src/lpc17xx_exti.c **** void EXTI_Init(void)
+  62:LPC17xxLib/src/lpc17xx_exti.c **** {
+  26              	 .loc 1 62 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	 
+  63:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTINT = 0xF;
+  31              	 .loc 1 63 0
+  32 0000 0F22     	 movs r2,#15
+  33 0002 044B     	 ldr r3,.L2
+  34 0004 C3F84021 	 str r2,[r3,#320]
+  64:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTMODE = 0x0;
+  35              	 .loc 1 64 0
+  36 0008 0022     	 movs r2,#0
+  37 000a C3F84821 	 str r2,[r3,#328]
+  65:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTPOLAR = 0x0;
+  38              	 .loc 1 65 0
+  39 000e C3F84C21 	 str r2,[r3,#332]
+  40 0012 7047     	 bx lr
+  41              	.L3:
+  42              	 .align 2
+  43              	.L2:
+  44 0014 00C00F40 	 .word 1074774016
+  45              	 .cfi_endproc
+  46              	.LFE55:
+  48              	 .section .text.EXTI_DeInit,"ax",%progbits
+  49              	 .align 1
+  50              	 .global EXTI_DeInit
+  51              	 .syntax unified
+  52              	 .thumb
+  53              	 .thumb_func
+  54              	 .fpu softvfp
+  56              	EXTI_DeInit:
+  57              	.LFB56:
+  66:LPC17xxLib/src/lpc17xx_exti.c **** }
+  67:LPC17xxLib/src/lpc17xx_exti.c **** 
+  68:LPC17xxLib/src/lpc17xx_exti.c **** 
+  69:LPC17xxLib/src/lpc17xx_exti.c **** /*********************************************************************//**
+  70:LPC17xxLib/src/lpc17xx_exti.c **** * @brief 		Close EXT
+  71:LPC17xxLib/src/lpc17xx_exti.c **** * @param[in]	None
+  72:LPC17xxLib/src/lpc17xx_exti.c **** * @return 		None
+  73:LPC17xxLib/src/lpc17xx_exti.c **** **********************************************************************/
+  74:LPC17xxLib/src/lpc17xx_exti.c **** void	EXTI_DeInit(void)
+  75:LPC17xxLib/src/lpc17xx_exti.c **** {
+  58              	 .loc 1 75 0
+  59              	 .cfi_startproc
+  60              	 
+  61              	 
+  62              	 
+  63 0000 7047     	 bx lr
+  64              	 .cfi_endproc
+  65              	.LFE56:
+  67              	 .section .text.EXTI_SetMode,"ax",%progbits
+  68              	 .align 1
+  69              	 .global EXTI_SetMode
+  70              	 .syntax unified
+  71              	 .thumb
+  72              	 .thumb_func
+  73              	 .fpu softvfp
+  75              	EXTI_SetMode:
+  76              	.LFB58:
+  76:LPC17xxLib/src/lpc17xx_exti.c **** 	;
+  77:LPC17xxLib/src/lpc17xx_exti.c **** }
+  78:LPC17xxLib/src/lpc17xx_exti.c **** 
+  79:LPC17xxLib/src/lpc17xx_exti.c **** /*********************************************************************//**
+  80:LPC17xxLib/src/lpc17xx_exti.c ****  * @brief 		Configuration for EXT
+  81:LPC17xxLib/src/lpc17xx_exti.c ****  * 				- Set EXTINT, EXTMODE, EXTPOLAR register
+  82:LPC17xxLib/src/lpc17xx_exti.c ****  * @param[in]	EXTICfg	Pointer to a EXTI_InitTypeDef structure
+  83:LPC17xxLib/src/lpc17xx_exti.c ****  *              that contains the configuration information for the
+  84:LPC17xxLib/src/lpc17xx_exti.c ****  *              specified external interrupt
+  85:LPC17xxLib/src/lpc17xx_exti.c ****  * @return 		None
+  86:LPC17xxLib/src/lpc17xx_exti.c ****  **********************************************************************/
+  87:LPC17xxLib/src/lpc17xx_exti.c **** void EXTI_Config(EXTI_InitTypeDef *EXTICfg)
+  88:LPC17xxLib/src/lpc17xx_exti.c **** {
+  89:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTINT = 0x0;
+  90:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetMode(EXTICfg->EXTI_Line, EXTICfg->EXTI_Mode);
+  91:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetPolarity(EXTICfg->EXTI_Line, EXTICfg->EXTI_polarity);
+  92:LPC17xxLib/src/lpc17xx_exti.c **** }
+  93:LPC17xxLib/src/lpc17xx_exti.c **** 
+  94:LPC17xxLib/src/lpc17xx_exti.c **** /*********************************************************************//**
+  95:LPC17xxLib/src/lpc17xx_exti.c **** * @brief 		Set mode for EXTI pin
+  96:LPC17xxLib/src/lpc17xx_exti.c **** * @param[in]	EXTILine	 external interrupt line, should be:
+  97:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT0: external interrupt line 0
+  98:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT1: external interrupt line 1
+  99:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT2: external interrupt line 2
+ 100:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT3: external interrupt line 3
+ 101:LPC17xxLib/src/lpc17xx_exti.c **** * @param[in]	mode 	external mode, should be:
+ 102:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_MODE_LEVEL_SENSITIVE
+ 103:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_MODE_EDGE_SENSITIVE
+ 104:LPC17xxLib/src/lpc17xx_exti.c **** * @return 		None
+ 105:LPC17xxLib/src/lpc17xx_exti.c **** *********************************************************************/
+ 106:LPC17xxLib/src/lpc17xx_exti.c **** void EXTI_SetMode(EXTI_LINE_ENUM EXTILine, EXTI_MODE_ENUM mode)
+ 107:LPC17xxLib/src/lpc17xx_exti.c **** {
+  77              	 .loc 1 107 0
+  78              	 .cfi_startproc
+  79              	 
+  80              	 
+  81              	 
+  82              	.LVL0:
+ 108:LPC17xxLib/src/lpc17xx_exti.c **** 	if(mode == EXTI_MODE_EDGE_SENSITIVE)
+  83              	 .loc 1 108 0
+  84 0000 0129     	 cmp r1,#1
+  85 0002 07D1     	 bne .L6
+  86              	.LVL1:
+  87              	.LBB4:
+  88              	.LBB5:
+ 109:LPC17xxLib/src/lpc17xx_exti.c **** 	{
+ 110:LPC17xxLib/src/lpc17xx_exti.c **** 		LPC_SC->EXTMODE |= (1 << EXTILine);
+  89              	 .loc 1 110 0
+  90 0004 094B     	 ldr r3,.L8
+  91 0006 8140     	 lsls r1,r1,r0
+  92              	.LVL2:
+  93 0008 D3F84821 	 ldr r2,[r3,#328]
+  94 000c 1143     	 orrs r1,r1,r2
+  95 000e C3F84811 	 str r1,[r3,#328]
+  96 0012 7047     	 bx lr
+  97              	.LVL3:
+  98              	.L6:
+  99              	.LBE5:
+ 100              	.LBE4:
+ 111:LPC17xxLib/src/lpc17xx_exti.c **** 	}
+ 112:LPC17xxLib/src/lpc17xx_exti.c **** 	else if(mode == EXTI_MODE_LEVEL_SENSITIVE)
+ 101              	 .loc 1 112 0
+ 102 0014 49B9     	 cbnz r1,.L5
+ 113:LPC17xxLib/src/lpc17xx_exti.c **** 	{
+ 114:LPC17xxLib/src/lpc17xx_exti.c **** 		LPC_SC->EXTMODE &= ~(1 << EXTILine);
+ 103              	 .loc 1 114 0
+ 104 0016 0123     	 movs r3,#1
+ 105 0018 044A     	 ldr r2,.L8
+ 106 001a 03FA00F0 	 lsl r0,r3,r0
+ 107              	.LVL4:
+ 108 001e D2F84811 	 ldr r1,[r2,#328]
+ 109              	.LVL5:
+ 110 0022 21EA0001 	 bic r1,r1,r0
+ 111 0026 C2F84811 	 str r1,[r2,#328]
+ 112              	.L5:
+ 113 002a 7047     	 bx lr
+ 114              	.L9:
+ 115              	 .align 2
+ 116              	.L8:
+ 117 002c 00C00F40 	 .word 1074774016
+ 118              	 .cfi_endproc
+ 119              	.LFE58:
+ 121              	 .section .text.EXTI_SetPolarity,"ax",%progbits
+ 122              	 .align 1
+ 123              	 .global EXTI_SetPolarity
+ 124              	 .syntax unified
+ 125              	 .thumb
+ 126              	 .thumb_func
+ 127              	 .fpu softvfp
+ 129              	EXTI_SetPolarity:
+ 130              	.LFB59:
+ 115:LPC17xxLib/src/lpc17xx_exti.c **** 	}
+ 116:LPC17xxLib/src/lpc17xx_exti.c **** }
+ 117:LPC17xxLib/src/lpc17xx_exti.c **** 
+ 118:LPC17xxLib/src/lpc17xx_exti.c **** /*********************************************************************//**
+ 119:LPC17xxLib/src/lpc17xx_exti.c **** * @brief 		Set polarity for EXTI pin
+ 120:LPC17xxLib/src/lpc17xx_exti.c **** * @param[in]	EXTILine	 external interrupt line, should be:
+ 121:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT0: external interrupt line 0
+ 122:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT1: external interrupt line 1
+ 123:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT2: external interrupt line 2
+ 124:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT3: external interrupt line 3
+ 125:LPC17xxLib/src/lpc17xx_exti.c **** * @param[in]	polarity	 external polarity value, should be:
+ 126:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE
+ 127:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE
+ 128:LPC17xxLib/src/lpc17xx_exti.c **** * @return 		None
+ 129:LPC17xxLib/src/lpc17xx_exti.c **** *********************************************************************/
+ 130:LPC17xxLib/src/lpc17xx_exti.c **** void EXTI_SetPolarity(EXTI_LINE_ENUM EXTILine, EXTI_POLARITY_ENUM polarity)
+ 131:LPC17xxLib/src/lpc17xx_exti.c **** {
+ 131              	 .loc 1 131 0
+ 132              	 .cfi_startproc
+ 133              	 
+ 134              	 
+ 135              	 
+ 136              	.LVL6:
+ 132:LPC17xxLib/src/lpc17xx_exti.c **** 	if(polarity == EXTI_POLARITY_HIGH_ACTIVE_OR_RISING_EDGE)
+ 137              	 .loc 1 132 0
+ 138 0000 0129     	 cmp r1,#1
+ 139 0002 07D1     	 bne .L11
+ 140              	.LVL7:
+ 141              	.LBB8:
+ 142              	.LBB9:
+ 133:LPC17xxLib/src/lpc17xx_exti.c **** 	{
+ 134:LPC17xxLib/src/lpc17xx_exti.c **** 		LPC_SC->EXTPOLAR |= (1 << EXTILine);
+ 143              	 .loc 1 134 0
+ 144 0004 094B     	 ldr r3,.L13
+ 145 0006 8140     	 lsls r1,r1,r0
+ 146              	.LVL8:
+ 147 0008 D3F84C21 	 ldr r2,[r3,#332]
+ 148 000c 1143     	 orrs r1,r1,r2
+ 149 000e C3F84C11 	 str r1,[r3,#332]
+ 150 0012 7047     	 bx lr
+ 151              	.LVL9:
+ 152              	.L11:
+ 153              	.LBE9:
+ 154              	.LBE8:
+ 135:LPC17xxLib/src/lpc17xx_exti.c **** 	}
+ 136:LPC17xxLib/src/lpc17xx_exti.c **** 	else if(polarity == EXTI_POLARITY_LOW_ACTIVE_OR_FALLING_EDGE)
+ 155              	 .loc 1 136 0
+ 156 0014 49B9     	 cbnz r1,.L10
+ 137:LPC17xxLib/src/lpc17xx_exti.c **** 	{
+ 138:LPC17xxLib/src/lpc17xx_exti.c **** 		LPC_SC->EXTPOLAR &= ~(1 << EXTILine);
+ 157              	 .loc 1 138 0
+ 158 0016 0123     	 movs r3,#1
+ 159 0018 044A     	 ldr r2,.L13
+ 160 001a 03FA00F0 	 lsl r0,r3,r0
+ 161              	.LVL10:
+ 162 001e D2F84C11 	 ldr r1,[r2,#332]
+ 163              	.LVL11:
+ 164 0022 21EA0001 	 bic r1,r1,r0
+ 165 0026 C2F84C11 	 str r1,[r2,#332]
+ 166              	.L10:
+ 167 002a 7047     	 bx lr
+ 168              	.L14:
+ 169              	 .align 2
+ 170              	.L13:
+ 171 002c 00C00F40 	 .word 1074774016
+ 172              	 .cfi_endproc
+ 173              	.LFE59:
+ 175              	 .section .text.EXTI_Config,"ax",%progbits
+ 176              	 .align 1
+ 177              	 .global EXTI_Config
+ 178              	 .syntax unified
+ 179              	 .thumb
+ 180              	 .thumb_func
+ 181              	 .fpu softvfp
+ 183              	EXTI_Config:
+ 184              	.LFB57:
+  88:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTINT = 0x0;
+ 185              	 .loc 1 88 0
+ 186              	 .cfi_startproc
+ 187              	 
+ 188              	 
+ 189              	.LVL12:
+  89:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetMode(EXTICfg->EXTI_Line, EXTICfg->EXTI_Mode);
+ 190              	 .loc 1 89 0
+ 191 0000 0022     	 movs r2,#0
+  88:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTINT = 0x0;
+ 192              	 .loc 1 88 0
+ 193 0002 10B5     	 push {r4,lr}
+ 194              	 .cfi_def_cfa_offset 8
+ 195              	 .cfi_offset 4,-8
+ 196              	 .cfi_offset 14,-4
+  88:LPC17xxLib/src/lpc17xx_exti.c **** 	LPC_SC->EXTINT = 0x0;
+ 197              	 .loc 1 88 0
+ 198 0004 0446     	 mov r4,r0
+  89:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetMode(EXTICfg->EXTI_Line, EXTICfg->EXTI_Mode);
+ 199              	 .loc 1 89 0
+ 200 0006 064B     	 ldr r3,.L16
+  90:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetPolarity(EXTICfg->EXTI_Line, EXTICfg->EXTI_polarity);
+ 201              	 .loc 1 90 0
+ 202 0008 4178     	 ldrb r1,[r0,#1]
+  89:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetMode(EXTICfg->EXTI_Line, EXTICfg->EXTI_Mode);
+ 203              	 .loc 1 89 0
+ 204 000a C3F84021 	 str r2,[r3,#320]
+  90:LPC17xxLib/src/lpc17xx_exti.c **** 	EXTI_SetPolarity(EXTICfg->EXTI_Line, EXTICfg->EXTI_polarity);
+ 205              	 .loc 1 90 0
+ 206 000e 0078     	 ldrb r0,[r0]
+ 207              	.LVL13:
+ 208 0010 044B     	 ldr r3,.L16+4
+ 209 0012 9847     	 blx r3
+ 210              	.LVL14:
+  91:LPC17xxLib/src/lpc17xx_exti.c **** }
+ 211              	 .loc 1 91 0
+ 212 0014 A178     	 ldrb r1,[r4,#2]
+ 213 0016 2078     	 ldrb r0,[r4]
+ 214 0018 034B     	 ldr r3,.L16+8
+  92:LPC17xxLib/src/lpc17xx_exti.c **** 
+ 215              	 .loc 1 92 0
+ 216 001a BDE81040 	 pop {r4,lr}
+ 217              	 .cfi_restore 14
+ 218              	 .cfi_restore 4
+ 219              	 .cfi_def_cfa_offset 0
+ 220              	.LVL15:
+  91:LPC17xxLib/src/lpc17xx_exti.c **** }
+ 221              	 .loc 1 91 0
+ 222 001e 1847     	 bx r3
+ 223              	.LVL16:
+ 224              	.L17:
+ 225              	 .align 2
+ 226              	.L16:
+ 227 0020 00C00F40 	 .word 1074774016
+ 228 0024 00000000 	 .word EXTI_SetMode
+ 229 0028 00000000 	 .word EXTI_SetPolarity
+ 230              	 .cfi_endproc
+ 231              	.LFE57:
+ 233              	 .section .text.EXTI_ClearEXTIFlag,"ax",%progbits
+ 234              	 .align 1
+ 235              	 .global EXTI_ClearEXTIFlag
+ 236              	 .syntax unified
+ 237              	 .thumb
+ 238              	 .thumb_func
+ 239              	 .fpu softvfp
+ 241              	EXTI_ClearEXTIFlag:
+ 242              	.LFB60:
+ 139:LPC17xxLib/src/lpc17xx_exti.c **** 	}
+ 140:LPC17xxLib/src/lpc17xx_exti.c **** }
+ 141:LPC17xxLib/src/lpc17xx_exti.c **** 
+ 142:LPC17xxLib/src/lpc17xx_exti.c **** /*********************************************************************//**
+ 143:LPC17xxLib/src/lpc17xx_exti.c **** * @brief 		Clear External interrupt flag
+ 144:LPC17xxLib/src/lpc17xx_exti.c **** * @param[in]	EXTILine	 external interrupt line, should be:
+ 145:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT0: external interrupt line 0
+ 146:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT1: external interrupt line 1
+ 147:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT2: external interrupt line 2
+ 148:LPC17xxLib/src/lpc17xx_exti.c **** * 				- EXTI_EINT3: external interrupt line 3
+ 149:LPC17xxLib/src/lpc17xx_exti.c **** * @return 		None
+ 150:LPC17xxLib/src/lpc17xx_exti.c **** *********************************************************************/
+ 151:LPC17xxLib/src/lpc17xx_exti.c **** void EXTI_ClearEXTIFlag(EXTI_LINE_ENUM EXTILine)
+ 152:LPC17xxLib/src/lpc17xx_exti.c **** {
+ 243              	 .loc 1 152 0
+ 244              	 .cfi_startproc
+ 245              	 
+ 246              	 
+ 247              	 
+ 248              	.LVL17:
+ 153:LPC17xxLib/src/lpc17xx_exti.c **** 		LPC_SC->EXTINT |= (1 << EXTILine);
+ 249              	 .loc 1 153 0
+ 250 0000 0123     	 movs r3,#1
+ 251 0002 044A     	 ldr r2,.L19
+ 252 0004 03FA00F0 	 lsl r0,r3,r0
+ 253              	.LVL18:
+ 254 0008 D2F84011 	 ldr r1,[r2,#320]
+ 255 000c 0843     	 orrs r0,r0,r1
+ 256 000e C2F84001 	 str r0,[r2,#320]
+ 257 0012 7047     	 bx lr
+ 258              	.L20:
+ 259              	 .align 2
+ 260              	.L19:
+ 261 0014 00C00F40 	 .word 1074774016
+ 262              	 .cfi_endproc
+ 263              	.LFE60:
+ 265              	 .text
+ 266              	.Letext0:
+ 267              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 268              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 269              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 270              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 271              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 272              	 .file 7 "LPC17xxLib/inc/lpc17xx_exti.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_exti.c
+    {standard input}:16     .text.EXTI_Init:0000000000000000 $t
+    {standard input}:23     .text.EXTI_Init:0000000000000000 EXTI_Init
+    {standard input}:44     .text.EXTI_Init:0000000000000014 $d
+    {standard input}:49     .text.EXTI_DeInit:0000000000000000 $t
+    {standard input}:56     .text.EXTI_DeInit:0000000000000000 EXTI_DeInit
+    {standard input}:68     .text.EXTI_SetMode:0000000000000000 $t
+    {standard input}:75     .text.EXTI_SetMode:0000000000000000 EXTI_SetMode
+    {standard input}:117    .text.EXTI_SetMode:000000000000002c $d
+    {standard input}:122    .text.EXTI_SetPolarity:0000000000000000 $t
+    {standard input}:129    .text.EXTI_SetPolarity:0000000000000000 EXTI_SetPolarity
+    {standard input}:171    .text.EXTI_SetPolarity:000000000000002c $d
+    {standard input}:176    .text.EXTI_Config:0000000000000000 $t
+    {standard input}:183    .text.EXTI_Config:0000000000000000 EXTI_Config
+    {standard input}:227    .text.EXTI_Config:0000000000000020 $d
+    {standard input}:234    .text.EXTI_ClearEXTIFlag:0000000000000000 $t
+    {standard input}:241    .text.EXTI_ClearEXTIFlag:0000000000000000 EXTI_ClearEXTIFlag
+    {standard input}:261    .text.EXTI_ClearEXTIFlag:0000000000000014 $d
+                     .debug_frame:0000000000000010 $d
+
+NO UNDEFINED SYMBOLS

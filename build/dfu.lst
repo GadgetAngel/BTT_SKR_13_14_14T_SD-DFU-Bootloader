@@ -1,0 +1,2858 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "dfu.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.DFU_init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global DFU_init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	DFU_init:
+  24              	.LFB56:
+  25              	 .file 1 "dfu.c"
+   1:dfu.c         **** /*****************************************************************************
+   2:dfu.c         ****  *                                                                            *
+   3:dfu.c         ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:dfu.c         ****  *                                                                            *
+   5:dfu.c         ****  * by Triffid Hunter                                                          *
+   6:dfu.c         ****  *                                                                            *
+   7:dfu.c         ****  *                                                                            *
+   8:dfu.c         ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:dfu.c         ****  *                                                                            *
+  10:dfu.c         ****  * This program is free software; you can redistribute it and/or modify       *
+  11:dfu.c         ****  * it under the terms of the GNU General Public License as published by       *
+  12:dfu.c         ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:dfu.c         ****  * (at your option) any later version.                                        *
+  14:dfu.c         ****  *                                                                            *
+  15:dfu.c         ****  * This program is distributed in the hope that it will be useful,            *
+  16:dfu.c         ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:dfu.c         ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:dfu.c         ****  * GNU General Public License for more details.                               *
+  19:dfu.c         ****  *                                                                            *
+  20:dfu.c         ****  * You should have received a copy of the GNU General Public License          *
+  21:dfu.c         ****  * along with this program; if not, write to the Free Software                *
+  22:dfu.c         ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:dfu.c         ****  *                                                                            *
+  24:dfu.c         ****  *****************************************************************************/
+  25:dfu.c         **** 
+  26:dfu.c         **** 
+  27:dfu.c         **** #include "config.h"
+  28:dfu.c         **** 
+  29:dfu.c         **** #include "dfu.h"
+  30:dfu.c         **** 
+  31:dfu.c         **** #include <stdio.h>
+  32:dfu.c         **** 
+  33:dfu.c         **** #include "usbcore.h"
+  34:dfu.c         **** #include "usbhw.h"
+  35:dfu.c         **** 
+  36:dfu.c         **** #include "descriptor.h"
+  37:dfu.c         **** 
+  38:dfu.c         **** #include "sbl_iap.h"
+  39:dfu.c         **** 
+  40:dfu.c         **** #include "string.h"
+  41:dfu.c         **** 
+  42:dfu.c         **** #define DFU_BLOCK_SIZE 512
+  43:dfu.c         **** 
+  44:dfu.c         **** #if ENABLED(LEDS)
+  45:dfu.c         **** extern voidsetleds(int);
+  46:dfu.c         **** #endif
+  47:dfu.c         **** 
+  48:dfu.c         **** typedef struct
+  49:dfu.c         **** __attribute__ ((packed))
+  50:dfu.c         **** {
+  51:dfu.c         **** 	usbdesc_device device;
+  52:dfu.c         **** 	usbdesc_configuration configuration;
+  53:dfu.c         **** 	usbdesc_interface	interface;
+  54:dfu.c         **** 	DFU_functional_descriptor dfufunc;
+  55:dfu.c         **** 	usbdesc_language lang;
+  56:dfu.c         **** 	usbdesc_string_l(11) iManufacturer;
+  57:dfu.c         **** 	usbdesc_string_l(11) iProduct;
+  58:dfu.c         **** 	usbdesc_string_l(12) iInterface;
+  59:dfu.c         **** 	usbdesc_base endnull;
+  60:dfu.c         **** } DFU_APP_Descriptor;
+  61:dfu.c         **** 
+  62:dfu.c         **** DFU_APP_Descriptor desc =
+  63:dfu.c         **** {
+  64:dfu.c         **** 	{
+  65:dfu.c         **** 		DL_DEVICE,
+  66:dfu.c         **** 		DT_DEVICE,
+  67:dfu.c         **** 		USB_VERSION_2_0,	// bcdUSBVersion
+  68:dfu.c         **** 		0,							// bDeviceClass
+  69:dfu.c         **** 		0,							// bDeviceSubClass
+  70:dfu.c         **** 		0,							// bDeviceProtocol
+  71:dfu.c         **** 		64,						// bMaxPacketSize
+  72:dfu.c         **** 		0x1D50,					// idVendor
+  73:dfu.c         **** 		0x6015,					// idProduct
+  74:dfu.c         **** 		0x0040,					// bcdDevice (serial number)
+  75:dfu.c         **** 		1,							// iManufacturer
+  76:dfu.c         **** 		2,							// iProduct
+  77:dfu.c         **** 		0,							// iSerial
+  78:dfu.c         **** 		1							// bNumConfigurations
+  79:dfu.c         **** 	},
+  80:dfu.c         **** 	{
+  81:dfu.c         **** 		DL_CONFIGURATION,
+  82:dfu.c         **** 		DT_CONFIGURATION,
+  83:dfu.c         **** 		DL_CONFIGURATION + DL_INTERFACE + DL_DFU_FUNCTIONAL_DESCRIPTOR,
+  84:dfu.c         **** 		1,							// bNumInterfaces
+  85:dfu.c         **** 		1,							// bConfigurationValue
+  86:dfu.c         **** 		0,							// iConfiguration
+  87:dfu.c         **** 		CA_BUSPOWERED,	// bmAttributes
+  88:dfu.c         **** 		500 mA					// bMaxPower
+  89:dfu.c         **** 	},
+  90:dfu.c         **** 	{
+  91:dfu.c         **** 		DL_INTERFACE,
+  92:dfu.c         **** 		DT_INTERFACE,
+  93:dfu.c         **** 		0,							// bInterfaceNumber
+  94:dfu.c         **** 		0,							// bAlternate
+  95:dfu.c         **** 		0,							// bNumEndpoints
+  96:dfu.c         **** 		DFU_INTERFACE_CLASS,		// bInterfaceClass
+  97:dfu.c         **** 		DFU_INTERFACE_SUBCLASS,		// bInterfaceSubClass
+  98:dfu.c         **** 		DFU_INTERFACE_PROTOCOL_DFUMODE,		// bInterfaceProtocol
+  99:dfu.c         **** 		3							// iInterface
+ 100:dfu.c         **** 	},
+ 101:dfu.c         **** 	{
+ 102:dfu.c         **** 		DL_DFU_FUNCTIONAL_DESCRIPTOR,
+ 103:dfu.c         **** 		DT_DFU_FUNCTIONAL_DESCRIPTOR,
+ 104:dfu.c         **** 		DFU_BMATTRIBUTES_WILLDETACH | DFU_BMATTRIBUTES_CANDOWNLOAD | DFU_BMATTRIBUTES_CANUPLOAD,
+ 105:dfu.c         **** 		500,						// wDetachTimeout - time in milliseconds between receiving detach request and issuing u
+ 106:dfu.c         **** 		DFU_BLOCK_SIZE,				// wTransferSize - the size of each packet of firmware sent from the host via 
+ 107:dfu.c         **** 		DFU_VERSION_1_1	// bcdDFUVersion
+ 108:dfu.c         **** 	},
+ 109:dfu.c         **** 	{
+ 110:dfu.c         **** 		DL_LANGUAGE,
+ 111:dfu.c         **** 		DT_LANGUAGE,
+ 112:dfu.c         **** 		{ SL_USENGLISH }
+ 113:dfu.c         **** 	},
+ 114:dfu.c         **** #ifndef __CC_ARM
+ 115:dfu.c         **** 	//usbstring(12, "SmoothieWare"),
+ 116:dfu.c         **** 	usbstring(11, "Bigtreetech"),
+ 117:dfu.c         **** 
+ 118:dfu.c         **** 	//usbstring(8 , "Smoothie"),
+ 119:dfu.c         **** 	usbstring(11 ,  "SKR 1.3/1.4"),
+ 120:dfu.c         **** 	usbstring(12, "Smoothie DFU"),
+ 121:dfu.c         **** #else
+ 122:dfu.c         ****     //{ 2 + 2 * 12, DT_STRING, 'S', 'm', 'o', 'o', 't', 'h', 'i', 'e', 'W', 'a', 'r', 'e' },
+ 123:dfu.c         ****     { 2 + 2 * 11, DT_STRING, 'B', 'i', 'g', 't', 'r', 'e', 'e', 't', 'e', 'c', 'h' },
+ 124:dfu.c         **** 
+ 125:dfu.c         ****     //{ 2 + 2 * 8,  DT_STRING, 'S', 'm', 'o', 'o', 't', 'h', 'i', 'e' },
+ 126:dfu.c         ****     { 2 + 2 * 8,  DT_STRING, 'S', 'K', 'R', ' ', '1', '.', 'x', ' ' },
+ 127:dfu.c         **** 
+ 128:dfu.c         ****     { 2 + 2 * 12, DT_STRING, 'S', 'm', 'o', 'o', 't', 'h', 'i', 'e', ' ', 'D', 'F', 'U' },
+ 129:dfu.c         **** #endif
+ 130:dfu.c         **** 	{
+ 131:dfu.c         **** 		0,							// bLength
+ 132:dfu.c         **** 		0							// bDescType
+ 133:dfu.c         **** 	}
+ 134:dfu.c         **** };
+ 135:dfu.c         **** 
+ 136:dfu.c         **** typedef struct
+ 137:dfu.c         **** __attribute__ ((packed))
+ 138:dfu.c         **** {
+ 139:dfu.c         **** 	uint8_t		bStatus;			// status of most recent command
+ 140:dfu.c         **** 	uint32_t	bwPollTimeout:24;	// time to next poll
+ 141:dfu.c         **** 	uint8_t		bState;				// state that we're about to enter
+ 142:dfu.c         **** 	uint8_t		iString;			// optional string description for status
+ 143:dfu.c         **** } DFU_STATUS_t;
+ 144:dfu.c         **** 
+ 145:dfu.c         **** typedef enum
+ 146:dfu.c         **** {
+ 147:dfu.c         **** 	OK,					// No error
+ 148:dfu.c         **** 	errTARGET,			// File is not for this device
+ 149:dfu.c         **** 	errFILE,			// File is for this device but isn't right for some vendor-specific reason
+ 150:dfu.c         **** 	errWRITE,			// unable to write
+ 151:dfu.c         **** 	errERASE,			// erase failed
+ 152:dfu.c         **** 	errCHECK_ERASED,	// erase seemed to work but there's still data there
+ 153:dfu.c         **** 	errPROG,			// program memory function failed
+ 154:dfu.c         **** 	errVERIFY,			// verification failed
+ 155:dfu.c         **** 	errADDRESS,			// address out of range
+ 156:dfu.c         **** 	errNOTDONE,			// received end-of-data marker but we don't think we're finished yet
+ 157:dfu.c         **** 	errFIRMWARE,		// downloaded firmware is corrupt, can't exit DFU mode
+ 158:dfu.c         **** 	errVENDOR,			// iString indicates vendor specific error
+ 159:dfu.c         **** 	errUSBR,			// received unexpected USB reset
+ 160:dfu.c         **** 	errPOR,				// unexpected power-on reset
+ 161:dfu.c         **** 	errUNKNOWN,			// something went wrong, we just don't know what!
+ 162:dfu.c         **** 	errSTALLEDPKT		// device stalled something unexpected
+ 163:dfu.c         **** } DFU_STATUS_enum;
+ 164:dfu.c         **** 
+ 165:dfu.c         **** typedef enum
+ 166:dfu.c         **** {
+ 167:dfu.c         **** 	appIDLE,			// device is running firmware
+ 168:dfu.c         **** 	appDETACH,			// device is waiting for USB reset to begin DFU
+ 169:dfu.c         **** 	dfuIDLE,			// DFU mode is waiting for commands
+ 170:dfu.c         **** 	dfuDNLOADSYNC,		// device has a block and is waiting for host to issue GETSTATUS
+ 171:dfu.c         **** 	dfuDNBUSY,			// device is flashing a block
+ 172:dfu.c         **** 	dfuDNLOADIDLE,		// device is waiting for more data
+ 173:dfu.c         **** 	dfuMANIFESTSYNC,	// device is waiting GETSTATUS so we can enter or exit manifestation
+ 174:dfu.c         **** 	dfuMANIFEST,		// device is flashing
+ 175:dfu.c         **** 	dfuMANIFESTWAITRESET,	// device has finished flashing and is waiting for USB reset
+ 176:dfu.c         **** 	dfuUPLOADIDLE,		// device is waiting for UPLOAD requests
+ 177:dfu.c         **** 	dfuERROR,			// device has experienced an error, is waiting for CLRSTATUS
+ 178:dfu.c         **** } DFU_STATE_enum;
+ 179:dfu.c         **** 
+ 180:dfu.c         **** DFU_STATE_enum current_state;
+ 181:dfu.c         **** 
+ 182:dfu.c         **** DFU_STATUS_t DFU_status = {
+ 183:dfu.c         **** 	OK,
+ 184:dfu.c         **** 	500,
+ 185:dfu.c         **** 	dfuIDLE,
+ 186:dfu.c         **** 	0
+ 187:dfu.c         **** };
+ 188:dfu.c         **** 
+ 189:dfu.c         **** uint8_t block_buffer[DFU_BLOCK_SIZE];
+ 190:dfu.c         **** const uint8_t * flash_p;
+ 191:dfu.c         **** 
+ 192:dfu.c         **** #ifndef __CC_ARM
+ 193:dfu.c         **** extern const uint8_t _user_flash_start;
+ 194:dfu.c         **** extern const uint8_t _user_flash_size;
+ 195:dfu.c         **** #else
+ 196:dfu.c         **** // static const uint32_t *_real_flash_size = (uint32_t *)0x7c000;
+ 197:dfu.c         **** const uint8_t _user_flash_start __attribute__((at(0x4000)));
+ 198:dfu.c         **** const uint8_t _user_flash_size __attribute__((at(0x7c000)));
+ 199:dfu.c         **** #endif
+ 200:dfu.c         **** 
+ 201:dfu.c         **** #include "LPC17xx.h"
+ 202:dfu.c         **** #include "lpc17xx_usb.h"
+ 203:dfu.c         **** 
+ 204:dfu.c         **** void DFU_init(void)
+ 205:dfu.c         **** {
+  26              	 .loc 1 205 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30 0000 08B5     	 push {r3,lr}
+  31              	 .cfi_def_cfa_offset 8
+  32              	 .cfi_offset 3,-8
+  33              	 .cfi_offset 14,-4
+ 206:dfu.c         **** 	usb_provideDescriptors(&desc);
+  34              	 .loc 1 206 0
+  35 0002 0348     	 ldr r0,.L2
+  36 0004 034B     	 ldr r3,.L2+4
+  37 0006 9847     	 blx r3
+  38              	.LVL0:
+ 207:dfu.c         **** 	flash_p = &_user_flash_start;
+  39              	 .loc 1 207 0
+  40 0008 034A     	 ldr r2,.L2+8
+  41 000a 044B     	 ldr r3,.L2+12
+  42 000c 1A60     	 str r2,[r3]
+  43 000e 08BD     	 pop {r3,pc}
+  44              	.L3:
+  45              	 .align 2
+  46              	.L2:
+  47 0010 00000000 	 .word .LANCHOR0
+  48 0014 00000000 	 .word usb_provideDescriptors
+  49 0018 00000000 	 .word _user_flash_start
+  50 001c 00000000 	 .word flash_p
+  51              	 .cfi_endproc
+  52              	.LFE56:
+  54              	 .section .text.DFU_GetStatus,"ax",%progbits
+  55              	 .align 1
+  56              	 .global DFU_GetStatus
+  57              	 .syntax unified
+  58              	 .thumb
+  59              	 .thumb_func
+  60              	 .fpu softvfp
+  62              	DFU_GetStatus:
+  63              	.LFB57:
+ 208:dfu.c         **** // 	printf(PFX "user flash: %p\n", flash_p);
+ 209:dfu.c         **** }
+ 210:dfu.c         **** 
+ 211:dfu.c         **** void DFU_GetStatus(CONTROL_TRANSFER *control)
+ 212:dfu.c         **** {
+  64              	 .loc 1 212 0
+  65              	 .cfi_startproc
+  66              	 
+  67              	 
+  68              	 
+  69              	.LVL1:
+ 213:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 214:dfu.c         **** 	printf(PFX "DFU:GETSTATUS\n");
+ 215:dfu.c         **** #endif
+ 216:dfu.c         **** 	control->buffer = &DFU_status;
+  70              	 .loc 1 216 0
+  71 0000 044B     	 ldr r3,.L5
+ 217:dfu.c         **** 	control->bufferlen = 6;
+  72              	 .loc 1 217 0
+  73 0002 0622     	 movs r2,#6
+ 216:dfu.c         **** 	control->bufferlen = 6;
+  74              	 .loc 1 216 0
+  75 0004 0360     	 str r3,[r0]
+  76              	 .loc 1 217 0
+  77 0006 0023     	 movs r3,#0
+  78 0008 0271     	 strb r2,[r0,#4]
+  79 000a 4371     	 strb r3,[r0,#5]
+  80 000c 8371     	 strb r3,[r0,#6]
+  81 000e C371     	 strb r3,[r0,#7]
+  82 0010 7047     	 bx lr
+  83              	.L6:
+  84 0012 00BF     	 .align 2
+  85              	.L5:
+  86 0014 00000000 	 .word .LANCHOR1
+  87              	 .cfi_endproc
+  88              	.LFE57:
+  90              	 .section .text.DFU_GetState,"ax",%progbits
+  91              	 .align 1
+  92              	 .global DFU_GetState
+  93              	 .syntax unified
+  94              	 .thumb
+  95              	 .thumb_func
+  96              	 .fpu softvfp
+  98              	DFU_GetState:
+  99              	.LFB58:
+ 218:dfu.c         **** }
+ 219:dfu.c         **** 
+ 220:dfu.c         **** void DFU_GetState(CONTROL_TRANSFER *control)
+ 221:dfu.c         **** {
+ 100              	 .loc 1 221 0
+ 101              	 .cfi_startproc
+ 102              	 
+ 103              	 
+ 104              	 
+ 105              	.LVL2:
+ 222:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 223:dfu.c         **** 	printf(PFX "DFU:GETSTATE\n");
+ 224:dfu.c         **** #endif
+ 225:dfu.c         **** 	control->buffer = &current_state;
+ 106              	 .loc 1 225 0
+ 107 0000 044B     	 ldr r3,.L8
+ 226:dfu.c         **** 	control->bufferlen = 1;
+ 108              	 .loc 1 226 0
+ 109 0002 0122     	 movs r2,#1
+ 225:dfu.c         **** 	control->bufferlen = 1;
+ 110              	 .loc 1 225 0
+ 111 0004 0360     	 str r3,[r0]
+ 112              	 .loc 1 226 0
+ 113 0006 0023     	 movs r3,#0
+ 114 0008 0271     	 strb r2,[r0,#4]
+ 115 000a 4371     	 strb r3,[r0,#5]
+ 116 000c 8371     	 strb r3,[r0,#6]
+ 117 000e C371     	 strb r3,[r0,#7]
+ 118 0010 7047     	 bx lr
+ 119              	.L9:
+ 120 0012 00BF     	 .align 2
+ 121              	.L8:
+ 122 0014 00000000 	 .word current_state
+ 123              	 .cfi_endproc
+ 124              	.LFE58:
+ 126              	 .section .text.DFU_Download,"ax",%progbits
+ 127              	 .align 1
+ 128              	 .global DFU_Download
+ 129              	 .syntax unified
+ 130              	 .thumb
+ 131              	 .thumb_func
+ 132              	 .fpu softvfp
+ 134              	DFU_Download:
+ 135              	.LFB59:
+ 227:dfu.c         **** }
+ 228:dfu.c         **** 
+ 229:dfu.c         **** void DFU_Download(CONTROL_TRANSFER *control)
+ 230:dfu.c         **** {
+ 136              	 .loc 1 230 0
+ 137              	 .cfi_startproc
+ 138              	 
+ 139              	 
+ 140              	 
+ 141              	.LVL3:
+ 231:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 232:dfu.c         **** 	printf(PFX "DFU:DNLOAD\n");
+ 233:dfu.c         **** #endif
+ 234:dfu.c         **** 	control->buffer = block_buffer;
+ 142              	 .loc 1 234 0
+ 143 0000 0E4B     	 ldr r3,.L17
+ 235:dfu.c         **** 	control->bufferlen = control->setup.wLength;
+ 144              	 .loc 1 235 0
+ 145 0002 018A     	 ldrh r1,[r0,#16]
+ 234:dfu.c         **** 	control->bufferlen = control->setup.wLength;
+ 146              	 .loc 1 234 0
+ 147 0004 0360     	 str r3,[r0]
+ 236:dfu.c         **** 
+ 237:dfu.c         **** 	flash_p = (&_user_flash_start) + (control->setup.wValue * DFU_BLOCK_SIZE);
+ 148              	 .loc 1 237 0
+ 149 0006 0E4A     	 ldr r2,.L17+4
+ 150 0008 8389     	 ldrh r3,[r0,#12]
+ 235:dfu.c         **** 
+ 151              	 .loc 1 235 0
+ 152 000a 4160     	 str r1,[r0,#4]
+ 153              	 .loc 1 237 0
+ 154 000c 0D48     	 ldr r0,.L17+8
+ 155              	.LVL4:
+ 156 000e 02EB4323 	 add r3,r2,r3,lsl#9
+ 157 0012 0360     	 str r3,[r0]
+ 238:dfu.c         **** 
+ 239:dfu.c         **** 	if (control->setup.wLength > 0)
+ 158              	 .loc 1 239 0
+ 159 0014 81B1     	 cbz r1,.L10
+ 240:dfu.c         **** 	{
+ 241:dfu.c         **** // 		printf(PFX "WRITE: %p\n", flash_p);
+ 242:dfu.c         **** 		if ((flash_p + control->setup.wLength) <= ((&_user_flash_start) + ((uint32_t)(&_user_flash_size))
+ 160              	 .loc 1 242 0
+ 161 0016 0B44     	 add r3,r3,r1
+ 162 0018 0B49     	 ldr r1,.L17+12
+ 163 001a 0A44     	 add r2,r2,r1
+ 164 001c 9342     	 cmp r3,r2
+ 243:dfu.c         **** 		{
+ 244:dfu.c         **** 			current_state = dfuDNLOADSYNC;
+ 165              	 .loc 1 244 0
+ 166 001e 94BF     	 ite ls
+ 167 0020 0322     	 movls r2,#3
+ 168              	.LBB12:
+ 169              	.LBB13:
+ 245:dfu.c         **** 			DFU_status.bState = dfuDNLOADIDLE;
+ 246:dfu.c         **** 		}
+ 247:dfu.c         **** 		else {
+ 248:dfu.c         **** 			current_state = dfuERROR;
+ 170              	 .loc 1 248 0
+ 171 0022 0A22     	 movhi r2,#10
+ 172 0024 0949     	 ldr r1,.L17+16
+ 173 0026 0A4B     	 ldr r3,.L17+20
+ 174              	.LBE13:
+ 175              	.LBE12:
+ 244:dfu.c         **** 			DFU_status.bState = dfuDNLOADIDLE;
+ 176              	 .loc 1 244 0
+ 177 0028 95BF     	 itete ls
+ 178 002a 0A70     	 strbls r2,[r1]
+ 179              	.LBB16:
+ 180              	.LBB14:
+ 181              	 .loc 1 248 0
+ 182 002c 0A70     	 strbhi r2,[r1]
+ 183              	.LBE14:
+ 184              	.LBE16:
+ 245:dfu.c         **** 			DFU_status.bState = dfuDNLOADIDLE;
+ 185              	 .loc 1 245 0
+ 186 002e 0522     	 movls r2,#5
+ 187              	.LVL5:
+ 188              	.LBB17:
+ 189              	.LBB15:
+ 249:dfu.c         **** 			DFU_status.bStatus = errADDRESS;
+ 190              	 .loc 1 249 0
+ 191 0030 0821     	 movhi r1,#8
+ 250:dfu.c         **** 			DFU_status.bState = dfuERROR;
+ 192              	 .loc 1 250 0
+ 193 0032 1A71     	 strb r2,[r3,#4]
+ 249:dfu.c         **** 			DFU_status.bStatus = errADDRESS;
+ 194              	 .loc 1 249 0
+ 195 0034 88BF     	 it hi
+ 196 0036 1970     	 strbhi r1,[r3]
+ 197              	.LVL6:
+ 198              	.L10:
+ 199 0038 7047     	 bx lr
+ 200              	.L18:
+ 201 003a 00BF     	 .align 2
+ 202              	.L17:
+ 203 003c 00000000 	 .word block_buffer
+ 204 0040 00000000 	 .word _user_flash_start
+ 205 0044 00000000 	 .word flash_p
+ 206 0048 00000000 	 .word _user_flash_size
+ 207 004c 00000000 	 .word current_state
+ 208 0050 00000000 	 .word .LANCHOR1
+ 209              	.LBE15:
+ 210              	.LBE17:
+ 211              	 .cfi_endproc
+ 212              	.LFE59:
+ 214              	 .section .text.DFU_Upload,"ax",%progbits
+ 215              	 .align 1
+ 216              	 .global DFU_Upload
+ 217              	 .syntax unified
+ 218              	 .thumb
+ 219              	 .thumb_func
+ 220              	 .fpu softvfp
+ 222              	DFU_Upload:
+ 223              	.LFB60:
+ 251:dfu.c         **** 		}
+ 252:dfu.c         **** 	}
+ 253:dfu.c         **** }
+ 254:dfu.c         **** 
+ 255:dfu.c         **** void DFU_Upload(CONTROL_TRANSFER *control)
+ 256:dfu.c         **** {
+ 224              	 .loc 1 256 0
+ 225              	 .cfi_startproc
+ 226              	 
+ 227              	 
+ 228              	.LVL7:
+ 257:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 258:dfu.c         **** //	printf(PFX "DFU:UPLOAD\n");
+ 259:dfu.c         **** #endif
+ 260:dfu.c         **** 	current_state = dfuUPLOADIDLE;
+ 229              	 .loc 1 260 0
+ 230 0000 0922     	 movs r2,#9
+ 231 0002 0D4B     	 ldr r3,.L22
+ 256:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 232              	 .loc 1 256 0
+ 233 0004 30B5     	 push {r4,r5,lr}
+ 234              	 .cfi_def_cfa_offset 12
+ 235              	 .cfi_offset 4,-12
+ 236              	 .cfi_offset 5,-8
+ 237              	 .cfi_offset 14,-4
+ 238              	 .loc 1 260 0
+ 239 0006 1A70     	 strb r2,[r3]
+ 261:dfu.c         **** 	flash_p = &_user_flash_start + (control->setup.wValue * DFU_BLOCK_SIZE);
+ 240              	 .loc 1 261 0
+ 241 0008 8389     	 ldrh r3,[r0,#12]
+ 242 000a 0C4A     	 ldr r2,.L22+4
+ 243 000c 0C49     	 ldr r1,.L22+8
+ 244 000e 02EB4323 	 add r3,r2,r3,lsl#9
+ 245 0012 0B60     	 str r3,[r1]
+ 262:dfu.c         **** 	if ((flash_p + control->setup.wLength) <= ((&_user_flash_start) + ((uint32_t)(&_user_flash_size)))
+ 246              	 .loc 1 262 0
+ 247 0014 018A     	 ldrh r1,[r0,#16]
+ 248 0016 0B4D     	 ldr r5,.L22+12
+ 249 0018 5C18     	 adds r4,r3,r1
+ 250 001a 2A44     	 add r2,r2,r5
+ 251 001c 9442     	 cmp r4,r2
+ 252 001e 02D8     	 bhi .L20
+ 263:dfu.c         **** 	{
+ 264:dfu.c         **** 		control->buffer = (uint8_t *) flash_p;
+ 253              	 .loc 1 264 0
+ 254 0020 0360     	 str r3,[r0]
+ 265:dfu.c         **** 		control->bufferlen = control->setup.wLength;
+ 255              	 .loc 1 265 0
+ 256 0022 4160     	 str r1,[r0,#4]
+ 257 0024 30BD     	 pop {r4,r5,pc}
+ 258              	.L20:
+ 266:dfu.c         **** 	}
+ 267:dfu.c         **** 	else
+ 268:dfu.c         **** 	{
+ 269:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 270:dfu.c         **** 		printf(PFX "Upload Complete\n");
+ 271:dfu.c         **** #endif
+ 272:dfu.c         **** 		control->bufferlen = 0;
+ 259              	 .loc 1 272 0
+ 260 0026 0023     	 movs r3,#0
+ 261 0028 0371     	 strb r3,[r0,#4]
+ 262 002a 4371     	 strb r3,[r0,#5]
+ 263 002c 8371     	 strb r3,[r0,#6]
+ 264 002e C371     	 strb r3,[r0,#7]
+ 273:dfu.c         **** 		control->zlp = 1;
+ 265              	 .loc 1 273 0
+ 266 0030 0123     	 movs r3,#1
+ 267 0032 0372     	 strb r3,[r0,#8]
+ 268 0034 30BD     	 pop {r4,r5,pc}
+ 269              	.L23:
+ 270 0036 00BF     	 .align 2
+ 271              	.L22:
+ 272 0038 00000000 	 .word current_state
+ 273 003c 00000000 	 .word _user_flash_start
+ 274 0040 00000000 	 .word flash_p
+ 275 0044 00000000 	 .word _user_flash_size
+ 276              	 .cfi_endproc
+ 277              	.LFE60:
+ 279              	 .section .text.DFU_Abort,"ax",%progbits
+ 280              	 .align 1
+ 281              	 .global DFU_Abort
+ 282              	 .syntax unified
+ 283              	 .thumb
+ 284              	 .thumb_func
+ 285              	 .fpu softvfp
+ 287              	DFU_Abort:
+ 288              	.LFB62:
+ 274:dfu.c         **** 	}
+ 275:dfu.c         **** }
+ 276:dfu.c         **** 
+ 277:dfu.c         **** void DFU_ClearStatus(CONTROL_TRANSFER *control)
+ 278:dfu.c         **** {
+ 279:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 280:dfu.c         **** 	printf(PFX "DFU:CLRSTATUS\n");
+ 281:dfu.c         **** #endif
+ 282:dfu.c         **** 	DFU_status.bStatus = OK;
+ 283:dfu.c         **** 	DFU_status.bState = dfuIDLE;
+ 284:dfu.c         **** 	flash_p = &_user_flash_start;
+ 285:dfu.c         **** }
+ 286:dfu.c         **** 
+ 287:dfu.c         **** void DFU_Abort(CONTROL_TRANSFER *control)
+ 288:dfu.c         **** {
+ 289              	 .loc 1 288 0
+ 290              	 .cfi_startproc
+ 291              	 
+ 292              	 
+ 293              	 
+ 294              	.LVL8:
+ 289:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 290:dfu.c         **** 	printf(PFX "DFU:ABORT\n");
+ 291:dfu.c         **** #endif
+ 292:dfu.c         **** 	DFU_status.bStatus = OK;
+ 295              	 .loc 1 292 0
+ 296 0000 0022     	 movs r2,#0
+ 297 0002 044B     	 ldr r3,.L25
+ 298 0004 1A70     	 strb r2,[r3]
+ 293:dfu.c         **** 	DFU_status.bState = dfuIDLE;
+ 299              	 .loc 1 293 0
+ 300 0006 0222     	 movs r2,#2
+ 301 0008 1A71     	 strb r2,[r3,#4]
+ 294:dfu.c         **** 	flash_p = &_user_flash_start;
+ 302              	 .loc 1 294 0
+ 303 000a 034A     	 ldr r2,.L25+4
+ 304 000c 034B     	 ldr r3,.L25+8
+ 305 000e 1A60     	 str r2,[r3]
+ 306 0010 7047     	 bx lr
+ 307              	.L26:
+ 308 0012 00BF     	 .align 2
+ 309              	.L25:
+ 310 0014 00000000 	 .word .LANCHOR1
+ 311 0018 00000000 	 .word _user_flash_start
+ 312 001c 00000000 	 .word flash_p
+ 313              	 .cfi_endproc
+ 314              	.LFE62:
+ 316              	 .section .text.DFU_ClearStatus,"ax",%progbits
+ 317              	 .align 1
+ 318              	 .global DFU_ClearStatus
+ 319              	 .syntax unified
+ 320              	 .thumb
+ 321              	 .thumb_func
+ 322              	 .fpu softvfp
+ 324              	DFU_ClearStatus:
+ 325              	.LFB69:
+ 326              	 .cfi_startproc
+ 327              	 
+ 328              	 
+ 329              	 
+ 330 0000 004B     	 ldr r3,.L28
+ 331 0002 1847     	 bx r3
+ 332              	.L29:
+ 333              	 .align 2
+ 334              	.L28:
+ 335 0004 00000000 	 .word DFU_Abort
+ 336              	 .cfi_endproc
+ 337              	.LFE69:
+ 339              	 .section .text.DFU_controlTransfer,"ax",%progbits
+ 340              	 .align 1
+ 341              	 .global DFU_controlTransfer
+ 342              	 .syntax unified
+ 343              	 .thumb
+ 344              	 .thumb_func
+ 345              	 .fpu softvfp
+ 347              	DFU_controlTransfer:
+ 348              	.LFB63:
+ 295:dfu.c         **** }
+ 296:dfu.c         **** 
+ 297:dfu.c         **** void DFU_controlTransfer(CONTROL_TRANSFER *control)
+ 298:dfu.c         **** {
+ 349              	 .loc 1 298 0
+ 350              	 .cfi_startproc
+ 351              	 
+ 352              	 
+ 353              	 
+ 354              	.LVL9:
+ 299:dfu.c         **** 	// 0x20 is CLASS request
+ 300:dfu.c         **** 	// 0x01 is INTERFACE target
+ 301:dfu.c         **** 	// MSBit is transfer direction
+ 302:dfu.c         **** 	if ((control->setup.bmRequestType & 0x7F) == 0x21)
+ 355              	 .loc 1 302 0
+ 356 0000 837A     	 ldrb r3,[r0,#10]
+ 357 0002 03F07F03 	 and r3,r3,#127
+ 358 0006 212B     	 cmp r3,#33
+ 359 0008 1CD1     	 bne .L30
+ 303:dfu.c         **** 	{
+ 304:dfu.c         **** 		switch(control->setup.bRequest)
+ 360              	 .loc 1 304 0
+ 361 000a C37A     	 ldrb r3,[r0,#11]
+ 362 000c 013B     	 subs r3,r3,#1
+ 363 000e 052B     	 cmp r3,#5
+ 364 0010 18D8     	 bhi .L30
+ 365 0012 DFE803F0 	 tbb [pc,r3]
+ 366              	.L33:
+ 367 0016 03       	 .byte (.L32-.L33)/2
+ 368 0017 05       	 .byte (.L34-.L33)/2
+ 369 0018 07       	 .byte (.L35-.L33)/2
+ 370 0019 15       	 .byte (.L38-.L33)/2
+ 371 001a 10       	 .byte (.L37-.L33)/2
+ 372 001b 15       	 .byte (.L38-.L33)/2
+ 373              	 .p2align 1
+ 374              	.L32:
+ 305:dfu.c         **** 		{
+ 306:dfu.c         **** 			case DFU_DETACH:
+ 307:dfu.c         **** 				// shouldn't happen, we're already in DFU mode
+ 308:dfu.c         **** 				break;
+ 309:dfu.c         **** 			case DFU_DNLOAD:
+ 310:dfu.c         **** 				DFU_Download(control);
+ 375              	 .loc 1 310 0
+ 376 001c 0A4B     	 ldr r3,.L41
+ 377              	.L39:
+ 311:dfu.c         **** 				break;
+ 312:dfu.c         **** 			case DFU_UPLOAD:
+ 313:dfu.c         **** 				DFU_Upload(control);
+ 314:dfu.c         **** 				break;
+ 315:dfu.c         **** 			case DFU_GETSTATUS:
+ 316:dfu.c         **** 				DFU_GetStatus(control);
+ 317:dfu.c         **** 				break;
+ 318:dfu.c         **** 			case DFU_CLRSTATUS:
+ 319:dfu.c         **** 				DFU_ClearStatus(control);
+ 320:dfu.c         **** 				break;
+ 321:dfu.c         **** 			case DFU_GETSTATE:
+ 322:dfu.c         **** 				DFU_GetState(control);
+ 323:dfu.c         **** 				break;
+ 324:dfu.c         **** 			case DFU_ABORT:
+ 325:dfu.c         **** 				DFU_Abort(control);
+ 378              	 .loc 1 325 0
+ 379 001e 1847     	 bx r3
+ 380              	.LVL10:
+ 381              	.L34:
+ 313:dfu.c         **** 				break;
+ 382              	 .loc 1 313 0
+ 383 0020 0A4B     	 ldr r3,.L41+4
+ 384 0022 FCE7     	 b .L39
+ 385              	.L35:
+ 386              	.LVL11:
+ 387              	.LBB18:
+ 388              	.LBB19:
+ 216:dfu.c         **** 	control->bufferlen = 6;
+ 389              	 .loc 1 216 0
+ 390 0024 0A4B     	 ldr r3,.L41+8
+ 217:dfu.c         **** }
+ 391              	 .loc 1 217 0
+ 392 0026 0622     	 movs r2,#6
+ 216:dfu.c         **** 	control->bufferlen = 6;
+ 393              	 .loc 1 216 0
+ 394 0028 0360     	 str r3,[r0]
+ 217:dfu.c         **** }
+ 395              	 .loc 1 217 0
+ 396 002a 0023     	 movs r3,#0
+ 397              	.LVL12:
+ 398              	.L40:
+ 399              	.LBE19:
+ 400              	.LBE18:
+ 401              	.LBB20:
+ 402              	.LBB21:
+ 226:dfu.c         **** }
+ 403              	 .loc 1 226 0
+ 404 002c 0271     	 strb r2,[r0,#4]
+ 405 002e 4371     	 strb r3,[r0,#5]
+ 406 0030 8371     	 strb r3,[r0,#6]
+ 407 0032 C371     	 strb r3,[r0,#7]
+ 408 0034 7047     	 bx lr
+ 409              	.L37:
+ 410              	.LVL13:
+ 225:dfu.c         **** 	control->bufferlen = 1;
+ 411              	 .loc 1 225 0
+ 412 0036 074B     	 ldr r3,.L41+12
+ 226:dfu.c         **** }
+ 413              	 .loc 1 226 0
+ 414 0038 0122     	 movs r2,#1
+ 225:dfu.c         **** 	control->bufferlen = 1;
+ 415              	 .loc 1 225 0
+ 416 003a 0360     	 str r3,[r0]
+ 226:dfu.c         **** }
+ 417              	 .loc 1 226 0
+ 418 003c 0023     	 movs r3,#0
+ 419 003e F5E7     	 b .L40
+ 420              	.LVL14:
+ 421              	.L38:
+ 422              	.LBE21:
+ 423              	.LBE20:
+ 424              	 .loc 1 325 0
+ 425 0040 054B     	 ldr r3,.L41+16
+ 426 0042 ECE7     	 b .L39
+ 427              	.L30:
+ 428 0044 7047     	 bx lr
+ 429              	.L42:
+ 430 0046 00BF     	 .align 2
+ 431              	.L41:
+ 432 0048 00000000 	 .word DFU_Download
+ 433 004c 00000000 	 .word DFU_Upload
+ 434 0050 00000000 	 .word .LANCHOR1
+ 435 0054 00000000 	 .word current_state
+ 436 0058 00000000 	 .word DFU_Abort
+ 437              	 .cfi_endproc
+ 438              	.LFE63:
+ 440              	 .section .text.DFU_transferComplete,"ax",%progbits
+ 441              	 .align 1
+ 442              	 .global DFU_transferComplete
+ 443              	 .syntax unified
+ 444              	 .thumb
+ 445              	 .thumb_func
+ 446              	 .fpu softvfp
+ 448              	DFU_transferComplete:
+ 449              	.LFB64:
+ 326:dfu.c         **** 				break;
+ 327:dfu.c         **** 		}
+ 328:dfu.c         **** 	}
+ 329:dfu.c         **** }
+ 330:dfu.c         **** 
+ 331:dfu.c         **** void DFU_transferComplete(CONTROL_TRANSFER *control)
+ 332:dfu.c         **** {
+ 450              	 .loc 1 332 0
+ 451              	 .cfi_startproc
+ 452              	 
+ 453              	 
+ 454              	.LVL15:
+ 455 0000 70B5     	 push {r4,r5,r6,lr}
+ 456              	 .cfi_def_cfa_offset 16
+ 457              	 .cfi_offset 4,-16
+ 458              	 .cfi_offset 5,-12
+ 459              	 .cfi_offset 6,-8
+ 460              	 .cfi_offset 14,-4
+ 333:dfu.c         **** 	if ((control->setup.bmRequestType & 0x7F) == 0x21)
+ 461              	 .loc 1 333 0
+ 462 0002 837A     	 ldrb r3,[r0,#10]
+ 332:dfu.c         **** 	if ((control->setup.bmRequestType & 0x7F) == 0x21)
+ 463              	 .loc 1 332 0
+ 464 0004 0446     	 mov r4,r0
+ 465              	 .loc 1 333 0
+ 466 0006 03F07F03 	 and r3,r3,#127
+ 467 000a 212B     	 cmp r3,#33
+ 468 000c 33D1     	 bne .L43
+ 334:dfu.c         **** 	{
+ 335:dfu.c         **** 		switch(control->setup.bRequest)
+ 469              	 .loc 1 335 0
+ 470 000e C37A     	 ldrb r3,[r0,#11]
+ 471 0010 022B     	 cmp r3,#2
+ 472 0012 28D0     	 beq .L46
+ 473 0014 032B     	 cmp r3,#3
+ 474 0016 13D0     	 beq .L47
+ 475 0018 012B     	 cmp r3,#1
+ 476 001a 2CD1     	 bne .L43
+ 336:dfu.c         **** 		{
+ 337:dfu.c         **** 			case DFU_GETSTATUS:
+ 338:dfu.c         **** 			{
+ 339:dfu.c         **** 				current_state = DFU_status.bState;
+ 340:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 341:dfu.c         **** 				printf(PFX "new state is %d\n", current_state);
+ 342:dfu.c         **** #endif
+ 343:dfu.c         **** 				if (current_state == dfuMANIFESTWAITRESET)
+ 344:dfu.c         **** 				{
+ 345:dfu.c         **** 					usb_disconnect();
+ 346:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 347:dfu.c         **** 					printf(PFX "MANIFEST COMPLETE, usb disconnected\n");
+ 348:dfu.c         **** #endif
+ 349:dfu.c         **** 				}
+ 350:dfu.c         **** 
+ 351:dfu.c         **** 				break;
+ 352:dfu.c         **** 			}
+ 353:dfu.c         **** 			case DFU_DNLOAD:
+ 354:dfu.c         **** 			{
+ 355:dfu.c         **** 				if (control->setup.wLength > 0)
+ 477              	 .loc 1 355 0
+ 478 001c 038A     	 ldrh r3,[r0,#16]
+ 479 001e 164D     	 ldr r5,.L53
+ 480 0020 E3B1     	 cbz r3,.L50
+ 481              	.LBB22:
+ 356:dfu.c         **** 				{
+ 357:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 358:dfu.c         **** 					printf(PFX "WRITE %p\n", flash_p);
+ 359:dfu.c         **** #endif
+ 360:dfu.c         **** #if ENABLED(LEDS)
+ 361:dfu.c         **** 					setleds(((uint32_t) (flash_p - 0x4000)) >> 15);
+ 362:dfu.c         **** #endif
+ 363:dfu.c         **** 					// we must pass DFU_BLOCK_SIZE to write_flash for some reason, it does not flash if we pass a 
+ 364:dfu.c         **** 					int r = write_flash((void *) flash_p, (char *) block_buffer, DFU_BLOCK_SIZE);
+ 482              	 .loc 1 364 0
+ 483 0022 164E     	 ldr r6,.L53+4
+ 484 0024 4FF40072 	 mov r2,#512
+ 485 0028 1549     	 ldr r1,.L53+8
+ 486 002a 3068     	 ldr r0,[r6]
+ 487              	.LVL16:
+ 488 002c 154B     	 ldr r3,.L53+12
+ 489 002e 9847     	 blx r3
+ 490              	.LVL17:
+ 365:dfu.c         **** // 					int r;
+ 366:dfu.c         **** // 					for (r = 0; r < control->setup.wLength; r++)
+ 367:dfu.c         **** // 					{
+ 368:dfu.c         **** // 						printf(PFX "0x%x ", flash_p[r]);
+ 369:dfu.c         **** // 						if ((r & 31) == 31)
+ 370:dfu.c         **** // 							printf("\n");
+ 371:dfu.c         **** // 					}
+ 372:dfu.c         **** 					if (r == 0)
+ 491              	 .loc 1 372 0
+ 492 0030 80B9     	 cbnz r0,.L51
+ 373:dfu.c         **** 					{
+ 374:dfu.c         **** 						flash_p += control->setup.wLength;
+ 493              	 .loc 1 374 0
+ 494 0032 228A     	 ldrh r2,[r4,#16]
+ 495 0034 3368     	 ldr r3,[r6]
+ 496 0036 1344     	 add r3,r3,r2
+ 497 0038 3360     	 str r3,[r6]
+ 375:dfu.c         **** 						DFU_status.bState = dfuDNLOADIDLE;
+ 498              	 .loc 1 375 0
+ 499 003a 0523     	 movs r3,#5
+ 500              	.LVL18:
+ 501              	.L52:
+ 502              	.LBE22:
+ 376:dfu.c         **** 					}
+ 377:dfu.c         **** 					else
+ 378:dfu.c         **** 					{
+ 379:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 380:dfu.c         **** 						printf(PFX "write flash error %d\n", r);
+ 381:dfu.c         **** #endif
+ 382:dfu.c         **** 						DFU_status.bStatus = errPROG;
+ 383:dfu.c         **** 						DFU_status.bState = dfuERROR;
+ 384:dfu.c         **** 					}
+ 385:dfu.c         **** 				}
+ 386:dfu.c         **** 				else
+ 387:dfu.c         **** 				{
+ 388:dfu.c         **** 					current_state = dfuMANIFESTSYNC;
+ 389:dfu.c         **** 					DFU_status.bState = dfuMANIFESTWAITRESET;
+ 503              	 .loc 1 389 0
+ 504 003c 2B71     	 strb r3,[r5,#4]
+ 505 003e 70BD     	 pop {r4,r5,r6,pc}
+ 506              	.LVL19:
+ 507              	.L47:
+ 339:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 508              	 .loc 1 339 0
+ 509 0040 0D4B     	 ldr r3,.L53
+ 510 0042 114A     	 ldr r2,.L53+16
+ 511 0044 1B79     	 ldrb r3,[r3,#4]
+ 343:dfu.c         **** 				{
+ 512              	 .loc 1 343 0
+ 513 0046 082B     	 cmp r3,#8
+ 339:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 514              	 .loc 1 339 0
+ 515 0048 1370     	 strb r3,[r2]
+ 343:dfu.c         **** 				{
+ 516              	 .loc 1 343 0
+ 517 004a 14D1     	 bne .L43
+ 390:dfu.c         **** 				}
+ 391:dfu.c         **** 				break;
+ 392:dfu.c         **** 			}
+ 393:dfu.c         **** 			case DFU_UPLOAD:
+ 394:dfu.c         **** 				DFU_status.bState = dfuUPLOADIDLE;
+ 395:dfu.c         **** 				flash_p += control->setup.wLength;
+ 396:dfu.c         **** 				break;
+ 397:dfu.c         **** 		}
+ 398:dfu.c         **** 	}
+ 399:dfu.c         **** }
+ 518              	 .loc 1 399 0
+ 519 004c BDE87040 	 pop {r4,r5,r6,lr}
+ 520              	 .cfi_remember_state
+ 521              	 .cfi_restore 14
+ 522              	 .cfi_restore 6
+ 523              	 .cfi_restore 5
+ 524              	 .cfi_restore 4
+ 525              	 .cfi_def_cfa_offset 0
+ 345:dfu.c         **** #if ENABLED(DEBUG_MESSAGES_DFU)
+ 526              	 .loc 1 345 0
+ 527 0050 0E4B     	 ldr r3,.L53+20
+ 528 0052 1847     	 bx r3
+ 529              	.LVL20:
+ 530              	.L51:
+ 531              	 .cfi_restore_state
+ 532              	.LBB23:
+ 382:dfu.c         **** 						DFU_status.bState = dfuERROR;
+ 533              	 .loc 1 382 0
+ 534 0054 0623     	 movs r3,#6
+ 535 0056 2B70     	 strb r3,[r5]
+ 383:dfu.c         **** 					}
+ 536              	 .loc 1 383 0
+ 537 0058 0A23     	 movs r3,#10
+ 538 005a EFE7     	 b .L52
+ 539              	.LVL21:
+ 540              	.L50:
+ 541              	.LBE23:
+ 388:dfu.c         **** 					DFU_status.bState = dfuMANIFESTWAITRESET;
+ 542              	 .loc 1 388 0
+ 543 005c 0622     	 movs r2,#6
+ 544 005e 0A4B     	 ldr r3,.L53+16
+ 545 0060 1A70     	 strb r2,[r3]
+ 389:dfu.c         **** 				}
+ 546              	 .loc 1 389 0
+ 547 0062 0823     	 movs r3,#8
+ 548 0064 EAE7     	 b .L52
+ 549              	.L46:
+ 394:dfu.c         **** 				flash_p += control->setup.wLength;
+ 550              	 .loc 1 394 0
+ 551 0066 0922     	 movs r2,#9
+ 552 0068 034B     	 ldr r3,.L53
+ 553 006a 1A71     	 strb r2,[r3,#4]
+ 395:dfu.c         **** 				break;
+ 554              	 .loc 1 395 0
+ 555 006c 034A     	 ldr r2,.L53+4
+ 556 006e 018A     	 ldrh r1,[r0,#16]
+ 557 0070 1368     	 ldr r3,[r2]
+ 558 0072 0B44     	 add r3,r3,r1
+ 559 0074 1360     	 str r3,[r2]
+ 560              	.L43:
+ 561 0076 70BD     	 pop {r4,r5,r6,pc}
+ 562              	.L54:
+ 563              	 .align 2
+ 564              	.L53:
+ 565 0078 00000000 	 .word .LANCHOR1
+ 566 007c 00000000 	 .word flash_p
+ 567 0080 00000000 	 .word block_buffer
+ 568 0084 00000000 	 .word write_flash
+ 569 0088 00000000 	 .word current_state
+ 570 008c 00000000 	 .word usb_disconnect
+ 571              	 .cfi_endproc
+ 572              	.LFE64:
+ 574              	 .section .text.DFU_complete,"ax",%progbits
+ 575              	 .align 1
+ 576              	 .global DFU_complete
+ 577              	 .syntax unified
+ 578              	 .thumb
+ 579              	 .thumb_func
+ 580              	 .fpu softvfp
+ 582              	DFU_complete:
+ 583              	.LFB65:
+ 400:dfu.c         **** 
+ 401:dfu.c         **** int DFU_complete(void)
+ 402:dfu.c         **** {
+ 584              	 .loc 1 402 0
+ 585              	 .cfi_startproc
+ 586              	 
+ 587              	 
+ 588              	 
+ 403:dfu.c         **** 	return (current_state == dfuMANIFESTWAITRESET);
+ 589              	 .loc 1 403 0
+ 590 0000 034B     	 ldr r3,.L56
+ 591 0002 1878     	 ldrb r0,[r3]
+ 404:dfu.c         **** }
+ 592              	 .loc 1 404 0
+ 593 0004 A0F10803 	 sub r3,r0,#8
+ 594 0008 5842     	 rsbs r0,r3,#0
+ 595 000a 5841     	 adcs r0,r0,r3
+ 596 000c 7047     	 bx lr
+ 597              	.L57:
+ 598 000e 00BF     	 .align 2
+ 599              	.L56:
+ 600 0010 00000000 	 .word current_state
+ 601              	 .cfi_endproc
+ 602              	.LFE65:
+ 604              	 .section .text.USBEvent_busReset,"ax",%progbits
+ 605              	 .align 1
+ 606              	 .global USBEvent_busReset
+ 607              	 .syntax unified
+ 608              	 .thumb
+ 609              	 .thumb_func
+ 610              	 .fpu softvfp
+ 612              	USBEvent_busReset:
+ 613              	.LFB66:
+ 405:dfu.c         **** 
+ 406:dfu.c         **** void USBEvent_busReset(void)
+ 407:dfu.c         **** {
+ 614              	 .loc 1 407 0
+ 615              	 .cfi_startproc
+ 616              	 
+ 617              	 
+ 618 0000 08B5     	 push {r3,lr}
+ 619              	 .cfi_def_cfa_offset 8
+ 620              	 .cfi_offset 3,-8
+ 621              	 .cfi_offset 14,-4
+ 408:dfu.c         **** 	if (current_state == dfuMANIFESTWAITRESET || current_state == dfuMANIFESTSYNC ||current_state == d
+ 622              	 .loc 1 408 0
+ 623 0002 0A4B     	 ldr r3,.L61
+ 624 0004 1B78     	 ldrb r3,[r3]
+ 625 0006 063B     	 subs r3,r3,#6
+ 626 0008 022B     	 cmp r3,#2
+ 627 000a 0DD8     	 bhi .L58
+ 409:dfu.c         **** 	{
+ 410:dfu.c         **** 		usb_disconnect();
+ 628              	 .loc 1 410 0
+ 629 000c 084B     	 ldr r3,.L61+4
+ 630 000e 9847     	 blx r3
+ 631              	.LVL22:
+ 632              	.LBB30:
+ 633              	.LBB31:
+ 634              	.LBB32:
+ 635              	.LBB33:
+ 636              	 .file 2 "CMSISv2p00_LPC17xx/inc/core_cmInstr.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @file     core_cmInstr.h
+   3:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @brief    CMSIS Cortex-M Core Instruction Access Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M
+  12:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * processor based microcontrollers.  This file can be freely distributed
+  13:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * within development tools that are supporting such ARM based processors.
+  14:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  24:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #ifndef __CORE_CMINSTR_H__
+  25:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __CORE_CMINSTR_H__
+  26:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  28:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* ##########################  Core Instruction Access  ######################### */
+  29:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \ingroup  CMSIS
+  30:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 	\addtogroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+  31:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   Access to dedicated instructions
+  32:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   @{
+  33:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** */
+  34:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  35:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if defined ( __CC_ARM   ) /*------------------ RealView Compiler ----------------*/
+  36:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* ARM armcc specific functions */
+  37:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  38:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  No Operation
+  39:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  40:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+  41:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  42:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __NOP                             __nop
+  43:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  44:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  45:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Interrupt
+  46:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  47:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+  48:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     until one of a number of events occurs.
+  49:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  50:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __WFI                             __wfi
+  51:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  52:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  53:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Event
+  54:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+  56:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+  57:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  58:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __WFE                             __wfe
+  59:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  60:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  61:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Send Event
+  62:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  63:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+  64:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  65:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __SEV                             __sev
+  66:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  67:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  68:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+  69:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  70:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+  71:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+  72:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     memory, after the instruction has been completed.
+  73:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  74:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __ISB()                           __isb(0xF)
+  75:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  76:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Data Synchronization Barrier
+  78:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  79:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function acts as a special kind of Data Memory Barrier.
+  80:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     It completes when all explicit memory accesses before this instruction complete.
+  81:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  82:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __DSB()                           __dsb(0xF)
+  83:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  84:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  85:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Data Memory Barrier
+  86:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  87:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function ensures the apparent order of the explicit memory operations before
+  88:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     and after the instruction, without ensuring their completion.
+  89:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+  90:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __DMB()                           __dmb(0xF)
+  91:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  92:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  93:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order (32 bit)
+  94:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  95:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in integer value.
+  96:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+  97:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+  98:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+  99:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 100:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __REV                             __rev
+ 101:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 102:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 103:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order (16 bit)
+ 104:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 105:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in two unsigned short values.
+ 106:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 107:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 108:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 109:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 110:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if (__ARMCC_VERSION < 400677)
+ 111:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** extern uint32_t __REV16(uint32_t value);
+ 112:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #else  /* (__ARMCC_VERSION >= 400677)  */
+ 113:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE __ASM uint32_t __REV16(uint32_t value)
+ 114:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 115:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   rev16 r0, r0
+ 116:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   bx lr
+ 117:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 118:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* __ARMCC_VERSION  */
+ 119:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 120:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 121:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order in signed short value
+ 122:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 123:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in a signed short value with sign extension to integer.
+ 124:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 125:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 126:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 127:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 128:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if (__ARMCC_VERSION < 400677)
+ 129:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** extern int32_t __REVSH(int32_t value);
+ 130:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #else  /* (__ARMCC_VERSION >= 400677)  */
+ 131:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE __ASM int32_t __REVSH(int32_t value)
+ 132:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 133:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   revsh r0, r0
+ 134:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   bx lr
+ 135:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 136:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* __ARMCC_VERSION  */
+ 137:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 138:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 139:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if       (__CORTEX_M >= 0x03)
+ 140:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse bit order of value
+ 142:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 143:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the bit order of the given value.
+ 144:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 145:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 146:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 147:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 148:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __RBIT                            __rbit
+ 149:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 150:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 151:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (8 bit)
+ 152:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 153:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 8 bit value.
+ 154:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 155:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 156:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             value of type uint8_t at (*ptr)
+ 157:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 158:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __LDREXB(ptr)                     ((uint8_t ) __ldrex(ptr))
+ 159:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 160:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 161:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (16 bit)
+ 162:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 163:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 16 bit values.
+ 164:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 165:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 166:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint16_t at (*ptr)
+ 167:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 168:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __LDREXH(ptr)                     ((uint16_t) __ldrex(ptr))
+ 169:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 170:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 171:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (32 bit)
+ 172:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 173:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 32 bit values.
+ 174:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 175:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 176:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint32_t at (*ptr)
+ 177:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 178:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __LDREXW(ptr)                     ((uint32_t ) __ldrex(ptr))
+ 179:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 180:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 181:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (8 bit)
+ 182:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 183:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 8 bit values.
+ 184:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 185:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 186:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 187:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 188:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 189:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 190:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __STREXB(value, ptr)              __strex(value, ptr)
+ 191:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 192:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 193:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (16 bit)
+ 194:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 195:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 16 bit values.
+ 196:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 197:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 198:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 199:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 200:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 201:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 202:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __STREXH(value, ptr)              __strex(value, ptr)
+ 203:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 204:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 205:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (32 bit)
+ 206:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 207:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 32 bit values.
+ 208:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 209:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 210:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 211:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 212:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 213:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 214:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __STREXW(value, ptr)              __strex(value, ptr)
+ 215:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 216:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 217:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Remove the exclusive lock
+ 218:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 219:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function removes the exclusive lock which is created by LDREX.
+ 220:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 221:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 222:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if (__ARMCC_VERSION < 400000)
+ 223:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** extern void __CLREX(void);
+ 224:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #else  /* (__ARMCC_VERSION >= 400000)  */
+ 225:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __CLREX                           __clrex
+ 226:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* __ARMCC_VERSION  */
+ 227:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 228:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 229:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Signed Saturate
+ 230:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 231:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function saturates a signed value.
+ 232:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 233:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 234:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (1..32)
+ 235:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             Saturated value
+ 236:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 237:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __SSAT                            __ssat
+ 238:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 239:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 240:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Unsigned Saturate
+ 241:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 242:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function saturates an unsigned value.
+ 243:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 244:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to be saturated
+ 245:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    sat  Bit position to saturate to (0..31)
+ 246:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             Saturated value
+ 247:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 248:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __USAT                            __usat
+ 249:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 250:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 251:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Count leading zeros
+ 252:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 253:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function counts the number of leading zeros of a data value.
+ 254:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 255:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to count the leading zeros
+ 256:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             number of leading zeros in value
+ 257:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 258:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __CLZ                             __clz
+ 259:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 260:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 261:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 262:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 263:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 264:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #elif (defined (__ICCARM__)) /*---------------- ICC Compiler ---------------------*/
+ 265:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* IAR iccarm specific functions */
+ 266:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 267:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #include <intrinsics.h>                     /* IAR Intrinsics   */
+ 268:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 269:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #pragma diag_suppress=Pe940
+ 270:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 271:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  No Operation
+ 272:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 273:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+ 274:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 275:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #define __NOP                           __no_operation
+ 276:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 277:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 278:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Interrupt
+ 279:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+ 281:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     until one of a number of events occurs.
+ 282:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 283:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE  void __WFI(void)
+ 284:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 285:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("wfi");
+ 286:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 287:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 288:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 289:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Event
+ 290:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 291:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+ 292:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+ 293:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 294:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE  void __WFE(void)
+ 295:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 296:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("wfe");
+ 297:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 298:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 299:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 300:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Send Event
+ 301:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 302:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 303:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 304:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE  void __SEV(void)
+ 305:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 306:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("sev");
+ 307:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 308:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 309:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 310:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic     void __ISB(void)            (see intrinsics.h) */
+ 311:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic     void __DSB(void)            (see intrinsics.h) */
+ 312:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic     void __DMB(void)            (see intrinsics.h) */
+ 313:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic uint32_t __REV(uint32_t value)  (see intrinsics.h) */
+ 314:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic          __SSAT                 (see intrinsics.h) */
+ 315:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic          __USAT                 (see intrinsics.h) */
+ 316:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 317:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse byte order (16 bit)
+ 319:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 320:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the byte order in two unsigned short values.
+ 321:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 322:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 323:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 324:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 325:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __REV16(uint32_t value)
+ 326:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 327:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("rev16 r0, r0");
+ 328:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 329:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 330:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 331:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic uint32_t __REVSH(uint32_t value)  (see intrinsics.h */
+ 332:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 333:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 334:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #if       (__CORTEX_M >= 0x03)
+ 335:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 336:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Reverse bit order of value
+ 337:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 338:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function reverses the bit order of the given value.
+ 339:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 340:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    value  Value to reverse
+ 341:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return               Reversed value
+ 342:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 343:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __RBIT(uint32_t value)
+ 344:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 345:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("rbit r0, r0");
+ 346:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 347:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 348:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 349:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (8 bit)
+ 350:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 351:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 8 bit value.
+ 352:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 354:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return             value of type uint8_t at (*ptr)
+ 355:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 356:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint8_t __LDREXB(volatile uint8_t *addr)
+ 357:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 358:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("ldrexb r0, [r0]");
+ 359:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 360:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 361:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 362:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (16 bit)
+ 363:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 364:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 16 bit values.
+ 365:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 367:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint16_t at (*ptr)
+ 368:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 369:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint16_t __LDREXH(volatile uint16_t *addr)
+ 370:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 371:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("ldrexh r0, [r0]");
+ 372:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 373:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 374:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  LDR Exclusive (32 bit)
+ 376:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 377:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive LDR command for 32 bit values.
+ 378:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 379:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to data
+ 380:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return        value of type uint32_t at (*ptr)
+ 381:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 382:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic unsigned long __LDREX(unsigned long *)  (see intrinsics.h) */
+ 383:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __LDREXW(volatile uint32_t *addr)
+ 384:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 385:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("ldrex r0, [r0]");
+ 386:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 387:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 388:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 389:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (8 bit)
+ 390:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 391:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 8 bit values.
+ 392:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 394:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 395:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 396:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 397:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 398:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __STREXB(uint8_t value, volatile uint8_t *addr)
+ 399:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 400:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("strexb r0, r0, [r1]");
+ 401:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 402:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 403:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 404:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (16 bit)
+ 405:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 406:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 16 bit values.
+ 407:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 408:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 409:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 410:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 411:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 412:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 413:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __STREXH(uint16_t value, volatile uint16_t *addr)
+ 414:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 415:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("strexh r0, r0, [r1]");
+ 416:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 417:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 418:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  STR Exclusive (32 bit)
+ 420:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 421:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function performs a exclusive STR command for 32 bit values.
+ 422:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 423:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]  value  Value to store
+ 424:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \param [in]    ptr  Pointer to location
+ 425:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          0  Function succeeded
+ 426:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     \return          1  Function failed
+ 427:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 428:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic unsigned long __STREX(unsigned long, unsigned long)  (see intrinsics.h )*/
+ 429:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static uint32_t __STREXW(uint32_t value, volatile uint32_t *addr)
+ 430:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 431:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM("strex r0, r0, [r1]");
+ 432:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 433:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 434:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 435:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Remove the exclusive lock
+ 436:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 437:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function removes the exclusive lock which is created by LDREX.
+ 438:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 439:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 440:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** static __INLINE void __CLREX(void)
+ 441:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 442:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM ("clrex");
+ 443:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 444:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 445:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* intrinsic   unsigned char __CLZ( unsigned long )      (see intrinsics.h) */
+ 446:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 447:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #endif /* (__CORTEX_M >= 0x03) */
+ 448:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 449:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #pragma diag_default=Pe940
+ 450:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 451:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 452:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 453:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 454:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /* GNU gcc specific functions */
+ 455:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 456:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  No Operation
+ 457:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 458:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     No Operation does nothing. This instruction can be used for code alignment purposes.
+ 459:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 460:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __NOP(void)
+ 461:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 462:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("nop");
+ 463:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 464:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 465:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 466:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Interrupt
+ 467:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 468:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Interrupt is a hint instruction that suspends execution
+ 469:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     until one of a number of events occurs.
+ 470:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 471:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __WFI(void)
+ 472:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 473:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("wfi");
+ 474:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 475:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 476:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 477:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Wait For Event
+ 478:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 479:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Wait For Event is a hint instruction that permits the processor to enter
+ 480:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     a low-power state until one of a number of events occurs.
+ 481:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 482:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __WFE(void)
+ 483:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 484:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("wfe");
+ 485:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 486:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 487:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 488:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Send Event
+ 489:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 491:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 492:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __SEV(void)
+ 493:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 494:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("sev");
+ 495:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 496:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 497:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 498:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Instruction Synchronization Barrier
+ 499:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 500:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 501:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     so that all instructions following the ISB are fetched from cache or
+ 502:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     memory, after the instruction has been completed.
+ 503:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 504:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __ISB(void)
+ 505:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 506:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("isb");
+ 507:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** }
+ 508:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 509:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 510:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** /** \brief  Data Synchronization Barrier
+ 511:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** 
+ 512:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     This function acts as a special kind of Data Memory Barrier.
+ 513:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****     It completes when all explicit memory accesses before this instruction complete.
+ 514:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****  */
+ 515:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** __attribute__( ( always_inline ) ) static __INLINE void __DSB(void)
+ 516:CMSISv2p00_LPC17xx/inc/core_cmInstr.h **** {
+ 517:CMSISv2p00_LPC17xx/inc/core_cmInstr.h ****   __ASM volatile ("dsb");
+ 637              	 .loc 2 517 0
+ 638              	 .syntax unified
+ 639              	
+ 640 0010 BFF34F8F 	 dsb
+ 641              	
+ 642              	 .thumb
+ 643              	 .syntax unified
+ 644              	.LBE33:
+ 645              	.LBE32:
+ 646              	 .file 3 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+   1:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /**************************************************************************//**
+   2:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @file     core_cm3.h
+   3:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @brief    CMSIS Cortex-M3 Core Peripheral Access Layer Header File
+   4:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @version  V2.01
+   5:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @date     06. December 2010
+   6:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *
+   7:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @note
+   8:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * Copyright (C) 2009-2010 ARM Limited. All rights reserved.
+   9:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *
+  10:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @par
+  11:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-M
+  12:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * processor based microcontrollers.  This file can be freely distributed
+  13:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * within development tools that are supporting such ARM based processors.
+  14:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *
+  15:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @par
+  16:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  17:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  18:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  19:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  20:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  21:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *
+  22:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  ******************************************************************************/
+  23:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if defined ( __ICCARM__ )
+  24:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  #pragma system_include  /* treat file as system include file for MISRA check */
+  25:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+  26:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  27:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #ifdef __cplusplus
+  28:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  extern "C" {
+  29:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+  30:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  31:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #ifndef __CORE_CM3_H_GENERIC
+  32:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define __CORE_CM3_H_GENERIC
+  33:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  34:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  35:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*******************************************************************************
+  36:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *                 CMSIS definitions
+  37:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  ******************************************************************************/
+  38:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** @ingroup  CMSIS
+  39:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @addtogroup CMSIS_core_definitions CMSIS Core Definitions
+  40:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   This file defines all structures and symbols for CMSIS core:
+  41:CMSISv2p00_LPC17xx/inc/core_cm3.h ****    - CMSIS version number
+  42:CMSISv2p00_LPC17xx/inc/core_cm3.h ****    - Cortex-M core
+  43:CMSISv2p00_LPC17xx/inc/core_cm3.h ****    - Cortex-M core Revision Number
+  44:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+  45:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+  46:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  47:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*  CMSIS CM3 definitions */
+  48:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define __CM3_CMSIS_VERSION_MAIN  (0x02)                                                       /*!<
+  49:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define __CM3_CMSIS_VERSION_SUB   (0x00)                                                       /*!<
+  50:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define __CM3_CMSIS_VERSION       ((__CM3_CMSIS_VERSION_MAIN << 16) | __CM3_CMSIS_VERSION_SUB) /*!<
+  51:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  52:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define __CORTEX_M                (0x03)                                                       /*!<
+  53:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  54:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  55:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if defined ( __CC_ARM   )
+  56:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __ASM            __asm                                      /*!< asm keyword for ARM Comp
+  57:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __INLINE         __inline                                   /*!< inline keyword for ARM C
+  58:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   
+  59:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #elif defined ( __ICCARM__ )
+  60:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __ASM           __asm                                       /*!< asm keyword for IAR Comp
+  61:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __INLINE        inline                                      /*!< inline keyword for IAR C
+  62:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  63:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #elif defined   (  __GNUC__  )
+  64:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __ASM            __asm                                      /*!< asm keyword for GNU Comp
+  65:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __INLINE         inline                                     /*!< inline keyword for GNU C
+  66:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   
+  67:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #elif defined   (  __TASKING__  )
+  68:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __ASM            __asm                                      /*!< asm keyword for TASKING 
+  69:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define __INLINE         inline                                     /*!< inline keyword for TASKI
+  70:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  71:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+  72:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  73:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #include <stdint.h>                      /*!< standard types definitions                      */
+  74:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #include "core_cmInstr.h"                /*!< Core Instruction Access                         */
+  75:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #include "core_cmFunc.h"                 /*!< Core Function Access                            */
+  76:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  77:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif /* __CORE_CM3_H_GENERIC */
+  78:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  79:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  80:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #ifndef __CMSIS_GENERIC
+  81:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  82:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #ifndef __CORE_CM3_H_DEPENDANT
+  83:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define __CORE_CM3_H_DEPENDANT
+  84:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  85:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* IO definitions (access restrictions to peripheral registers) */
+  86:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #ifdef __cplusplus
+  87:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define     __I     volatile           /*!< defines 'read only' permissions                 */
+  88:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #else
+  89:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define     __I     volatile const     /*!< defines 'read only' permissions                 */
+  90:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+  91:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define     __O     volatile             /*!< defines 'write only' permissions                */
+  92:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define     __IO    volatile             /*!< defines 'read / write' permissions              */
+  93:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  94:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_core_definitions */
+  95:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  96:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  97:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+  98:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*******************************************************************************
+  99:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *                 Register Abstraction
+ 100:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  ******************************************************************************/
+ 101:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 102:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** @ingroup  CMSIS
+ 103:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @addtogroup CMSIS_core_register CMSIS Core Register
+ 104:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Core Register contain:
+ 105:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core Register
+ 106:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core NVIC Register
+ 107:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core SCB Register
+ 108:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core SysTick Register
+ 109:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core Debug Register
+ 110:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core MPU Register
+ 111:CMSISv2p00_LPC17xx/inc/core_cm3.h **** */
+ 112:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 113:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 114:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_CORE CMSIS Core
+ 115:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M Core Registers
+ 116:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 117:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 118:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 119:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Union type to access the Application Program Status Register (APSR).
+ 120:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 121:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef union
+ 122:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 123:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   struct
+ 124:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   {
+ 125:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if (__CORTEX_M != 0x04)
+ 126:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved0:27;              /*!< bit:  0..26  Reserved                           */
+ 127:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #else
+ 128:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved0:16;              /*!< bit:  0..15  Reserved                           */
+ 129:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t GE:4;                       /*!< bit: 16..19  Greater than or Equal flags        */
+ 130:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved1:7;               /*!< bit: 20..26  Reserved                           */
+ 131:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+ 132:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t Q:1;                        /*!< bit:     27  Saturation condition flag          */
+ 133:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t V:1;                        /*!< bit:     28  Overflow condition code flag       */
+ 134:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t C:1;                        /*!< bit:     29  Carry condition code flag          */
+ 135:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t Z:1;                        /*!< bit:     30  Zero condition code flag           */
+ 136:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t N:1;                        /*!< bit:     31  Negative condition code flag       */
+ 137:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   } b;                                   /*!< Structure used for bit  access                  */
+ 138:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t w;                            /*!< Type      used for word access                  */
+ 139:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } APSR_Type;
+ 140:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 141:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 142:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Union type to access the Interrupt Program Status Register (IPSR).
+ 143:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 144:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef union
+ 145:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 146:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   struct
+ 147:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   {
+ 148:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t ISR:9;                      /*!< bit:  0.. 8  Exception number                   */
+ 149:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved0:23;              /*!< bit:  9..31  Reserved                           */
+ 150:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   } b;                                   /*!< Structure used for bit  access                  */
+ 151:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t w;                            /*!< Type      used for word access                  */
+ 152:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } IPSR_Type;
+ 153:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 154:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 155:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Union type to access the Special-Purpose Program Status Registers (xPSR).
+ 156:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 157:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef union
+ 158:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 159:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   struct
+ 160:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   {
+ 161:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t ISR:9;                      /*!< bit:  0.. 8  Exception number                   */
+ 162:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if (__CORTEX_M != 0x04)
+ 163:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved0:15;              /*!< bit:  9..23  Reserved                           */
+ 164:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #else
+ 165:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved0:7;               /*!< bit:  9..15  Reserved                           */
+ 166:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t GE:4;                       /*!< bit: 16..19  Greater than or Equal flags        */
+ 167:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved1:4;               /*!< bit: 20..23  Reserved                           */
+ 168:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+ 169:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t T:1;                        /*!< bit:     24  Thumb bit        (read 0)          */
+ 170:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t IT:2;                       /*!< bit: 25..26  saved IT state   (read 0)          */
+ 171:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t Q:1;                        /*!< bit:     27  Saturation condition flag          */
+ 172:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t V:1;                        /*!< bit:     28  Overflow condition code flag       */
+ 173:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t C:1;                        /*!< bit:     29  Carry condition code flag          */
+ 174:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t Z:1;                        /*!< bit:     30  Zero condition code flag           */
+ 175:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t N:1;                        /*!< bit:     31  Negative condition code flag       */
+ 176:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   } b;                                   /*!< Structure used for bit  access                  */
+ 177:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t w;                            /*!< Type      used for word access                  */
+ 178:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } xPSR_Type;
+ 179:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 180:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 181:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Union type to access the Control Registers (CONTROL).
+ 182:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 183:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef union
+ 184:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 185:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   struct
+ 186:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   {
+ 187:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t nPRIV:1;                    /*!< bit:      0  Execution privilege in Thread mode */
+ 188:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t SPSEL:1;                    /*!< bit:      1  Stack to be used                   */
+ 189:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t FPCA:1;                     /*!< bit:      2  FP extension active flag           */
+ 190:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     uint32_t _reserved0:29;              /*!< bit:  3..31  Reserved                           */
+ 191:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   } b;                                   /*!< Structure used for bit  access                  */
+ 192:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t w;                            /*!< Type      used for word access                  */
+ 193:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } CONTROL_Type;
+ 194:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 195:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_CORE */
+ 196:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 197:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 198:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 199:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_NVIC CMSIS NVIC
+ 200:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M NVIC Registers
+ 201:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 202:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 203:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 204:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the Nested Vectored Interrupt Controller (NVIC).
+ 205:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 206:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 207:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 208:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t ISER[8];                 /*!< Offset: 0x000 (R/W)  Interrupt Set Enable Register   
+ 209:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED0[24];
+ 210:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t ICER[8];                 /*!< Offset: 0x080 (R/W)  Interrupt Clear Enable Register 
+ 211:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RSERVED1[24];
+ 212:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t ISPR[8];                 /*!< Offset: 0x100 (R/W)  Interrupt Set Pending Register  
+ 213:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED2[24];
+ 214:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t ICPR[8];                 /*!< Offset: 0x180 (R/W)  Interrupt Clear Pending Register
+ 215:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED3[24];
+ 216:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t IABR[8];                 /*!< Offset: 0x200 (R/W)  Interrupt Active bit Register   
+ 217:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED4[56];
+ 218:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint8_t  IP[240];                 /*!< Offset: 0x300 (R/W)  Interrupt Priority Register (8Bi
+ 219:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED5[644];
+ 220:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __O  uint32_t STIR;                    /*!< Offset: 0xE00 ( /W)  Software Trigger Interrupt Regis
+ 221:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }  NVIC_Type;
+ 222:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 223:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_NVIC */
+ 224:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 225:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 226:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 227:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_SCB CMSIS SCB
+ 228:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M System Control Block Registers
+ 229:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 230:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 231:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 232:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the System Control Block (SCB).
+ 233:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 234:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 235:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 236:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t CPUID;                   /*!< Offset: 0x000 (R/ )  CPU ID Base Register            
+ 237:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t ICSR;                    /*!< Offset: 0x004 (R/W)  Interrupt Control State Register
+ 238:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t VTOR;                    /*!< Offset: 0x008 (R/W)  Vector Table Offset Register    
+ 239:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t AIRCR;                   /*!< Offset: 0x00C (R/W)  Application Interrupt / Reset Co
+ 240:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t SCR;                     /*!< Offset: 0x010 (R/W)  System Control Register         
+ 241:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t CCR;                     /*!< Offset: 0x014 (R/W)  Configuration Control Register  
+ 242:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint8_t  SHP[12];                 /*!< Offset: 0x018 (R/W)  System Handlers Priority Registe
+ 243:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t SHCSR;                   /*!< Offset: 0x024 (R/W)  System Handler Control and State
+ 244:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t CFSR;                    /*!< Offset: 0x028 (R/W)  Configurable Fault Status Regist
+ 245:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t HFSR;                    /*!< Offset: 0x02C (R/W)  Hard Fault Status Register      
+ 246:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t DFSR;                    /*!< Offset: 0x030 (R/W)  Debug Fault Status Register     
+ 247:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t MMFAR;                   /*!< Offset: 0x034 (R/W)  Mem Manage Address Register     
+ 248:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t BFAR;                    /*!< Offset: 0x038 (R/W)  Bus Fault Address Register      
+ 249:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t AFSR;                    /*!< Offset: 0x03C (R/W)  Auxiliary Fault Status Register 
+ 250:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PFR[2];                  /*!< Offset: 0x040 (R/ )  Processor Feature Register      
+ 251:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t DFR;                     /*!< Offset: 0x048 (R/ )  Debug Feature Register          
+ 252:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t ADR;                     /*!< Offset: 0x04C (R/ )  Auxiliary Feature Register      
+ 253:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t MMFR[4];                 /*!< Offset: 0x050 (R/ )  Memory Model Feature Register   
+ 254:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t ISAR[5];                 /*!< Offset: 0x060 (R/ )  ISA Feature Register            
+ 255:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } SCB_Type;
+ 256:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 257:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB CPUID Register Definitions */
+ 258:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_IMPLEMENTER_Pos          24                                             /*!< SCB 
+ 259:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_IMPLEMENTER_Msk          (0xFFUL << SCB_CPUID_IMPLEMENTER_Pos)          /*!< SCB 
+ 260:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 261:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_VARIANT_Pos              20                                             /*!< SCB 
+ 262:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_VARIANT_Msk              (0xFUL << SCB_CPUID_VARIANT_Pos)               /*!< SCB 
+ 263:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 264:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_PARTNO_Pos                4                                             /*!< SCB 
+ 265:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_PARTNO_Msk               (0xFFFUL << SCB_CPUID_PARTNO_Pos)              /*!< SCB 
+ 266:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 267:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_REVISION_Pos              0                                             /*!< SCB 
+ 268:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CPUID_REVISION_Msk             (0xFUL << SCB_CPUID_REVISION_Pos)              /*!< SCB 
+ 269:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 270:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Interrupt Control State Register Definitions */
+ 271:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_NMIPENDSET_Pos            31                                             /*!< SCB 
+ 272:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_NMIPENDSET_Msk            (1UL << SCB_ICSR_NMIPENDSET_Pos)               /*!< SCB 
+ 273:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 274:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSVSET_Pos             28                                             /*!< SCB 
+ 275:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSVSET_Msk             (1UL << SCB_ICSR_PENDSVSET_Pos)                /*!< SCB 
+ 276:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 277:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSVCLR_Pos             27                                             /*!< SCB 
+ 278:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSVCLR_Msk             (1UL << SCB_ICSR_PENDSVCLR_Pos)                /*!< SCB 
+ 279:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 280:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSTSET_Pos             26                                             /*!< SCB 
+ 281:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSTSET_Msk             (1UL << SCB_ICSR_PENDSTSET_Pos)                /*!< SCB 
+ 282:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 283:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSTCLR_Pos             25                                             /*!< SCB 
+ 284:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_PENDSTCLR_Msk             (1UL << SCB_ICSR_PENDSTCLR_Pos)                /*!< SCB 
+ 285:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 286:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_ISRPREEMPT_Pos            23                                             /*!< SCB 
+ 287:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_ISRPREEMPT_Msk            (1UL << SCB_ICSR_ISRPREEMPT_Pos)               /*!< SCB 
+ 288:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 289:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_ISRPENDING_Pos            22                                             /*!< SCB 
+ 290:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_ISRPENDING_Msk            (1UL << SCB_ICSR_ISRPENDING_Pos)               /*!< SCB 
+ 291:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 292:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_VECTPENDING_Pos           12                                             /*!< SCB 
+ 293:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_VECTPENDING_Msk           (0x1FFUL << SCB_ICSR_VECTPENDING_Pos)          /*!< SCB 
+ 294:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 295:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_RETTOBASE_Pos             11                                             /*!< SCB 
+ 296:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_RETTOBASE_Msk             (1UL << SCB_ICSR_RETTOBASE_Pos)                /*!< SCB 
+ 297:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 298:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_VECTACTIVE_Pos             0                                             /*!< SCB 
+ 299:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_ICSR_VECTACTIVE_Msk            (0x1FFUL << SCB_ICSR_VECTACTIVE_Pos)           /*!< SCB 
+ 300:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 301:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Interrupt Control State Register Definitions */
+ 302:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_VTOR_TBLBASE_Pos               29                                             /*!< SCB 
+ 303:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_VTOR_TBLBASE_Msk               (1UL << SCB_VTOR_TBLBASE_Pos)                  /*!< SCB 
+ 304:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 305:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_VTOR_TBLOFF_Pos                 7                                             /*!< SCB 
+ 306:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_VTOR_TBLOFF_Msk                (0x3FFFFFUL << SCB_VTOR_TBLOFF_Pos)            /*!< SCB 
+ 307:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 308:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Application Interrupt and Reset Control Register Definitions */
+ 309:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTKEY_Pos              16                                             /*!< SCB 
+ 310:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTKEY_Msk              (0xFFFFUL << SCB_AIRCR_VECTKEY_Pos)            /*!< SCB 
+ 311:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 312:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTKEYSTAT_Pos          16                                             /*!< SCB 
+ 313:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTKEYSTAT_Msk          (0xFFFFUL << SCB_AIRCR_VECTKEYSTAT_Pos)        /*!< SCB 
+ 314:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 315:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_ENDIANESS_Pos            15                                             /*!< SCB 
+ 316:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_ENDIANESS_Msk            (1UL << SCB_AIRCR_ENDIANESS_Pos)               /*!< SCB 
+ 317:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 318:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_PRIGROUP_Pos              8                                             /*!< SCB 
+ 319:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_PRIGROUP_Msk             (7UL << SCB_AIRCR_PRIGROUP_Pos)                /*!< SCB 
+ 320:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 321:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_SYSRESETREQ_Pos           2                                             /*!< SCB 
+ 322:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_SYSRESETREQ_Msk          (1UL << SCB_AIRCR_SYSRESETREQ_Pos)             /*!< SCB 
+ 323:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 324:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTCLRACTIVE_Pos         1                                             /*!< SCB 
+ 325:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTCLRACTIVE_Msk        (1UL << SCB_AIRCR_VECTCLRACTIVE_Pos)           /*!< SCB 
+ 326:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 327:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTRESET_Pos             0                                             /*!< SCB 
+ 328:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_AIRCR_VECTRESET_Msk            (1UL << SCB_AIRCR_VECTRESET_Pos)               /*!< SCB 
+ 329:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 330:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB System Control Register Definitions */
+ 331:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SCR_SEVONPEND_Pos               4                                             /*!< SCB 
+ 332:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SCR_SEVONPEND_Msk              (1UL << SCB_SCR_SEVONPEND_Pos)                 /*!< SCB 
+ 333:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 334:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SCR_SLEEPDEEP_Pos               2                                             /*!< SCB 
+ 335:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SCR_SLEEPDEEP_Msk              (1UL << SCB_SCR_SLEEPDEEP_Pos)                 /*!< SCB 
+ 336:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 337:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SCR_SLEEPONEXIT_Pos             1                                             /*!< SCB 
+ 338:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SCR_SLEEPONEXIT_Msk            (1UL << SCB_SCR_SLEEPONEXIT_Pos)               /*!< SCB 
+ 339:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 340:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Configuration Control Register Definitions */
+ 341:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_STKALIGN_Pos                9                                             /*!< SCB 
+ 342:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_STKALIGN_Msk               (1UL << SCB_CCR_STKALIGN_Pos)                  /*!< SCB 
+ 343:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 344:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_BFHFNMIGN_Pos               8                                             /*!< SCB 
+ 345:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_BFHFNMIGN_Msk              (1UL << SCB_CCR_BFHFNMIGN_Pos)                 /*!< SCB 
+ 346:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 347:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_DIV_0_TRP_Pos               4                                             /*!< SCB 
+ 348:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_DIV_0_TRP_Msk              (1UL << SCB_CCR_DIV_0_TRP_Pos)                 /*!< SCB 
+ 349:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 350:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_UNALIGN_TRP_Pos             3                                             /*!< SCB 
+ 351:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_UNALIGN_TRP_Msk            (1UL << SCB_CCR_UNALIGN_TRP_Pos)               /*!< SCB 
+ 352:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 353:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_USERSETMPEND_Pos            1                                             /*!< SCB 
+ 354:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_USERSETMPEND_Msk           (1UL << SCB_CCR_USERSETMPEND_Pos)              /*!< SCB 
+ 355:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 356:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_NONBASETHRDENA_Pos          0                                             /*!< SCB 
+ 357:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CCR_NONBASETHRDENA_Msk         (1UL << SCB_CCR_NONBASETHRDENA_Pos)            /*!< SCB 
+ 358:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 359:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB System Handler Control and State Register Definitions */
+ 360:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_USGFAULTENA_Pos          18                                             /*!< SCB 
+ 361:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_USGFAULTENA_Msk          (1UL << SCB_SHCSR_USGFAULTENA_Pos)             /*!< SCB 
+ 362:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 363:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_BUSFAULTENA_Pos          17                                             /*!< SCB 
+ 364:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_BUSFAULTENA_Msk          (1UL << SCB_SHCSR_BUSFAULTENA_Pos)             /*!< SCB 
+ 365:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 366:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MEMFAULTENA_Pos          16                                             /*!< SCB 
+ 367:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MEMFAULTENA_Msk          (1UL << SCB_SHCSR_MEMFAULTENA_Pos)             /*!< SCB 
+ 368:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 369:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_SVCALLPENDED_Pos         15                                             /*!< SCB 
+ 370:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_SVCALLPENDED_Msk         (1UL << SCB_SHCSR_SVCALLPENDED_Pos)            /*!< SCB 
+ 371:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 372:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_BUSFAULTPENDED_Pos       14                                             /*!< SCB 
+ 373:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_BUSFAULTPENDED_Msk       (1UL << SCB_SHCSR_BUSFAULTPENDED_Pos)          /*!< SCB 
+ 374:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 375:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MEMFAULTPENDED_Pos       13                                             /*!< SCB 
+ 376:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MEMFAULTPENDED_Msk       (1UL << SCB_SHCSR_MEMFAULTPENDED_Pos)          /*!< SCB 
+ 377:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 378:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_USGFAULTPENDED_Pos       12                                             /*!< SCB 
+ 379:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_USGFAULTPENDED_Msk       (1UL << SCB_SHCSR_USGFAULTPENDED_Pos)          /*!< SCB 
+ 380:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 381:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_SYSTICKACT_Pos           11                                             /*!< SCB 
+ 382:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_SYSTICKACT_Msk           (1UL << SCB_SHCSR_SYSTICKACT_Pos)              /*!< SCB 
+ 383:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 384:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_PENDSVACT_Pos            10                                             /*!< SCB 
+ 385:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_PENDSVACT_Msk            (1UL << SCB_SHCSR_PENDSVACT_Pos)               /*!< SCB 
+ 386:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 387:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MONITORACT_Pos            8                                             /*!< SCB 
+ 388:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MONITORACT_Msk           (1UL << SCB_SHCSR_MONITORACT_Pos)              /*!< SCB 
+ 389:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 390:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_SVCALLACT_Pos             7                                             /*!< SCB 
+ 391:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_SVCALLACT_Msk            (1UL << SCB_SHCSR_SVCALLACT_Pos)               /*!< SCB 
+ 392:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 393:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_USGFAULTACT_Pos           3                                             /*!< SCB 
+ 394:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_USGFAULTACT_Msk          (1UL << SCB_SHCSR_USGFAULTACT_Pos)             /*!< SCB 
+ 395:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 396:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_BUSFAULTACT_Pos           1                                             /*!< SCB 
+ 397:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_BUSFAULTACT_Msk          (1UL << SCB_SHCSR_BUSFAULTACT_Pos)             /*!< SCB 
+ 398:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 399:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MEMFAULTACT_Pos           0                                             /*!< SCB 
+ 400:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_SHCSR_MEMFAULTACT_Msk          (1UL << SCB_SHCSR_MEMFAULTACT_Pos)             /*!< SCB 
+ 401:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 402:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Configurable Fault Status Registers Definitions */
+ 403:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CFSR_USGFAULTSR_Pos            16                                             /*!< SCB 
+ 404:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CFSR_USGFAULTSR_Msk            (0xFFFFUL << SCB_CFSR_USGFAULTSR_Pos)          /*!< SCB 
+ 405:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 406:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CFSR_BUSFAULTSR_Pos             8                                             /*!< SCB 
+ 407:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CFSR_BUSFAULTSR_Msk            (0xFFUL << SCB_CFSR_BUSFAULTSR_Pos)            /*!< SCB 
+ 408:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 409:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CFSR_MEMFAULTSR_Pos             0                                             /*!< SCB 
+ 410:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_CFSR_MEMFAULTSR_Msk            (0xFFUL << SCB_CFSR_MEMFAULTSR_Pos)            /*!< SCB 
+ 411:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 412:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Hard Fault Status Registers Definitions */
+ 413:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_HFSR_DEBUGEVT_Pos              31                                             /*!< SCB 
+ 414:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_HFSR_DEBUGEVT_Msk              (1UL << SCB_HFSR_DEBUGEVT_Pos)                 /*!< SCB 
+ 415:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 416:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_HFSR_FORCED_Pos                30                                             /*!< SCB 
+ 417:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_HFSR_FORCED_Msk                (1UL << SCB_HFSR_FORCED_Pos)                   /*!< SCB 
+ 418:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 419:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_HFSR_VECTTBL_Pos                1                                             /*!< SCB 
+ 420:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_HFSR_VECTTBL_Msk               (1UL << SCB_HFSR_VECTTBL_Pos)                  /*!< SCB 
+ 421:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 422:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SCB Debug Fault Status Register Definitions */
+ 423:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_EXTERNAL_Pos               4                                             /*!< SCB 
+ 424:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_EXTERNAL_Msk              (1UL << SCB_DFSR_EXTERNAL_Pos)                 /*!< SCB 
+ 425:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 426:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_VCATCH_Pos                 3                                             /*!< SCB 
+ 427:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_VCATCH_Msk                (1UL << SCB_DFSR_VCATCH_Pos)                   /*!< SCB 
+ 428:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 429:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_DWTTRAP_Pos                2                                             /*!< SCB 
+ 430:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_DWTTRAP_Msk               (1UL << SCB_DFSR_DWTTRAP_Pos)                  /*!< SCB 
+ 431:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 432:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_BKPT_Pos                   1                                             /*!< SCB 
+ 433:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_BKPT_Msk                  (1UL << SCB_DFSR_BKPT_Pos)                     /*!< SCB 
+ 434:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 435:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_HALTED_Pos                 0                                             /*!< SCB 
+ 436:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_DFSR_HALTED_Msk                (1UL << SCB_DFSR_HALTED_Pos)                   /*!< SCB 
+ 437:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 438:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_SCB */
+ 439:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 440:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 441:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 442:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_SysTick CMSIS SysTick
+ 443:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M System Timer Registers
+ 444:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 445:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 446:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 447:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the System Timer (SysTick).
+ 448:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 449:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 450:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 451:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t CTRL;                    /*!< Offset: 0x000 (R/W)  SysTick Control and Status Regis
+ 452:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t LOAD;                    /*!< Offset: 0x004 (R/W)  SysTick Reload Value Register   
+ 453:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t VAL;                     /*!< Offset: 0x008 (R/W)  SysTick Current Value Register  
+ 454:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t CALIB;                   /*!< Offset: 0x00C (R/ )  SysTick Calibration Register    
+ 455:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } SysTick_Type;
+ 456:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 457:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SysTick Control / Status Register Definitions */
+ 458:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_COUNTFLAG_Pos         16                                             /*!< SysT
+ 459:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_COUNTFLAG_Msk         (1UL << SysTick_CTRL_COUNTFLAG_Pos)            /*!< SysT
+ 460:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 461:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_CLKSOURCE_Pos          2                                             /*!< SysT
+ 462:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_CLKSOURCE_Msk         (1UL << SysTick_CTRL_CLKSOURCE_Pos)            /*!< SysT
+ 463:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 464:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_TICKINT_Pos            1                                             /*!< SysT
+ 465:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_TICKINT_Msk           (1UL << SysTick_CTRL_TICKINT_Pos)              /*!< SysT
+ 466:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 467:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_ENABLE_Pos             0                                             /*!< SysT
+ 468:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CTRL_ENABLE_Msk            (1UL << SysTick_CTRL_ENABLE_Pos)               /*!< SysT
+ 469:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 470:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SysTick Reload Register Definitions */
+ 471:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_LOAD_RELOAD_Pos             0                                             /*!< SysT
+ 472:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_LOAD_RELOAD_Msk            (0xFFFFFFUL << SysTick_LOAD_RELOAD_Pos)        /*!< SysT
+ 473:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 474:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SysTick Current Register Definitions */
+ 475:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_VAL_CURRENT_Pos             0                                             /*!< SysT
+ 476:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_VAL_CURRENT_Msk            (0xFFFFFFUL << SysTick_VAL_CURRENT_Pos)        /*!< SysT
+ 477:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 478:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* SysTick Calibration Register Definitions */
+ 479:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CALIB_NOREF_Pos            31                                             /*!< SysT
+ 480:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CALIB_NOREF_Msk            (1UL << SysTick_CALIB_NOREF_Pos)               /*!< SysT
+ 481:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 482:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CALIB_SKEW_Pos             30                                             /*!< SysT
+ 483:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CALIB_SKEW_Msk             (1UL << SysTick_CALIB_SKEW_Pos)                /*!< SysT
+ 484:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 485:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CALIB_TENMS_Pos             0                                             /*!< SysT
+ 486:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_CALIB_TENMS_Msk            (0xFFFFFFUL << SysTick_VAL_CURRENT_Pos)        /*!< SysT
+ 487:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 488:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_SysTick */
+ 489:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 490:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 491:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 492:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_ITM CMSIS ITM
+ 493:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M Instrumentation Trace Macrocell (ITM)
+ 494:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 495:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 496:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 497:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the Instrumentation Trace Macrocell Register (ITM).
+ 498:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 499:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 500:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 501:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __O  union
+ 502:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   {
+ 503:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     __O  uint8_t    u8;                  /*!< Offset: 0x000 ( /W)  ITM Stimulus Port 8-bit         
+ 504:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     __O  uint16_t   u16;                 /*!< Offset: 0x000 ( /W)  ITM Stimulus Port 16-bit        
+ 505:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     __O  uint32_t   u32;                 /*!< Offset: 0x000 ( /W)  ITM Stimulus Port 32-bit        
+ 506:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   }  PORT [32];                          /*!< Offset: 0x000 ( /W)  ITM Stimulus Port Registers     
+ 507:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED0[864];
+ 508:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t TER;                     /*!< Offset:       (R/W)  ITM Trace Enable Register       
+ 509:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED1[15];
+ 510:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t TPR;                     /*!< Offset:       (R/W)  ITM Trace Privilege Register    
+ 511:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED2[15];
+ 512:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t TCR;                     /*!< Offset:       (R/W)  ITM Trace Control Register      
+ 513:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED3[29];
+ 514:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t IWR;                     /*!< Offset:       (R/W)  ITM Integration Write Register  
+ 515:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t IRR;                     /*!< Offset:       (R/W)  ITM Integration Read Register   
+ 516:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t IMCR;                    /*!< Offset:       (R/W)  ITM Integration Mode Control Reg
+ 517:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED4[43];
+ 518:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t LAR;                     /*!< Offset:       (R/W)  ITM Lock Access Register        
+ 519:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t LSR;                     /*!< Offset:       (R/W)  ITM Lock Status Register        
+ 520:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED5[6];
+ 521:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID4;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 522:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID5;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 523:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID6;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 524:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID7;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 525:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID0;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 526:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID1;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 527:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID2;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 528:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t PID3;                    /*!< Offset:       (R/ )  ITM Peripheral Identification Re
+ 529:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t CID0;                    /*!< Offset:       (R/ )  ITM Component  Identification Re
+ 530:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t CID1;                    /*!< Offset:       (R/ )  ITM Component  Identification Re
+ 531:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t CID2;                    /*!< Offset:       (R/ )  ITM Component  Identification Re
+ 532:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t CID3;                    /*!< Offset:       (R/ )  ITM Component  Identification Re
+ 533:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } ITM_Type;
+ 534:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 535:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ITM Trace Privilege Register Definitions */
+ 536:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TPR_PRIVMASK_Pos                0                                             /*!< ITM 
+ 537:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TPR_PRIVMASK_Msk               (0xFUL << ITM_TPR_PRIVMASK_Pos)                /*!< ITM 
+ 538:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 539:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ITM Trace Control Register Definitions */
+ 540:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_BUSY_Pos                   23                                             /*!< ITM 
+ 541:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_BUSY_Msk                   (1UL << ITM_TCR_BUSY_Pos)                      /*!< ITM 
+ 542:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 543:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_ATBID_Pos                  16                                             /*!< ITM 
+ 544:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_ATBID_Msk                  (0x7FUL << ITM_TCR_ATBID_Pos)                  /*!< ITM 
+ 545:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 546:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_TSPrescale_Pos              8                                             /*!< ITM 
+ 547:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_TSPrescale_Msk             (3UL << ITM_TCR_TSPrescale_Pos)                /*!< ITM 
+ 548:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 549:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_SWOENA_Pos                  4                                             /*!< ITM 
+ 550:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_SWOENA_Msk                 (1UL << ITM_TCR_SWOENA_Pos)                    /*!< ITM 
+ 551:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 552:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_DWTENA_Pos                  3                                             /*!< ITM 
+ 553:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_DWTENA_Msk                 (1UL << ITM_TCR_DWTENA_Pos)                    /*!< ITM 
+ 554:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 555:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_SYNCENA_Pos                 2                                             /*!< ITM 
+ 556:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_SYNCENA_Msk                (1UL << ITM_TCR_SYNCENA_Pos)                   /*!< ITM 
+ 557:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 558:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_TSENA_Pos                   1                                             /*!< ITM 
+ 559:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_TSENA_Msk                  (1UL << ITM_TCR_TSENA_Pos)                     /*!< ITM 
+ 560:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 561:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_ITMENA_Pos                  0                                             /*!< ITM 
+ 562:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_TCR_ITMENA_Msk                 (1UL << ITM_TCR_ITMENA_Pos)                    /*!< ITM 
+ 563:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 564:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ITM Integration Write Register Definitions */
+ 565:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_IWR_ATVALIDM_Pos                0                                             /*!< ITM 
+ 566:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_IWR_ATVALIDM_Msk               (1UL << ITM_IWR_ATVALIDM_Pos)                  /*!< ITM 
+ 567:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 568:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ITM Integration Read Register Definitions */
+ 569:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_IRR_ATREADYM_Pos                0                                             /*!< ITM 
+ 570:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_IRR_ATREADYM_Msk               (1UL << ITM_IRR_ATREADYM_Pos)                  /*!< ITM 
+ 571:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 572:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ITM Integration Mode Control Register Definitions */
+ 573:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_IMCR_INTEGRATION_Pos            0                                             /*!< ITM 
+ 574:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_IMCR_INTEGRATION_Msk           (1UL << ITM_IMCR_INTEGRATION_Pos)              /*!< ITM 
+ 575:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 576:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ITM Lock Status Register Definitions */
+ 577:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_LSR_ByteAcc_Pos                 2                                             /*!< ITM 
+ 578:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_LSR_ByteAcc_Msk                (1UL << ITM_LSR_ByteAcc_Pos)                   /*!< ITM 
+ 579:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 580:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_LSR_Access_Pos                  1                                             /*!< ITM 
+ 581:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_LSR_Access_Msk                 (1UL << ITM_LSR_Access_Pos)                    /*!< ITM 
+ 582:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 583:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_LSR_Present_Pos                 0                                             /*!< ITM 
+ 584:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_LSR_Present_Msk                (1UL << ITM_LSR_Present_Pos)                   /*!< ITM 
+ 585:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 586:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@}*/ /* end of group CMSIS_ITM */
+ 587:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 588:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 589:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 590:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_InterruptType CMSIS Interrupt Type
+ 591:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M Interrupt Type Register
+ 592:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 593:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 594:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 595:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the Interrupt Type Register.
+ 596:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 597:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 598:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 599:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED0;
+ 600:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t ICTR;                    /*!< Offset: 0x004 (R/ )  Interrupt Control Type Register 
+ 601:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if ((defined __CM3_REV) && (__CM3_REV >= 0x200))
+ 602:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t ACTLR;                   /*!< Offset: 0x008 (R/W)  Auxiliary Control Register      
+ 603:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #else
+ 604:CMSISv2p00_LPC17xx/inc/core_cm3.h ****        uint32_t RESERVED1;
+ 605:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+ 606:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } InterruptType_Type;
+ 607:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 608:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* Interrupt Controller Type Register Definitions */
+ 609:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ICTR_INTLINESNUM_Pos  0                                                   /*!< Inte
+ 610:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ICTR_INTLINESNUM_Msk (0x1FUL << IntType_ICTR_INTLINESNUM_Pos)             /*!< Inte
+ 611:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 612:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* Auxiliary Control Register Definitions */
+ 613:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ACTLR_DISFOLD_Pos     2                                                   /*!< Inte
+ 614:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ACTLR_DISFOLD_Msk    (1UL << IntType_ACTLR_DISFOLD_Pos)                   /*!< Inte
+ 615:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 616:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ACTLR_DISDEFWBUF_Pos  1                                                   /*!< Inte
+ 617:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ACTLR_DISDEFWBUF_Msk (1UL << IntType_ACTLR_DISDEFWBUF_Pos)                /*!< Inte
+ 618:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 619:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ACTLR_DISMCYCINT_Pos  0                                                   /*!< Inte
+ 620:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define IntType_ACTLR_DISMCYCINT_Msk (1UL << IntType_ACTLR_DISMCYCINT_Pos)                /*!< Inte
+ 621:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 622:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@}*/ /* end of group CMSIS_InterruptType */
+ 623:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 624:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 625:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if (__MPU_PRESENT == 1)
+ 626:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 627:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_MPU CMSIS MPU
+ 628:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M Memory Protection Unit (MPU)
+ 629:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 630:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 631:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 632:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the Memory Protection Unit (MPU).
+ 633:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 634:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 635:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 636:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __I  uint32_t TYPE;                    /*!< Offset: 0x000 (R/ )  MPU Type Register               
+ 637:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t CTRL;                    /*!< Offset: 0x004 (R/W)  MPU Control Register            
+ 638:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RNR;                     /*!< Offset: 0x008 (R/W)  MPU Region RNRber Register      
+ 639:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RBAR;                    /*!< Offset: 0x00C (R/W)  MPU Region Base Address Register
+ 640:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RASR;                    /*!< Offset: 0x010 (R/W)  MPU Region Attribute and Size Re
+ 641:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RBAR_A1;                 /*!< Offset: 0x014 (R/W)  MPU Alias 1 Region Base Address 
+ 642:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RASR_A1;                 /*!< Offset: 0x018 (R/W)  MPU Alias 1 Region Attribute and
+ 643:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RBAR_A2;                 /*!< Offset: 0x01C (R/W)  MPU Alias 2 Region Base Address 
+ 644:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RASR_A2;                 /*!< Offset: 0x020 (R/W)  MPU Alias 2 Region Attribute and
+ 645:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RBAR_A3;                 /*!< Offset: 0x024 (R/W)  MPU Alias 3 Region Base Address 
+ 646:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t RASR_A3;                 /*!< Offset: 0x028 (R/W)  MPU Alias 3 Region Attribute and
+ 647:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } MPU_Type;
+ 648:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 649:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* MPU Type Register */
+ 650:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_TYPE_IREGION_Pos               16                                             /*!< MPU 
+ 651:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_TYPE_IREGION_Msk               (0xFFUL << MPU_TYPE_IREGION_Pos)               /*!< MPU 
+ 652:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 653:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_TYPE_DREGION_Pos                8                                             /*!< MPU 
+ 654:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_TYPE_DREGION_Msk               (0xFFUL << MPU_TYPE_DREGION_Pos)               /*!< MPU 
+ 655:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 656:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_TYPE_SEPARATE_Pos               0                                             /*!< MPU 
+ 657:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_TYPE_SEPARATE_Msk              (1UL << MPU_TYPE_SEPARATE_Pos)                 /*!< MPU 
+ 658:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 659:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* MPU Control Register */
+ 660:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_CTRL_PRIVDEFENA_Pos             2                                             /*!< MPU 
+ 661:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_CTRL_PRIVDEFENA_Msk            (1UL << MPU_CTRL_PRIVDEFENA_Pos)               /*!< MPU 
+ 662:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 663:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_CTRL_HFNMIENA_Pos               1                                             /*!< MPU 
+ 664:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_CTRL_HFNMIENA_Msk              (1UL << MPU_CTRL_HFNMIENA_Pos)                 /*!< MPU 
+ 665:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 666:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_CTRL_ENABLE_Pos                 0                                             /*!< MPU 
+ 667:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_CTRL_ENABLE_Msk                (1UL << MPU_CTRL_ENABLE_Pos)                   /*!< MPU 
+ 668:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 669:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* MPU Region Number Register */
+ 670:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RNR_REGION_Pos                  0                                             /*!< MPU 
+ 671:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RNR_REGION_Msk                 (0xFFUL << MPU_RNR_REGION_Pos)                 /*!< MPU 
+ 672:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 673:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* MPU Region Base Address Register */
+ 674:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RBAR_ADDR_Pos                   5                                             /*!< MPU 
+ 675:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RBAR_ADDR_Msk                  (0x7FFFFFFUL << MPU_RBAR_ADDR_Pos)             /*!< MPU 
+ 676:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 677:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RBAR_VALID_Pos                  4                                             /*!< MPU 
+ 678:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RBAR_VALID_Msk                 (1UL << MPU_RBAR_VALID_Pos)                    /*!< MPU 
+ 679:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 680:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RBAR_REGION_Pos                 0                                             /*!< MPU 
+ 681:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RBAR_REGION_Msk                (0xFUL << MPU_RBAR_REGION_Pos)                 /*!< MPU 
+ 682:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 683:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* MPU Region Attribute and Size Register */
+ 684:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_XN_Pos                    28                                             /*!< MPU 
+ 685:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_XN_Msk                    (1UL << MPU_RASR_XN_Pos)                       /*!< MPU 
+ 686:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 687:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_AP_Pos                    24                                             /*!< MPU 
+ 688:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_AP_Msk                    (7UL << MPU_RASR_AP_Pos)                       /*!< MPU 
+ 689:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 690:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_TEX_Pos                   19                                             /*!< MPU 
+ 691:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_TEX_Msk                   (7UL << MPU_RASR_TEX_Pos)                      /*!< MPU 
+ 692:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 693:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_S_Pos                     18                                             /*!< MPU 
+ 694:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_S_Msk                     (1UL << MPU_RASR_S_Pos)                        /*!< MPU 
+ 695:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 696:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_C_Pos                     17                                             /*!< MPU 
+ 697:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_C_Msk                     (1UL << MPU_RASR_C_Pos)                        /*!< MPU 
+ 698:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 699:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_B_Pos                     16                                             /*!< MPU 
+ 700:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_B_Msk                     (1UL << MPU_RASR_B_Pos)                        /*!< MPU 
+ 701:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 702:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_SRD_Pos                    8                                             /*!< MPU 
+ 703:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_SRD_Msk                   (0xFFUL << MPU_RASR_SRD_Pos)                   /*!< MPU 
+ 704:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 705:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_SIZE_Pos                   1                                             /*!< MPU 
+ 706:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_SIZE_Msk                  (0x1FUL << MPU_RASR_SIZE_Pos)                  /*!< MPU 
+ 707:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 708:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_ENA_Pos                     0                                            /*!< MPU 
+ 709:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define MPU_RASR_ENA_Msk                    (0x1UL << MPU_RASR_ENA_Pos)                   /*!< MPU 
+ 710:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 711:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_MPU */
+ 712:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+ 713:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 714:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 715:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 716:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_CoreDebug CMSIS Core Debug
+ 717:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Type definitions for the Cortex-M Core Debug Registers
+ 718:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 719:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 720:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 721:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Structure type to access the Core Debug Register (CoreDebug).
+ 722:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 723:CMSISv2p00_LPC17xx/inc/core_cm3.h **** typedef struct
+ 724:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 725:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t DHCSR;                   /*!< Offset: 0x000 (R/W)  Debug Halting Control and Status
+ 726:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __O  uint32_t DCRSR;                   /*!< Offset: 0x004 ( /W)  Debug Core Register Selector Reg
+ 727:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t DCRDR;                   /*!< Offset: 0x008 (R/W)  Debug Core Register Data Registe
+ 728:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __IO uint32_t DEMCR;                   /*!< Offset: 0x00C (R/W)  Debug Exception and Monitor Cont
+ 729:CMSISv2p00_LPC17xx/inc/core_cm3.h **** } CoreDebug_Type;
+ 730:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 731:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* Debug Halting Control and Status Register */
+ 732:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_DBGKEY_Pos         16                                             /*!< Core
+ 733:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_DBGKEY_Msk         (0xFFFFUL << CoreDebug_DHCSR_DBGKEY_Pos)       /*!< Core
+ 734:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 735:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_RESET_ST_Pos     25                                             /*!< Core
+ 736:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_RESET_ST_Msk     (1UL << CoreDebug_DHCSR_S_RESET_ST_Pos)        /*!< Core
+ 737:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 738:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_RETIRE_ST_Pos    24                                             /*!< Core
+ 739:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_RETIRE_ST_Msk    (1UL << CoreDebug_DHCSR_S_RETIRE_ST_Pos)       /*!< Core
+ 740:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 741:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_LOCKUP_Pos       19                                             /*!< Core
+ 742:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_LOCKUP_Msk       (1UL << CoreDebug_DHCSR_S_LOCKUP_Pos)          /*!< Core
+ 743:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 744:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_SLEEP_Pos        18                                             /*!< Core
+ 745:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_SLEEP_Msk        (1UL << CoreDebug_DHCSR_S_SLEEP_Pos)           /*!< Core
+ 746:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 747:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_HALT_Pos         17                                             /*!< Core
+ 748:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_HALT_Msk         (1UL << CoreDebug_DHCSR_S_HALT_Pos)            /*!< Core
+ 749:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 750:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_REGRDY_Pos       16                                             /*!< Core
+ 751:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_S_REGRDY_Msk       (1UL << CoreDebug_DHCSR_S_REGRDY_Pos)          /*!< Core
+ 752:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 753:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_SNAPSTALL_Pos     5                                             /*!< Core
+ 754:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_SNAPSTALL_Msk    (1UL << CoreDebug_DHCSR_C_SNAPSTALL_Pos)       /*!< Core
+ 755:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 756:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_MASKINTS_Pos      3                                             /*!< Core
+ 757:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_MASKINTS_Msk     (1UL << CoreDebug_DHCSR_C_MASKINTS_Pos)        /*!< Core
+ 758:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 759:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_STEP_Pos          2                                             /*!< Core
+ 760:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_STEP_Msk         (1UL << CoreDebug_DHCSR_C_STEP_Pos)            /*!< Core
+ 761:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 762:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_HALT_Pos          1                                             /*!< Core
+ 763:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_HALT_Msk         (1UL << CoreDebug_DHCSR_C_HALT_Pos)            /*!< Core
+ 764:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 765:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_DEBUGEN_Pos       0                                             /*!< Core
+ 766:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DHCSR_C_DEBUGEN_Msk      (1UL << CoreDebug_DHCSR_C_DEBUGEN_Pos)         /*!< Core
+ 767:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 768:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* Debug Core Register Selector Register */
+ 769:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DCRSR_REGWnR_Pos         16                                             /*!< Core
+ 770:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DCRSR_REGWnR_Msk         (1UL << CoreDebug_DCRSR_REGWnR_Pos)            /*!< Core
+ 771:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 772:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DCRSR_REGSEL_Pos          0                                             /*!< Core
+ 773:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DCRSR_REGSEL_Msk         (0x1FUL << CoreDebug_DCRSR_REGSEL_Pos)         /*!< Core
+ 774:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 775:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* Debug Exception and Monitor Control Register */
+ 776:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_TRCENA_Pos         24                                             /*!< Core
+ 777:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_TRCENA_Msk         (1UL << CoreDebug_DEMCR_TRCENA_Pos)            /*!< Core
+ 778:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 779:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_REQ_Pos        19                                             /*!< Core
+ 780:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_REQ_Msk        (1UL << CoreDebug_DEMCR_MON_REQ_Pos)           /*!< Core
+ 781:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 782:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_STEP_Pos       18                                             /*!< Core
+ 783:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_STEP_Msk       (1UL << CoreDebug_DEMCR_MON_STEP_Pos)          /*!< Core
+ 784:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 785:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_PEND_Pos       17                                             /*!< Core
+ 786:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_PEND_Msk       (1UL << CoreDebug_DEMCR_MON_PEND_Pos)          /*!< Core
+ 787:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 788:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_EN_Pos         16                                             /*!< Core
+ 789:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_MON_EN_Msk         (1UL << CoreDebug_DEMCR_MON_EN_Pos)            /*!< Core
+ 790:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 791:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_HARDERR_Pos     10                                             /*!< Core
+ 792:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_HARDERR_Msk     (1UL << CoreDebug_DEMCR_VC_HARDERR_Pos)        /*!< Core
+ 793:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 794:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_INTERR_Pos       9                                             /*!< Core
+ 795:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_INTERR_Msk      (1UL << CoreDebug_DEMCR_VC_INTERR_Pos)         /*!< Core
+ 796:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 797:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_BUSERR_Pos       8                                             /*!< Core
+ 798:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_BUSERR_Msk      (1UL << CoreDebug_DEMCR_VC_BUSERR_Pos)         /*!< Core
+ 799:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 800:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_STATERR_Pos      7                                             /*!< Core
+ 801:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_STATERR_Msk     (1UL << CoreDebug_DEMCR_VC_STATERR_Pos)        /*!< Core
+ 802:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 803:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_CHKERR_Pos       6                                             /*!< Core
+ 804:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_CHKERR_Msk      (1UL << CoreDebug_DEMCR_VC_CHKERR_Pos)         /*!< Core
+ 805:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 806:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_NOCPERR_Pos      5                                             /*!< Core
+ 807:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_NOCPERR_Msk     (1UL << CoreDebug_DEMCR_VC_NOCPERR_Pos)        /*!< Core
+ 808:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 809:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_MMERR_Pos        4                                             /*!< Core
+ 810:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_MMERR_Msk       (1UL << CoreDebug_DEMCR_VC_MMERR_Pos)          /*!< Core
+ 811:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 812:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_CORERESET_Pos    0                                             /*!< Core
+ 813:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_DEMCR_VC_CORERESET_Msk   (1UL << CoreDebug_DEMCR_VC_CORERESET_Pos)      /*!< Core
+ 814:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 815:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} end of group CMSIS_CoreDebug */
+ 816:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 817:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 818:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_core_register
+ 819:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 820:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 821:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 822:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* Memory mapping of Cortex-M3 Hardware */
+ 823:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCS_BASE            (0xE000E000UL)                            /*!< System Control Space Bas
+ 824:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM_BASE            (0xE0000000UL)                            /*!< ITM Base Address        
+ 825:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug_BASE      (0xE000EDF0UL)                            /*!< Core Debug Base Address 
+ 826:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick_BASE        (SCS_BASE +  0x0010UL)                    /*!< SysTick Base Address    
+ 827:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define NVIC_BASE           (SCS_BASE +  0x0100UL)                    /*!< NVIC Base Address       
+ 828:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB_BASE            (SCS_BASE +  0x0D00UL)                    /*!< System Control Block Bas
+ 829:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 830:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define InterruptType       ((InterruptType_Type *) SCS_BASE)         /*!< Interrupt Type Register 
+ 831:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SCB                 ((SCB_Type *)           SCB_BASE)         /*!< SCB configuration struct
+ 832:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define SysTick             ((SysTick_Type *)       SysTick_BASE)     /*!< SysTick configuration st
+ 833:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define NVIC                ((NVIC_Type *)          NVIC_BASE)        /*!< NVIC configuration struc
+ 834:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define ITM                 ((ITM_Type *)           ITM_BASE)         /*!< ITM configuration struct
+ 835:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #define CoreDebug           ((CoreDebug_Type *)     CoreDebug_BASE)   /*!< Core Debug configuration
+ 836:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 837:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #if (__MPU_PRESENT == 1)
+ 838:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define MPU_BASE          (SCS_BASE +  0x0D90UL)                    /*!< Memory Protection Unit  
+ 839:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   #define MPU               ((MPU_Type*)            MPU_BASE)         /*!< Memory Protection Unit  
+ 840:CMSISv2p00_LPC17xx/inc/core_cm3.h **** #endif
+ 841:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 842:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*@} */
+ 843:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 844:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 845:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 846:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /*******************************************************************************
+ 847:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  *                Hardware Abstraction Layer
+ 848:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  ******************************************************************************/
+ 849:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS
+ 850:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   \addtogroup CMSIS_Core_FunctionInterface CMSIS Core Function Interface
+ 851:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Core Function Interface contains:
+ 852:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core NVIC Functions
+ 853:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core SysTick Functions
+ 854:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core Debug Functions
+ 855:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   - Core Register Access Functions
+ 856:CMSISv2p00_LPC17xx/inc/core_cm3.h **** */
+ 857:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 858:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 859:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 860:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /* ##########################   NVIC functions  #################################### */
+ 861:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 862:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \defgroup CMSIS_Core_NVICFunctions CMSIS Core NVIC Functions
+ 863:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   @{
+ 864:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 865:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** @addtogroup CMSIS_Core_NVICFunctions
+ 866:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  * @{
+ 867:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 868:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Set Priority Grouping
+ 869:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 870:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   This function sets the priority grouping field using the required unlock sequence.
+ 871:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   The parameter PriorityGroup is assigned to the field SCB->AIRCR [10:8] PRIGROUP field.
+ 872:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Only values from 0..7 are used.
+ 873:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   In case of a conflict between priority grouping and available
+ 874:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   priority bits (__NVIC_PRIO_BITS) the smallest possible priority group is set.
+ 875:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 876:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      PriorityGroup  Priority grouping field
+ 877:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 878:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_SetPriorityGrouping(uint32_t PriorityGroup)
+ 879:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 880:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t reg_value;
+ 881:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t PriorityGroupTmp = (PriorityGroup & 0x07);                         /* only values 0..7 a
+ 882:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 883:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   reg_value  =  SCB->AIRCR;                                                   /* read old register 
+ 884:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   reg_value &= ~(SCB_AIRCR_VECTKEY_Msk | SCB_AIRCR_PRIGROUP_Msk);             /* clear bits to chan
+ 885:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   reg_value  =  (reg_value                       |
+ 886:CMSISv2p00_LPC17xx/inc/core_cm3.h ****                 (0x5FA << SCB_AIRCR_VECTKEY_Pos) |
+ 887:CMSISv2p00_LPC17xx/inc/core_cm3.h ****                 (PriorityGroupTmp << 8));                                     /* Insert write key a
+ 888:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   SCB->AIRCR =  reg_value;
+ 889:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 890:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 891:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 892:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Get Priority Grouping
+ 893:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 894:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   This function gets the priority grouping from NVIC Interrupt Controller.
+ 895:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   Priority grouping is SCB->AIRCR [10:8] PRIGROUP field.
+ 896:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 897:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return                Priority grouping field
+ 898:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 899:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE uint32_t NVIC_GetPriorityGrouping(void)
+ 900:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 901:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   return ((SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) >> SCB_AIRCR_PRIGROUP_Pos);   /* read priority grou
+ 902:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 903:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 904:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 905:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Enable External Interrupt
+ 906:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 907:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function enables a device specific interupt in the NVIC interrupt controller.
+ 908:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The interrupt number cannot be a negative value.
+ 909:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 910:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the external interrupt to enable
+ 911:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 912:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_EnableIRQ(IRQn_Type IRQn)
+ 913:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 914:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   NVIC->ISER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* enable interrupt */
+ 915:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 916:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 917:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 918:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Disable External Interrupt
+ 919:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 920:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function disables a device specific interupt in the NVIC interrupt controller.
+ 921:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The interrupt number cannot be a negative value.
+ 922:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 923:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the external interrupt to disable
+ 924:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 925:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_DisableIRQ(IRQn_Type IRQn)
+ 926:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 927:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   NVIC->ICER[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* disable interrupt */
+ 928:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 929:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 930:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 931:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Get Pending Interrupt
+ 932:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 933:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function reads the pending register in the NVIC and returns the pending bit
+ 934:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     for the specified interrupt.
+ 935:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 936:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the interrupt for get pending
+ 937:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return             0  Interrupt status is not pending
+ 938:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return             1  Interrupt status is pending
+ 939:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 940:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+ 941:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 942:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   return((uint32_t) ((NVIC->ISPR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0)); 
+ 943:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 944:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 945:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 946:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Set Pending Interrupt
+ 947:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 948:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function sets the pending bit for the specified interrupt.
+ 949:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The interrupt number cannot be a negative value.
+ 950:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 951:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the interrupt for set pending
+ 952:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 953:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+ 954:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 955:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   NVIC->ISPR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* set interrupt pending 
+ 956:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 957:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 958:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 959:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Clear Pending Interrupt
+ 960:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 961:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function clears the pending bit for the specified interrupt.
+ 962:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The interrupt number cannot be a negative value.
+ 963:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 964:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the interrupt for clear pending
+ 965:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 966:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+ 967:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 968:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   NVIC->ICPR[((uint32_t)(IRQn) >> 5)] = (1 << ((uint32_t)(IRQn) & 0x1F)); /* Clear pending interrup
+ 969:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 970:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 971:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 972:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Get Active Interrupt
+ 973:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 974:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function reads the active register in NVIC and returns the active bit.
+ 975:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the interrupt for get active
+ 976:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return             0  Interrupt status is not active
+ 977:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return             1  Interrupt status is active
+ 978:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 979:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE uint32_t NVIC_GetActive(IRQn_Type IRQn)
+ 980:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 981:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   return((uint32_t)((NVIC->IABR[(uint32_t)(IRQn) >> 5] & (1 << ((uint32_t)(IRQn) & 0x1F)))?1:0)); /
+ 982:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+ 983:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 984:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 985:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Set Interrupt Priority
+ 986:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 987:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function sets the priority for the specified interrupt. The interrupt
+ 988:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     number can be positive to specify an external (device specific)
+ 989:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     interrupt, or negative to specify an internal (core) interrupt.
+ 990:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 991:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     Note: The priority cannot be set for every core interrupt.
+ 992:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+ 993:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]      IRQn  Number of the interrupt for set priority
+ 994:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]  priority  Priority to set
+ 995:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+ 996:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
+ 997:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+ 998:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   if(IRQn < 0) {
+ 999:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     SCB->SHP[((uint32_t)(IRQn) & 0xF)-4] = ((priority << (8 - __NVIC_PRIO_BITS)) & 0xff); } /* set 
+1000:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   else {
+1001:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     NVIC->IP[(uint32_t)(IRQn)] = ((priority << (8 - __NVIC_PRIO_BITS)) & 0xff);    }        /* set 
+1002:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+1003:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1004:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1005:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Get Interrupt Priority
+1006:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1007:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function reads the priority for the specified interrupt. The interrupt
+1008:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     number can be positive to specify an external (device specific)
+1009:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     interrupt, or negative to specify an internal (core) interrupt.
+1010:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1011:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The returned priority value is automatically aligned to the implemented
+1012:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     priority bits of the microcontroller.
+1013:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1014:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]   IRQn  Number of the interrupt for get priority
+1015:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return             Interrupt Priority
+1016:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+1017:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE uint32_t NVIC_GetPriority(IRQn_Type IRQn)
+1018:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+1019:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1020:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   if(IRQn < 0) {
+1021:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     return((uint32_t)(SCB->SHP[((uint32_t)(IRQn) & 0xF)-4] >> (8 - __NVIC_PRIO_BITS)));  } /* get p
+1022:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   else {
+1023:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     return((uint32_t)(NVIC->IP[(uint32_t)(IRQn)]           >> (8 - __NVIC_PRIO_BITS)));  } /* get p
+1024:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+1025:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1026:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1027:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Encode Priority
+1028:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1029:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function encodes the priority for an interrupt with the given priority group,
+1030:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     preemptive priority value and sub priority value.
+1031:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     In case of a conflict between priority grouping and available
+1032:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     priority bits (__NVIC_PRIO_BITS) the samllest possible priority group is set.
+1033:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1034:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The returned priority value can be used for NVIC_SetPriority(...) function
+1035:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1036:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]     PriorityGroup  Used priority group
+1037:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]   PreemptPriority  Preemptive priority value (starting from 0)
+1038:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]       SubPriority  Sub priority value (starting from 0)
+1039:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \return                        Encoded priority for the interrupt
+1040:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+1041:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, uin
+1042:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+1043:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t PriorityGroupTmp = (PriorityGroup & 0x07);          /* only values 0..7 are used        
+1044:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t PreemptPriorityBits;
+1045:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t SubPriorityBits;
+1046:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1047:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   PreemptPriorityBits = ((7 - PriorityGroupTmp) > __NVIC_PRIO_BITS) ? __NVIC_PRIO_BITS : 7 - Priori
+1048:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   SubPriorityBits     = ((PriorityGroupTmp + __NVIC_PRIO_BITS) < 7) ? 0 : PriorityGroupTmp - 7 + __
+1049:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1050:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   return (
+1051:CMSISv2p00_LPC17xx/inc/core_cm3.h ****            ((PreemptPriority & ((1 << (PreemptPriorityBits)) - 1)) << SubPriorityBits) |
+1052:CMSISv2p00_LPC17xx/inc/core_cm3.h ****            ((SubPriority     & ((1 << (SubPriorityBits    )) - 1)))
+1053:CMSISv2p00_LPC17xx/inc/core_cm3.h ****          );
+1054:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+1055:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1056:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1057:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  Decode Priority
+1058:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1059:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function decodes an interrupt priority value with the given priority group to
+1060:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     preemptive priority value and sub priority value.
+1061:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     In case of a conflict between priority grouping and available
+1062:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     priority bits (__NVIC_PRIO_BITS) the samllest possible priority group is set.
+1063:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1064:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     The priority value can be retrieved with NVIC_GetPriority(...) function
+1065:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1066:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]         Priority   Priority value
+1067:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [in]     PriorityGroup  Used priority group
+1068:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [out] pPreemptPriority  Preemptive priority value (starting from 0)
+1069:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     \param [out]     pSubPriority  Sub priority value (starting from 0)
+1070:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+1071:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_DecodePriority (uint32_t Priority, uint32_t PriorityGroup, uint32_t* pPre
+1072:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+1073:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t PriorityGroupTmp = (PriorityGroup & 0x07);          /* only values 0..7 are used        
+1074:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t PreemptPriorityBits;
+1075:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   uint32_t SubPriorityBits;
+1076:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1077:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   PreemptPriorityBits = ((7 - PriorityGroupTmp) > __NVIC_PRIO_BITS) ? __NVIC_PRIO_BITS : 7 - Priori
+1078:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   SubPriorityBits     = ((PriorityGroupTmp + __NVIC_PRIO_BITS) < 7) ? 0 : PriorityGroupTmp - 7 + __
+1079:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1080:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   *pPreemptPriority = (Priority >> SubPriorityBits) & ((1 << (PreemptPriorityBits)) - 1);
+1081:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   *pSubPriority     = (Priority                   ) & ((1 << (SubPriorityBits    )) - 1);
+1082:CMSISv2p00_LPC17xx/inc/core_cm3.h **** }
+1083:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1084:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1085:CMSISv2p00_LPC17xx/inc/core_cm3.h **** /** \brief  System Reset
+1086:CMSISv2p00_LPC17xx/inc/core_cm3.h **** 
+1087:CMSISv2p00_LPC17xx/inc/core_cm3.h ****     This function initiate a system reset request to reset the MCU.
+1088:CMSISv2p00_LPC17xx/inc/core_cm3.h ****  */
+1089:CMSISv2p00_LPC17xx/inc/core_cm3.h **** static __INLINE void NVIC_SystemReset(void)
+1090:CMSISv2p00_LPC17xx/inc/core_cm3.h **** {
+1091:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   __DSB();                                                     /* Ensure all outstanding memory acc
+1092:CMSISv2p00_LPC17xx/inc/core_cm3.h ****                                                                   buffered write are completed befo
+1093:CMSISv2p00_LPC17xx/inc/core_cm3.h ****   SCB->AIRCR  = ((0x5FA << SCB_AIRCR_VECTKEY_Pos)      |
+1094:CMSISv2p00_LPC17xx/inc/core_cm3.h ****                  (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) |
+ 647              	 .loc 3 1094 0
+ 648 0014 0749     	 ldr r1,.L61+8
+ 649 0016 084B     	 ldr r3,.L61+12
+ 650 0018 CA68     	 ldr r2,[r1,#12]
+ 651 001a 02F4E062 	 and r2,r2,#1792
+ 652 001e 1343     	 orrs r3,r3,r2
+1093:CMSISv2p00_LPC17xx/inc/core_cm3.h ****                  (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) |
+ 653              	 .loc 3 1093 0
+ 654 0020 CB60     	 str r3,[r1,#12]
+ 655              	.LBB34:
+ 656              	.LBB35:
+ 657              	 .loc 2 517 0
+ 658              	 .syntax unified
+ 659              	
+ 660 0022 BFF34F8F 	 dsb
+ 661              	
+ 662              	 .thumb
+ 663              	 .syntax unified
+ 664              	.L60:
+ 665 0026 FEE7     	 b .L60
+ 666              	.L58:
+ 667 0028 08BD     	 pop {r3,pc}
+ 668              	.L62:
+ 669 002a 00BF     	 .align 2
+ 670              	.L61:
+ 671 002c 00000000 	 .word current_state
+ 672 0030 00000000 	 .word usb_disconnect
+ 673 0034 00ED00E0 	 .word -536810240
+ 674 0038 0400FA05 	 .word 100270084
+ 675              	.LBE35:
+ 676              	.LBE34:
+ 677              	.LBE31:
+ 678              	.LBE30:
+ 679              	 .cfi_endproc
+ 680              	.LFE66:
+ 682              	 .comm flash_p,4,4
+ 683              	 .comm block_buffer,512,1
+ 684              	 .global DFU_status
+ 685              	 .comm current_state,1,1
+ 686              	 .global desc
+ 687              	 .section .data.DFU_status,"aw",%progbits
+ 688              	 .set .LANCHOR1,.+0
+ 691              	DFU_status:
+ 692 0000 00       	 .byte 0
+ 693 0001 F4       	 .byte 244
+ 694 0002 01       	 .byte 1
+ 695 0003 00       	 .byte 0
+ 696 0004 02       	 .byte 2
+ 697 0005 00       	 .byte 0
+ 698              	 .section .data.desc,"aw",%progbits
+ 699              	 .set .LANCHOR0,.+0
+ 702              	desc:
+ 703 0000 12       	 .byte 18
+ 704 0001 01       	 .byte 1
+ 705 0002 0002     	 .2byte 512
+ 706 0004 00       	 .byte 0
+ 707 0005 00       	 .byte 0
+ 708 0006 00       	 .byte 0
+ 709 0007 40       	 .byte 64
+ 710 0008 501D     	 .2byte 7504
+ 711 000a 1560     	 .2byte 24597
+ 712 000c 4000     	 .2byte 64
+ 713 000e 01       	 .byte 1
+ 714 000f 02       	 .byte 2
+ 715 0010 00       	 .byte 0
+ 716 0011 01       	 .byte 1
+ 717 0012 09       	 .byte 9
+ 718 0013 02       	 .byte 2
+ 719 0014 1B00     	 .2byte 27
+ 720 0016 01       	 .byte 1
+ 721 0017 01       	 .byte 1
+ 722 0018 00       	 .byte 0
+ 723 0019 80       	 .byte -128
+ 724 001a FA       	 .byte -6
+ 725 001b 09       	 .byte 9
+ 726 001c 04       	 .byte 4
+ 727 001d 00       	 .byte 0
+ 728 001e 00       	 .byte 0
+ 729 001f 00       	 .byte 0
+ 730 0020 FE       	 .byte -2
+ 731 0021 01       	 .byte 1
+ 732 0022 02       	 .byte 2
+ 733 0023 03       	 .byte 3
+ 734 0024 09       	 .byte 9
+ 735 0025 21       	 .byte 33
+ 736 0026 0B       	 .byte 11
+ 737 0027 F401     	 .2byte 500
+ 738 0029 0002     	 .2byte 512
+ 739 002b 0101     	 .2byte 257
+ 740 002d 04       	 .byte 4
+ 741 002e 03       	 .byte 3
+ 742 002f 0904     	 .2byte 1033
+ 743 0031 18       	 .byte 24
+ 744 0032 03       	 .byte 3
+ 745 0033 42006900 	 .ascii "B\000i\000g\000t\000r\000e\000e\000t\000e\000c\000h"
+ 745      67007400 
+ 745      72006500 
+ 745      65007400 
+ 745      65006300 
+ 746 0048 00       	 .ascii "\000"
+ 747 0049 18       	 .byte 24
+ 748 004a 03       	 .byte 3
+ 749 004b 53004B00 	 .ascii "S\000K\000R\000 \0001\000.\0003\000/\0001\000.\0004"
+ 749      52002000 
+ 749      31002E00 
+ 749      33002F00 
+ 749      31002E00 
+ 750 0060 00       	 .ascii "\000"
+ 751 0061 1A       	 .byte 26
+ 752 0062 03       	 .byte 3
+ 753 0063 53006D00 	 .ascii "S\000m\000o\000o\000t\000h\000i\000e\000 \000D\000F"
+ 753      6F006F00 
+ 753      74006800 
+ 753      69006500 
+ 753      20004400 
+ 754 0078 005500   	 .ascii "\000U\000"
+ 755 007b 00       	 .byte 0
+ 756 007c 00       	 .byte 0
+ 757              	 .text
+ 758              	.Letext0:
+ 759              	 .file 4 "/usr/include/newlib/machine/_default_types.h"
+ 760              	 .file 5 "/usr/include/newlib/sys/_stdint.h"
+ 761              	 .file 6 "usbcore.h"
+ 762              	 .file 7 "dfu.h"
+ 763              	 .file 8 "/usr/include/newlib/sys/lock.h"
+ 764              	 .file 9 "/usr/include/newlib/sys/_types.h"
+ 765              	 .file 10 "/usr/lib/gcc/arm-none-eabi/6.3.1/include/stddef.h"
+ 766              	 .file 11 "/usr/include/newlib/sys/reent.h"
+ 767              	 .file 12 "usbhw.h"
+ 768              	 .file 13 "descriptor.h"
+ 769              	 .file 14 "sbl_iap.h"
+ 770              	 .file 15 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 dfu.c
+    {standard input}:16     .text.DFU_init:0000000000000000 $t
+    {standard input}:23     .text.DFU_init:0000000000000000 DFU_init
+    {standard input}:47     .text.DFU_init:0000000000000010 $d
+                            *COM*:0000000000000004 flash_p
+    {standard input}:55     .text.DFU_GetStatus:0000000000000000 $t
+    {standard input}:62     .text.DFU_GetStatus:0000000000000000 DFU_GetStatus
+    {standard input}:86     .text.DFU_GetStatus:0000000000000014 $d
+    {standard input}:91     .text.DFU_GetState:0000000000000000 $t
+    {standard input}:98     .text.DFU_GetState:0000000000000000 DFU_GetState
+    {standard input}:122    .text.DFU_GetState:0000000000000014 $d
+                            *COM*:0000000000000001 current_state
+    {standard input}:127    .text.DFU_Download:0000000000000000 $t
+    {standard input}:134    .text.DFU_Download:0000000000000000 DFU_Download
+    {standard input}:203    .text.DFU_Download:000000000000003c $d
+                            *COM*:0000000000000200 block_buffer
+    {standard input}:215    .text.DFU_Upload:0000000000000000 $t
+    {standard input}:222    .text.DFU_Upload:0000000000000000 DFU_Upload
+    {standard input}:272    .text.DFU_Upload:0000000000000038 $d
+    {standard input}:280    .text.DFU_Abort:0000000000000000 $t
+    {standard input}:287    .text.DFU_Abort:0000000000000000 DFU_Abort
+    {standard input}:310    .text.DFU_Abort:0000000000000014 $d
+    {standard input}:317    .text.DFU_ClearStatus:0000000000000000 $t
+    {standard input}:324    .text.DFU_ClearStatus:0000000000000000 DFU_ClearStatus
+    {standard input}:335    .text.DFU_ClearStatus:0000000000000004 $d
+    {standard input}:340    .text.DFU_controlTransfer:0000000000000000 $t
+    {standard input}:347    .text.DFU_controlTransfer:0000000000000000 DFU_controlTransfer
+    {standard input}:367    .text.DFU_controlTransfer:0000000000000016 $d
+    {standard input}:373    .text.DFU_controlTransfer:000000000000001c $t
+    {standard input}:432    .text.DFU_controlTransfer:0000000000000048 $d
+    {standard input}:441    .text.DFU_transferComplete:0000000000000000 $t
+    {standard input}:448    .text.DFU_transferComplete:0000000000000000 DFU_transferComplete
+    {standard input}:565    .text.DFU_transferComplete:0000000000000078 $d
+    {standard input}:575    .text.DFU_complete:0000000000000000 $t
+    {standard input}:582    .text.DFU_complete:0000000000000000 DFU_complete
+    {standard input}:600    .text.DFU_complete:0000000000000010 $d
+    {standard input}:605    .text.USBEvent_busReset:0000000000000000 $t
+    {standard input}:612    .text.USBEvent_busReset:0000000000000000 USBEvent_busReset
+    {standard input}:671    .text.USBEvent_busReset:000000000000002c $d
+    {standard input}:691    .data.DFU_status:0000000000000000 DFU_status
+    {standard input}:702    .data.desc:0000000000000000 desc
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+usb_provideDescriptors
+_user_flash_start
+_user_flash_size
+write_flash
+usb_disconnect

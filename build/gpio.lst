@@ -1,0 +1,467 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "gpio.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.GPIO_setup,"ax",%progbits
+  16              	 .align 1
+  17              	 .global GPIO_setup
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	GPIO_setup:
+  24              	.LFB56:
+  25              	 .file 1 "gpio.c"
+   1:gpio.c        **** /*****************************************************************************
+   2:gpio.c        ****  *                                                                            *
+   3:gpio.c        ****  * DFU/SD/SDHC Bootloader for LPC17xx                                         *
+   4:gpio.c        ****  *                                                                            *
+   5:gpio.c        ****  * by Triffid Hunter                                                          *
+   6:gpio.c        ****  *                                                                            *
+   7:gpio.c        ****  *                                                                            *
+   8:gpio.c        ****  * This firmware is Copyright (C) 2009-2010 Michael Moon aka Triffid_Hunter   *
+   9:gpio.c        ****  *                                                                            *
+  10:gpio.c        ****  * This program is free software; you can redistribute it and/or modify       *
+  11:gpio.c        ****  * it under the terms of the GNU General Public License as published by       *
+  12:gpio.c        ****  * the Free Software Foundation; either version 2 of the License, or          *
+  13:gpio.c        ****  * (at your option) any later version.                                        *
+  14:gpio.c        ****  *                                                                            *
+  15:gpio.c        ****  * This program is distributed in the hope that it will be useful,            *
+  16:gpio.c        ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+  17:gpio.c        ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+  18:gpio.c        ****  * GNU General Public License for more details.                               *
+  19:gpio.c        ****  *                                                                            *
+  20:gpio.c        ****  * You should have received a copy of the GNU General Public License          *
+  21:gpio.c        ****  * along with this program; if not, write to the Free Software                *
+  22:gpio.c        ****  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA *
+  23:gpio.c        ****  *                                                                            *
+  24:gpio.c        ****  *****************************************************************************/
+  25:gpio.c        **** 
+  26:gpio.c        **** #include "gpio.h"
+  27:gpio.c        **** 
+  28:gpio.c        **** #include "LPC17xx.h"
+  29:gpio.c        **** #include "lpc17xx_pinsel.h"
+  30:gpio.c        **** #include "lpc17xx_gpio.h"
+  31:gpio.c        **** 
+  32:gpio.c        **** void GPIO_init(PinName pin) {
+  33:gpio.c        ****     GPIO_setup(pin);
+  34:gpio.c        **** }
+  35:gpio.c        **** 
+  36:gpio.c        **** 
+  37:gpio.c        **** void GPIO_setup(PinName pin) {
+  26              	 .loc 1 37 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  38:gpio.c        **** 	PINSEL_CFG_Type PinCfg;
+  39:gpio.c        **** 	PinCfg.Funcnum = 0;
+  31              	 .loc 1 39 0
+  32 0000 0023     	 movs r3,#0
+  37:gpio.c        **** 	PINSEL_CFG_Type PinCfg;
+  33              	 .loc 1 37 0
+  34 0002 07B5     	 push {r0,r1,r2,lr}
+  35              	 .cfi_def_cfa_offset 16
+  36              	 .cfi_offset 14,-4
+  37              	 .loc 1 39 0
+  38 0004 8DF80230 	 strb r3,[sp,#2]
+  40:gpio.c        **** 	PinCfg.OpenDrain = PINSEL_PINMODE_NORMAL;
+  39              	 .loc 1 40 0
+  40 0008 8DF80430 	 strb r3,[sp,#4]
+  41:gpio.c        **** 	PinCfg.Pinmode = PINSEL_PINMODE_PULLUP;
+  41              	 .loc 1 41 0
+  42 000c 8DF80330 	 strb r3,[sp,#3]
+  42:gpio.c        **** 	PinCfg.Portnum = PORT(pin);
+  43              	 .loc 1 42 0
+  44 0010 C0F34213 	 ubfx r3,r0,#5,#3
+  43:gpio.c        **** 	PinCfg.Pinnum = PIN(pin);
+  45              	 .loc 1 43 0
+  46 0014 00F01F00 	 and r0,r0,#31
+  47              	.LVL1:
+  42:gpio.c        **** 	PinCfg.Portnum = PORT(pin);
+  48              	 .loc 1 42 0
+  49 0018 8DF80030 	 strb r3,[sp]
+  50              	 .loc 1 43 0
+  51 001c 8DF80100 	 strb r0,[sp,#1]
+  44:gpio.c        **** 	PINSEL_ConfigPin(&PinCfg);
+  52              	 .loc 1 44 0
+  53 0020 024B     	 ldr r3,.L2
+  54 0022 6846     	 mov r0,sp
+  55 0024 9847     	 blx r3
+  56              	.LVL2:
+  45:gpio.c        **** }
+  57              	 .loc 1 45 0
+  58 0026 03B0     	 add sp,sp,#12
+  59              	 .cfi_def_cfa_offset 4
+  60              	 
+  61 0028 5DF804FB 	 ldr pc,[sp],#4
+  62              	.L3:
+  63              	 .align 2
+  64              	.L2:
+  65 002c 00000000 	 .word PINSEL_ConfigPin
+  66              	 .cfi_endproc
+  67              	.LFE56:
+  69              	 .section .text.GPIO_init,"ax",%progbits
+  70              	 .align 1
+  71              	 .global GPIO_init
+  72              	 .syntax unified
+  73              	 .thumb
+  74              	 .thumb_func
+  75              	 .fpu softvfp
+  77              	GPIO_init:
+  78              	.LFB55:
+  32:gpio.c        ****     GPIO_setup(pin);
+  79              	 .loc 1 32 0
+  80              	 .cfi_startproc
+  81              	 
+  82              	 
+  83              	 
+  84              	.LVL3:
+  33:gpio.c        **** }
+  85              	 .loc 1 33 0
+  86 0000 004B     	 ldr r3,.L5
+  87 0002 1847     	 bx r3
+  88              	.LVL4:
+  89              	.L6:
+  90              	 .align 2
+  91              	.L5:
+  92 0004 00000000 	 .word GPIO_setup
+  93              	 .cfi_endproc
+  94              	.LFE55:
+  96              	 .section .text.GPIO_set_direction,"ax",%progbits
+  97              	 .align 1
+  98              	 .global GPIO_set_direction
+  99              	 .syntax unified
+ 100              	 .thumb
+ 101              	 .thumb_func
+ 102              	 .fpu softvfp
+ 104              	GPIO_set_direction:
+ 105              	.LFB57:
+  46:gpio.c        **** 
+  47:gpio.c        **** void GPIO_set_direction(PinName pin, uint8_t direction) {
+ 106              	 .loc 1 47 0
+ 107              	 .cfi_startproc
+ 108              	 
+ 109              	 
+ 110              	 
+ 111              	.LVL5:
+  48:gpio.c        **** 	FIO_SetDir(PORT(pin), 1UL << PIN(pin), direction);
+ 112              	 .loc 1 48 0
+ 113 0000 0A46     	 mov r2,r1
+ 114 0002 0121     	 movs r1,#1
+ 115              	.LVL6:
+ 116 0004 00F01F03 	 and r3,r0,#31
+ 117 0008 9940     	 lsls r1,r1,r3
+ 118 000a C0F34210 	 ubfx r0,r0,#5,#3
+ 119              	.LVL7:
+ 120 000e 014B     	 ldr r3,.L8
+ 121 0010 1847     	 bx r3
+ 122              	.LVL8:
+ 123              	.L9:
+ 124 0012 00BF     	 .align 2
+ 125              	.L8:
+ 126 0014 00000000 	 .word FIO_SetDir
+ 127              	 .cfi_endproc
+ 128              	.LFE57:
+ 130              	 .section .text.GPIO_output,"ax",%progbits
+ 131              	 .align 1
+ 132              	 .global GPIO_output
+ 133              	 .syntax unified
+ 134              	 .thumb
+ 135              	 .thumb_func
+ 136              	 .fpu softvfp
+ 138              	GPIO_output:
+ 139              	.LFB58:
+  49:gpio.c        **** }
+  50:gpio.c        **** 
+  51:gpio.c        **** void GPIO_output(PinName pin) {
+ 140              	 .loc 1 51 0
+ 141              	 .cfi_startproc
+ 142              	 
+ 143              	 
+ 144              	 
+ 145              	.LVL9:
+  52:gpio.c        **** 	GPIO_set_direction(pin, 1);
+ 146              	 .loc 1 52 0
+ 147 0000 0121     	 movs r1,#1
+ 148 0002 014B     	 ldr r3,.L11
+ 149 0004 1847     	 bx r3
+ 150              	.LVL10:
+ 151              	.L12:
+ 152 0006 00BF     	 .align 2
+ 153              	.L11:
+ 154 0008 00000000 	 .word GPIO_set_direction
+ 155              	 .cfi_endproc
+ 156              	.LFE58:
+ 158              	 .section .text.GPIO_input,"ax",%progbits
+ 159              	 .align 1
+ 160              	 .global GPIO_input
+ 161              	 .syntax unified
+ 162              	 .thumb
+ 163              	 .thumb_func
+ 164              	 .fpu softvfp
+ 166              	GPIO_input:
+ 167              	.LFB59:
+  53:gpio.c        **** }
+  54:gpio.c        **** 
+  55:gpio.c        **** void GPIO_input(PinName pin) {
+ 168              	 .loc 1 55 0
+ 169              	 .cfi_startproc
+ 170              	 
+ 171              	 
+ 172              	 
+ 173              	.LVL11:
+  56:gpio.c        **** 	GPIO_set_direction(pin, 0);
+ 174              	 .loc 1 56 0
+ 175 0000 0021     	 movs r1,#0
+ 176 0002 014B     	 ldr r3,.L14
+ 177 0004 1847     	 bx r3
+ 178              	.LVL12:
+ 179              	.L15:
+ 180 0006 00BF     	 .align 2
+ 181              	.L14:
+ 182 0008 00000000 	 .word GPIO_set_direction
+ 183              	 .cfi_endproc
+ 184              	.LFE59:
+ 186              	 .section .text.GPIO_set,"ax",%progbits
+ 187              	 .align 1
+ 188              	 .global GPIO_set
+ 189              	 .syntax unified
+ 190              	 .thumb
+ 191              	 .thumb_func
+ 192              	 .fpu softvfp
+ 194              	GPIO_set:
+ 195              	.LFB61:
+  57:gpio.c        **** }
+  58:gpio.c        **** 
+  59:gpio.c        **** void GPIO_write(PinName pin, uint8_t value) {
+  60:gpio.c        **** 	GPIO_output(pin);
+  61:gpio.c        **** 	if (value)
+  62:gpio.c        **** 		GPIO_set(pin);
+  63:gpio.c        **** 	else
+  64:gpio.c        **** 		GPIO_clear(pin);
+  65:gpio.c        **** }
+  66:gpio.c        **** 
+  67:gpio.c        **** void GPIO_set(PinName pin) {
+ 196              	 .loc 1 67 0
+ 197              	 .cfi_startproc
+ 198              	 
+ 199              	 
+ 200              	 
+ 201              	.LVL13:
+  68:gpio.c        **** 	FIO_SetValue(PORT(pin), 1UL << PIN(pin));
+ 202              	 .loc 1 68 0
+ 203 0000 0121     	 movs r1,#1
+ 204 0002 00F01F03 	 and r3,r0,#31
+ 205 0006 9940     	 lsls r1,r1,r3
+ 206 0008 C0F34210 	 ubfx r0,r0,#5,#3
+ 207              	.LVL14:
+ 208 000c 004B     	 ldr r3,.L17
+ 209 000e 1847     	 bx r3
+ 210              	.LVL15:
+ 211              	.L18:
+ 212              	 .align 2
+ 213              	.L17:
+ 214 0010 00000000 	 .word FIO_SetValue
+ 215              	 .cfi_endproc
+ 216              	.LFE61:
+ 218              	 .section .text.GPIO_clear,"ax",%progbits
+ 219              	 .align 1
+ 220              	 .global GPIO_clear
+ 221              	 .syntax unified
+ 222              	 .thumb
+ 223              	 .thumb_func
+ 224              	 .fpu softvfp
+ 226              	GPIO_clear:
+ 227              	.LFB62:
+  69:gpio.c        **** }
+  70:gpio.c        **** 
+  71:gpio.c        **** void GPIO_clear(PinName pin) {
+ 228              	 .loc 1 71 0
+ 229              	 .cfi_startproc
+ 230              	 
+ 231              	 
+ 232              	 
+ 233              	.LVL16:
+  72:gpio.c        **** 	FIO_ClearValue(PORT(pin), 1UL << PIN(pin));
+ 234              	 .loc 1 72 0
+ 235 0000 0121     	 movs r1,#1
+ 236 0002 00F01F03 	 and r3,r0,#31
+ 237 0006 9940     	 lsls r1,r1,r3
+ 238 0008 C0F34210 	 ubfx r0,r0,#5,#3
+ 239              	.LVL17:
+ 240 000c 004B     	 ldr r3,.L20
+ 241 000e 1847     	 bx r3
+ 242              	.LVL18:
+ 243              	.L21:
+ 244              	 .align 2
+ 245              	.L20:
+ 246 0010 00000000 	 .word FIO_ClearValue
+ 247              	 .cfi_endproc
+ 248              	.LFE62:
+ 250              	 .section .text.GPIO_write,"ax",%progbits
+ 251              	 .align 1
+ 252              	 .global GPIO_write
+ 253              	 .syntax unified
+ 254              	 .thumb
+ 255              	 .thumb_func
+ 256              	 .fpu softvfp
+ 258              	GPIO_write:
+ 259              	.LFB60:
+  59:gpio.c        **** 	GPIO_output(pin);
+ 260              	 .loc 1 59 0
+ 261              	 .cfi_startproc
+ 262              	 
+ 263              	 
+ 264              	.LVL19:
+ 265 0000 70B5     	 push {r4,r5,r6,lr}
+ 266              	 .cfi_def_cfa_offset 16
+ 267              	 .cfi_offset 4,-16
+ 268              	 .cfi_offset 5,-12
+ 269              	 .cfi_offset 6,-8
+ 270              	 .cfi_offset 14,-4
+  59:gpio.c        **** 	GPIO_output(pin);
+ 271              	 .loc 1 59 0
+ 272 0002 0446     	 mov r4,r0
+ 273 0004 0D46     	 mov r5,r1
+  60:gpio.c        **** 	if (value)
+ 274              	 .loc 1 60 0
+ 275 0006 054B     	 ldr r3,.L25
+ 276 0008 9847     	 blx r3
+ 277              	.LVL20:
+  62:gpio.c        **** 	else
+ 278              	 .loc 1 62 0
+ 279 000a 2046     	 mov r0,r4
+  61:gpio.c        **** 		GPIO_set(pin);
+ 280              	 .loc 1 61 0
+ 281 000c 1DB1     	 cbz r5,.L23
+  62:gpio.c        **** 	else
+ 282              	 .loc 1 62 0
+ 283 000e 044B     	 ldr r3,.L25+4
+ 284              	.L24:
+  65:gpio.c        **** 
+ 285              	 .loc 1 65 0
+ 286 0010 BDE87040 	 pop {r4,r5,r6,lr}
+ 287              	 .cfi_remember_state
+ 288              	 .cfi_restore 14
+ 289              	 .cfi_restore 6
+ 290              	 .cfi_restore 5
+ 291              	 .cfi_restore 4
+ 292              	 .cfi_def_cfa_offset 0
+  64:gpio.c        **** }
+ 293              	 .loc 1 64 0
+ 294 0014 1847     	 bx r3
+ 295              	.LVL21:
+ 296              	.L23:
+ 297              	 .cfi_restore_state
+ 298 0016 034B     	 ldr r3,.L25+8
+ 299 0018 FAE7     	 b .L24
+ 300              	.L26:
+ 301 001a 00BF     	 .align 2
+ 302              	.L25:
+ 303 001c 00000000 	 .word GPIO_output
+ 304 0020 00000000 	 .word GPIO_set
+ 305 0024 00000000 	 .word GPIO_clear
+ 306              	 .cfi_endproc
+ 307              	.LFE60:
+ 309              	 .section .text.GPIO_get,"ax",%progbits
+ 310              	 .align 1
+ 311              	 .global GPIO_get
+ 312              	 .syntax unified
+ 313              	 .thumb
+ 314              	 .thumb_func
+ 315              	 .fpu softvfp
+ 317              	GPIO_get:
+ 318              	.LFB63:
+  73:gpio.c        **** }
+  74:gpio.c        **** 
+  75:gpio.c        **** uint8_t GPIO_get(PinName pin) {
+ 319              	 .loc 1 75 0
+ 320              	 .cfi_startproc
+ 321              	 
+ 322              	 
+ 323              	.LVL22:
+ 324 0000 10B5     	 push {r4,lr}
+ 325              	 .cfi_def_cfa_offset 8
+ 326              	 .cfi_offset 4,-8
+ 327              	 .cfi_offset 14,-4
+  76:gpio.c        **** 	return (FIO_ReadValue(PORT(pin)) & (1UL << PIN(pin)))?255:0;
+ 328              	 .loc 1 76 0
+ 329 0002 064B     	 ldr r3,.L28
+  75:gpio.c        **** 	return (FIO_ReadValue(PORT(pin)) & (1UL << PIN(pin)))?255:0;
+ 330              	 .loc 1 75 0
+ 331 0004 0446     	 mov r4,r0
+ 332              	 .loc 1 76 0
+ 333 0006 C0F34210 	 ubfx r0,r0,#5,#3
+ 334              	.LVL23:
+ 335 000a 9847     	 blx r3
+ 336              	.LVL24:
+ 337 000c 04F01F04 	 and r4,r4,#31
+ 338 0010 E040     	 lsrs r0,r0,r4
+ 339 0012 40F30000 	 sbfx r0,r0,#0,#1
+  77:gpio.c        **** }
+ 340              	 .loc 1 77 0
+ 341 0016 C0B2     	 uxtb r0,r0
+ 342 0018 10BD     	 pop {r4,pc}
+ 343              	.L29:
+ 344 001a 00BF     	 .align 2
+ 345              	.L28:
+ 346 001c 00000000 	 .word FIO_ReadValue
+ 347              	 .cfi_endproc
+ 348              	.LFE63:
+ 350              	 .text
+ 351              	.Letext0:
+ 352              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 353              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 354              	 .file 4 "pins.h"
+ 355              	 .file 5 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 356              	 .file 6 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 357              	 .file 7 "LPC17xxLib/inc/lpc17xx_pinsel.h"
+ 358              	 .file 8 "LPC17xxLib/inc/lpc17xx_gpio.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 gpio.c
+    {standard input}:16     .text.GPIO_setup:0000000000000000 $t
+    {standard input}:23     .text.GPIO_setup:0000000000000000 GPIO_setup
+    {standard input}:65     .text.GPIO_setup:000000000000002c $d
+    {standard input}:70     .text.GPIO_init:0000000000000000 $t
+    {standard input}:77     .text.GPIO_init:0000000000000000 GPIO_init
+    {standard input}:92     .text.GPIO_init:0000000000000004 $d
+    {standard input}:97     .text.GPIO_set_direction:0000000000000000 $t
+    {standard input}:104    .text.GPIO_set_direction:0000000000000000 GPIO_set_direction
+    {standard input}:126    .text.GPIO_set_direction:0000000000000014 $d
+    {standard input}:131    .text.GPIO_output:0000000000000000 $t
+    {standard input}:138    .text.GPIO_output:0000000000000000 GPIO_output
+    {standard input}:154    .text.GPIO_output:0000000000000008 $d
+    {standard input}:159    .text.GPIO_input:0000000000000000 $t
+    {standard input}:166    .text.GPIO_input:0000000000000000 GPIO_input
+    {standard input}:182    .text.GPIO_input:0000000000000008 $d
+    {standard input}:187    .text.GPIO_set:0000000000000000 $t
+    {standard input}:194    .text.GPIO_set:0000000000000000 GPIO_set
+    {standard input}:214    .text.GPIO_set:0000000000000010 $d
+    {standard input}:219    .text.GPIO_clear:0000000000000000 $t
+    {standard input}:226    .text.GPIO_clear:0000000000000000 GPIO_clear
+    {standard input}:246    .text.GPIO_clear:0000000000000010 $d
+    {standard input}:251    .text.GPIO_write:0000000000000000 $t
+    {standard input}:258    .text.GPIO_write:0000000000000000 GPIO_write
+    {standard input}:303    .text.GPIO_write:000000000000001c $d
+    {standard input}:310    .text.GPIO_get:0000000000000000 $t
+    {standard input}:317    .text.GPIO_get:0000000000000000 GPIO_get
+    {standard input}:346    .text.GPIO_get:000000000000001c $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+PINSEL_ConfigPin
+FIO_SetDir
+FIO_SetValue
+FIO_ClearValue
+FIO_ReadValue

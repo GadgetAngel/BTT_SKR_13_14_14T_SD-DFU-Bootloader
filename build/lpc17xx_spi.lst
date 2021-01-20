@@ -1,0 +1,1341 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_spi.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.SPI_SetClock,"ax",%progbits
+  16              	 .align 1
+  17              	 .global SPI_SetClock
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	SPI_SetClock:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_spi.c"
+   1:LPC17xxLib/src/lpc17xx_spi.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_spi.c **** 
+   3:LPC17xxLib/src/lpc17xx_spi.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_spi.c **** * $Id$		lpc17xx_spi.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_spi.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_spi.c **** * @file		lpc17xx_spi.c
+   7:LPC17xxLib/src/lpc17xx_spi.c **** * @brief	Contains all functions support for SPI firmware library on LPC17xx
+   8:LPC17xxLib/src/lpc17xx_spi.c **** * @version	2.0
+   9:LPC17xxLib/src/lpc17xx_spi.c **** * @date		21. May. 2010
+  10:LPC17xxLib/src/lpc17xx_spi.c **** * @author	NXP MCU SW Application Team
+  11:LPC17xxLib/src/lpc17xx_spi.c **** *
+  12:LPC17xxLib/src/lpc17xx_spi.c **** * Copyright(C) 2010, NXP Semiconductor
+  13:LPC17xxLib/src/lpc17xx_spi.c **** * All rights reserved.
+  14:LPC17xxLib/src/lpc17xx_spi.c **** *
+  15:LPC17xxLib/src/lpc17xx_spi.c **** ***********************************************************************
+  16:LPC17xxLib/src/lpc17xx_spi.c **** * Software that is described herein is for illustrative purposes only
+  17:LPC17xxLib/src/lpc17xx_spi.c **** * which provides customers with programming information regarding the
+  18:LPC17xxLib/src/lpc17xx_spi.c **** * products. This software is supplied "AS IS" without any warranties.
+  19:LPC17xxLib/src/lpc17xx_spi.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  20:LPC17xxLib/src/lpc17xx_spi.c **** * use of the software, conveys no license or title under any patent,
+  21:LPC17xxLib/src/lpc17xx_spi.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  22:LPC17xxLib/src/lpc17xx_spi.c **** * reserves the right to make changes in the software without
+  23:LPC17xxLib/src/lpc17xx_spi.c **** * notification. NXP Semiconductors also make no representation or
+  24:LPC17xxLib/src/lpc17xx_spi.c **** * warranty that such application will be suitable for the specified
+  25:LPC17xxLib/src/lpc17xx_spi.c **** * use without further testing or modification.
+  26:LPC17xxLib/src/lpc17xx_spi.c **** **********************************************************************/
+  27:LPC17xxLib/src/lpc17xx_spi.c **** 
+  28:LPC17xxLib/src/lpc17xx_spi.c **** /* Peripheral group ----------------------------------------------------------- */
+  29:LPC17xxLib/src/lpc17xx_spi.c **** /** @addtogroup SPI
+  30:LPC17xxLib/src/lpc17xx_spi.c ****  * @{
+  31:LPC17xxLib/src/lpc17xx_spi.c ****  */
+  32:LPC17xxLib/src/lpc17xx_spi.c **** 
+  33:LPC17xxLib/src/lpc17xx_spi.c **** /* Includes ------------------------------------------------------------------- */
+  34:LPC17xxLib/src/lpc17xx_spi.c **** #include "lpc17xx_spi.h"
+  35:LPC17xxLib/src/lpc17xx_spi.c **** #include "lpc17xx_clkpwr.h"
+  36:LPC17xxLib/src/lpc17xx_spi.c **** 
+  37:LPC17xxLib/src/lpc17xx_spi.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  38:LPC17xxLib/src/lpc17xx_spi.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  39:LPC17xxLib/src/lpc17xx_spi.c ****  * otherwise the default FW library configuration file must be included instead
+  40:LPC17xxLib/src/lpc17xx_spi.c ****  */
+  41:LPC17xxLib/src/lpc17xx_spi.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  42:LPC17xxLib/src/lpc17xx_spi.c **** #include "lpc17xx_libcfg.h"
+  43:LPC17xxLib/src/lpc17xx_spi.c **** #else
+  44:LPC17xxLib/src/lpc17xx_spi.c **** #include "lpc17xx_libcfg_default.h"
+  45:LPC17xxLib/src/lpc17xx_spi.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  46:LPC17xxLib/src/lpc17xx_spi.c **** 
+  47:LPC17xxLib/src/lpc17xx_spi.c **** #ifdef _SPI
+  48:LPC17xxLib/src/lpc17xx_spi.c **** 
+  49:LPC17xxLib/src/lpc17xx_spi.c **** 
+  50:LPC17xxLib/src/lpc17xx_spi.c **** /* Public Functions ----------------------------------------------------------- */
+  51:LPC17xxLib/src/lpc17xx_spi.c **** /** @addtogroup SPI_Public_Functions
+  52:LPC17xxLib/src/lpc17xx_spi.c ****  * @{
+  53:LPC17xxLib/src/lpc17xx_spi.c ****  */
+  54:LPC17xxLib/src/lpc17xx_spi.c **** 
+  55:LPC17xxLib/src/lpc17xx_spi.c **** /*********************************************************************//**
+  56:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		Setup clock rate for SPI device
+  57:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in] 	SPIx	SPI peripheral definition, should be LPC_SPI
+  58:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	target_clock : clock of SPI (Hz)
+  59:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		None
+  60:LPC17xxLib/src/lpc17xx_spi.c ****  ***********************************************************************/
+  61:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_SetClock (LPC_SPI_TypeDef *SPIx, uint32_t target_clock)
+  62:LPC17xxLib/src/lpc17xx_spi.c **** {
+  26              	 .loc 1 62 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  63:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t spi_pclk;
+  64:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t prescale, temp;
+  65:LPC17xxLib/src/lpc17xx_spi.c **** 
+  66:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+  67:LPC17xxLib/src/lpc17xx_spi.c **** 
+  68:LPC17xxLib/src/lpc17xx_spi.c **** 	if (SPIx == LPC_SPI){
+  31              	 .loc 1 68 0
+  32 0000 094B     	 ldr r3,.L6
+  62:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t spi_pclk;
+  33              	 .loc 1 62 0
+  34 0002 10B5     	 push {r4,lr}
+  35              	 .cfi_def_cfa_offset 8
+  36              	 .cfi_offset 4,-8
+  37              	 .cfi_offset 14,-4
+  38              	 .loc 1 68 0
+  39 0004 9842     	 cmp r0,r3
+  62:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t spi_pclk;
+  40              	 .loc 1 62 0
+  41 0006 0C46     	 mov r4,r1
+  42              	 .loc 1 68 0
+  43 0008 0DD1     	 bne .L1
+  44              	.LVL1:
+  45              	.LBB26:
+  46              	.LBB27:
+  69:LPC17xxLib/src/lpc17xx_spi.c **** 		spi_pclk =  CLKPWR_GetPCLK (CLKPWR_PCLKSEL_SPI);
+  47              	 .loc 1 69 0
+  48 000a 084B     	 ldr r3,.L6+4
+  49 000c 1020     	 movs r0,#16
+  50              	.LVL2:
+  51 000e 9847     	 blx r3
+  52              	.LVL3:
+  70:LPC17xxLib/src/lpc17xx_spi.c **** 	} else {
+  71:LPC17xxLib/src/lpc17xx_spi.c **** 		return;
+  72:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+  73:LPC17xxLib/src/lpc17xx_spi.c **** 
+  74:LPC17xxLib/src/lpc17xx_spi.c **** 	prescale = 8;
+  53              	 .loc 1 74 0
+  54 0010 0823     	 movs r3,#8
+  55 0012 6200     	 lsls r2,r4,#1
+  56 0014 E100     	 lsls r1,r4,#3
+  57              	.LVL4:
+  58              	.L4:
+  75:LPC17xxLib/src/lpc17xx_spi.c **** 	// Find closest clock to target clock
+  76:LPC17xxLib/src/lpc17xx_spi.c **** 	while (1){
+  77:LPC17xxLib/src/lpc17xx_spi.c **** 		temp = target_clock * prescale;
+  78:LPC17xxLib/src/lpc17xx_spi.c **** 		if (temp >= spi_pclk){
+  59              	 .loc 1 78 0
+  60 0016 8842     	 cmp r0,r1
+  61 0018 03D9     	 bls .L3
+  79:LPC17xxLib/src/lpc17xx_spi.c **** 			break;
+  80:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+  81:LPC17xxLib/src/lpc17xx_spi.c **** 		prescale += 2;
+  62              	 .loc 1 81 0
+  63 001a 0233     	 adds r3,r3,#2
+  64              	.LVL5:
+  82:LPC17xxLib/src/lpc17xx_spi.c **** 		if(prescale >= 254){
+  65              	 .loc 1 82 0
+  66 001c FE2B     	 cmp r3,#254
+  67 001e 1144     	 add r1,r1,r2
+  68              	.LVL6:
+  69 0020 F9D1     	 bne .L4
+  70              	.L3:
+  83:LPC17xxLib/src/lpc17xx_spi.c **** 			break;
+  84:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+  85:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+  86:LPC17xxLib/src/lpc17xx_spi.c **** 
+  87:LPC17xxLib/src/lpc17xx_spi.c **** 	// Write to register
+  88:LPC17xxLib/src/lpc17xx_spi.c **** 	SPIx->SPCCR = SPI_SPCCR_COUNTER(prescale);
+  71              	 .loc 1 88 0
+  72 0022 014A     	 ldr r2,.L6
+  73 0024 D360     	 str r3,[r2,#12]
+  74              	.LVL7:
+  75              	.L1:
+  76 0026 10BD     	 pop {r4,pc}
+  77              	.LVL8:
+  78              	.L7:
+  79              	 .align 2
+  80              	.L6:
+  81 0028 00000240 	 .word 1073872896
+  82 002c 00000000 	 .word CLKPWR_GetPCLK
+  83              	.LBE27:
+  84              	.LBE26:
+  85              	 .cfi_endproc
+  86              	.LFE55:
+  88              	 .section .text.SPI_DeInit,"ax",%progbits
+  89              	 .align 1
+  90              	 .global SPI_DeInit
+  91              	 .syntax unified
+  92              	 .thumb
+  93              	 .thumb_func
+  94              	 .fpu softvfp
+  96              	SPI_DeInit:
+  97              	.LFB56:
+  89:LPC17xxLib/src/lpc17xx_spi.c **** }
+  90:LPC17xxLib/src/lpc17xx_spi.c **** 
+  91:LPC17xxLib/src/lpc17xx_spi.c **** 
+  92:LPC17xxLib/src/lpc17xx_spi.c **** /*********************************************************************//**
+  93:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief		De-initializes the SPIx peripheral registers to their
+  94:LPC17xxLib/src/lpc17xx_spi.c **** *                  default reset values.
+  95:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+  96:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		None
+  97:LPC17xxLib/src/lpc17xx_spi.c ****  **********************************************************************/
+  98:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_DeInit(LPC_SPI_TypeDef *SPIx)
+  99:LPC17xxLib/src/lpc17xx_spi.c **** {
+  98              	 .loc 1 99 0
+  99              	 .cfi_startproc
+ 100              	 
+ 101              	 
+ 102              	 
+ 103              	.LVL9:
+ 100:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 101:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 102:LPC17xxLib/src/lpc17xx_spi.c **** 	if (SPIx == LPC_SPI){
+ 104              	 .loc 1 102 0
+ 105 0000 044B     	 ldr r3,.L10
+ 106 0002 9842     	 cmp r0,r3
+ 107 0004 04D1     	 bne .L8
+ 103:LPC17xxLib/src/lpc17xx_spi.c **** 		/* Set up clock and power for SPI module */
+ 104:LPC17xxLib/src/lpc17xx_spi.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSPI, DISABLE);
+ 108              	 .loc 1 104 0
+ 109 0006 0021     	 movs r1,#0
+ 110 0008 4FF48070 	 mov r0,#256
+ 111              	.LVL10:
+ 112 000c 024B     	 ldr r3,.L10+4
+ 113 000e 1847     	 bx r3
+ 114              	.LVL11:
+ 115              	.L8:
+ 116 0010 7047     	 bx lr
+ 117              	.L11:
+ 118 0012 00BF     	 .align 2
+ 119              	.L10:
+ 120 0014 00000240 	 .word 1073872896
+ 121 0018 00000000 	 .word CLKPWR_ConfigPPWR
+ 122              	 .cfi_endproc
+ 123              	.LFE56:
+ 125              	 .section .text.SPI_GetDataSize,"ax",%progbits
+ 126              	 .align 1
+ 127              	 .global SPI_GetDataSize
+ 128              	 .syntax unified
+ 129              	 .thumb
+ 130              	 .thumb_func
+ 131              	 .fpu softvfp
+ 133              	SPI_GetDataSize:
+ 134              	.LFB57:
+ 105:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 106:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 107:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 108:LPC17xxLib/src/lpc17xx_spi.c **** /*********************************************************************//**
+ 109:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief		Get data bit size per transfer
+ 110:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 111:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		number of bit per transfer, could be 8-16
+ 112:LPC17xxLib/src/lpc17xx_spi.c ****  **********************************************************************/
+ 113:LPC17xxLib/src/lpc17xx_spi.c **** uint8_t SPI_GetDataSize (LPC_SPI_TypeDef *SPIx)
+ 114:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 135              	 .loc 1 114 0
+ 136              	 .cfi_startproc
+ 137              	 
+ 138              	 
+ 139              	 
+ 140              	.LVL12:
+ 115:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 116:LPC17xxLib/src/lpc17xx_spi.c **** 	return ((SPIx->SPCR)>>8 & 0xF);
+ 141              	 .loc 1 116 0
+ 142 0000 0068     	 ldr r0,[r0]
+ 143              	.LVL13:
+ 117:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 144              	 .loc 1 117 0
+ 145 0002 C0F30320 	 ubfx r0,r0,#8,#4
+ 146 0006 7047     	 bx lr
+ 147              	 .cfi_endproc
+ 148              	.LFE57:
+ 150              	 .section .text.SPI_Init,"ax",%progbits
+ 151              	 .align 1
+ 152              	 .global SPI_Init
+ 153              	 .syntax unified
+ 154              	 .thumb
+ 155              	 .thumb_func
+ 156              	 .fpu softvfp
+ 158              	SPI_Init:
+ 159              	.LFB58:
+ 118:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 119:LPC17xxLib/src/lpc17xx_spi.c **** /********************************************************************//**
+ 120:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief		Initializes the SPIx peripheral according to the specified
+ 121:LPC17xxLib/src/lpc17xx_spi.c **** *               parameters in the UART_ConfigStruct.
+ 122:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 123:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPI_ConfigStruct Pointer to a SPI_CFG_Type structure
+ 124:LPC17xxLib/src/lpc17xx_spi.c **** *                    that contains the configuration information for the
+ 125:LPC17xxLib/src/lpc17xx_spi.c **** *                    specified SPI peripheral.
+ 126:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		None
+ 127:LPC17xxLib/src/lpc17xx_spi.c ****  *********************************************************************/
+ 128:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_Init(LPC_SPI_TypeDef *SPIx, SPI_CFG_Type *SPI_ConfigStruct)
+ 129:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 160              	 .loc 1 129 0
+ 161              	 .cfi_startproc
+ 162              	 
+ 163              	 
+ 164              	.LVL14:
+ 165 0000 38B5     	 push {r3,r4,r5,lr}
+ 166              	 .cfi_def_cfa_offset 16
+ 167              	 .cfi_offset 3,-16
+ 168              	 .cfi_offset 4,-12
+ 169              	 .cfi_offset 5,-8
+ 170              	 .cfi_offset 14,-4
+ 130:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t tmp;
+ 131:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 132:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 133:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 134:LPC17xxLib/src/lpc17xx_spi.c **** 	if(SPIx == LPC_SPI){
+ 171              	 .loc 1 134 0
+ 172 0002 124B     	 ldr r3,.L20
+ 129:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t tmp;
+ 173              	 .loc 1 129 0
+ 174 0004 0546     	 mov r5,r0
+ 175              	 .loc 1 134 0
+ 176 0006 9842     	 cmp r0,r3
+ 129:LPC17xxLib/src/lpc17xx_spi.c **** 	uint32_t tmp;
+ 177              	 .loc 1 129 0
+ 178 0008 0C46     	 mov r4,r1
+ 179              	 .loc 1 134 0
+ 180 000a 1DD1     	 bne .L13
+ 135:LPC17xxLib/src/lpc17xx_spi.c **** 		/* Set up clock and power for UART module */
+ 136:LPC17xxLib/src/lpc17xx_spi.c **** 		CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCSPI, ENABLE);
+ 181              	 .loc 1 136 0
+ 182 000c 0121     	 movs r1,#1
+ 183              	.LVL15:
+ 184 000e 4FF48070 	 mov r0,#256
+ 185              	.LVL16:
+ 186 0012 0F4B     	 ldr r3,.L20+4
+ 187 0014 9847     	 blx r3
+ 188              	.LVL17:
+ 137:LPC17xxLib/src/lpc17xx_spi.c **** 	} else {
+ 138:LPC17xxLib/src/lpc17xx_spi.c **** 		return;
+ 139:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 140:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 141:LPC17xxLib/src/lpc17xx_spi.c **** 	// Configure SPI, interrupt is disable as default
+ 142:LPC17xxLib/src/lpc17xx_spi.c **** 	tmp = ((SPI_ConfigStruct->CPHA) | (SPI_ConfigStruct->CPOL) \
+ 189              	 .loc 1 142 0
+ 190 0016 A268     	 ldr r2,[r4,#8]
+ 191 0018 6368     	 ldr r3,[r4,#4]
+ 143:LPC17xxLib/src/lpc17xx_spi.c **** 		| (SPI_ConfigStruct->DataOrder) | (SPI_ConfigStruct->Databit) \
+ 144:LPC17xxLib/src/lpc17xx_spi.c **** 		| (SPI_ConfigStruct->Mode) | SPI_SPCR_BIT_EN) & SPI_SPCR_BITMASK;
+ 145:LPC17xxLib/src/lpc17xx_spi.c **** 	// write back to SPI control register
+ 146:LPC17xxLib/src/lpc17xx_spi.c **** 	SPIx->SPCR = tmp;
+ 147:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 148:LPC17xxLib/src/lpc17xx_spi.c **** 	// Set clock rate for SPI peripheral
+ 149:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_SetClock(SPIx, SPI_ConfigStruct->ClockRate);
+ 192              	 .loc 1 149 0
+ 193 001a 2846     	 mov r0,r5
+ 142:LPC17xxLib/src/lpc17xx_spi.c **** 		| (SPI_ConfigStruct->DataOrder) | (SPI_ConfigStruct->Databit) \
+ 194              	 .loc 1 142 0
+ 195 001c 1343     	 orrs r3,r3,r2
+ 143:LPC17xxLib/src/lpc17xx_spi.c **** 		| (SPI_ConfigStruct->DataOrder) | (SPI_ConfigStruct->Databit) \
+ 196              	 .loc 1 143 0
+ 197 001e 2269     	 ldr r2,[r4,#16]
+ 198 0020 1343     	 orrs r3,r3,r2
+ 199 0022 2268     	 ldr r2,[r4]
+ 200 0024 1343     	 orrs r3,r3,r2
+ 144:LPC17xxLib/src/lpc17xx_spi.c **** 	// write back to SPI control register
+ 201              	 .loc 1 144 0
+ 202 0026 E268     	 ldr r2,[r4,#12]
+ 203 0028 1343     	 orrs r3,r3,r2
+ 204 002a 23F00703 	 bic r3,r3,#7
+ 205 002e 1B05     	 lsls r3,r3,#20
+ 206 0030 1B0D     	 lsrs r3,r3,#20
+ 142:LPC17xxLib/src/lpc17xx_spi.c **** 		| (SPI_ConfigStruct->DataOrder) | (SPI_ConfigStruct->Databit) \
+ 207              	 .loc 1 142 0
+ 208 0032 43F00403 	 orr r3,r3,#4
+ 209              	.LVL18:
+ 146:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 210              	 .loc 1 146 0
+ 211 0036 2B60     	 str r3,[r5]
+ 212              	 .loc 1 149 0
+ 213 0038 6169     	 ldr r1,[r4,#20]
+ 214 003a 064B     	 ldr r3,.L20+8
+ 215              	.LVL19:
+ 216 003c 9847     	 blx r3
+ 217              	.LVL20:
+ 150:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 151:LPC17xxLib/src/lpc17xx_spi.c **** 	// If interrupt flag is set, Write '1' to Clear interrupt flag
+ 152:LPC17xxLib/src/lpc17xx_spi.c **** 	if (SPIx->SPINT & SPI_SPINT_INTFLAG){
+ 218              	 .loc 1 152 0
+ 219 003e EB69     	 ldr r3,[r5,#28]
+ 220 0040 DB07     	 lsls r3,r3,#31
+ 153:LPC17xxLib/src/lpc17xx_spi.c **** 		SPIx->SPINT = SPI_SPINT_INTFLAG;
+ 221              	 .loc 1 153 0
+ 222 0042 44BF     	 itt mi
+ 223 0044 0123     	 movmi r3,#1
+ 224 0046 EB61     	 strmi r3,[r5,#28]
+ 225              	.L13:
+ 226 0048 38BD     	 pop {r3,r4,r5,pc}
+ 227              	.LVL21:
+ 228              	.L21:
+ 229 004a 00BF     	 .align 2
+ 230              	.L20:
+ 231 004c 00000240 	 .word 1073872896
+ 232 0050 00000000 	 .word CLKPWR_ConfigPPWR
+ 233 0054 00000000 	 .word SPI_SetClock
+ 234              	 .cfi_endproc
+ 235              	.LFE58:
+ 237              	 .section .text.SPI_ConfigStructInit,"ax",%progbits
+ 238              	 .align 1
+ 239              	 .global SPI_ConfigStructInit
+ 240              	 .syntax unified
+ 241              	 .thumb
+ 242              	 .thumb_func
+ 243              	 .fpu softvfp
+ 245              	SPI_ConfigStructInit:
+ 246              	.LFB59:
+ 154:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 155:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 156:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 157:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 158:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 159:LPC17xxLib/src/lpc17xx_spi.c **** /*****************************************************************************//**
+ 160:LPC17xxLib/src/lpc17xx_spi.c **** * @brief		Fills each SPI_InitStruct member with its default value:
+ 161:LPC17xxLib/src/lpc17xx_spi.c **** * 				- CPHA = SPI_CPHA_FIRST
+ 162:LPC17xxLib/src/lpc17xx_spi.c **** * 				- CPOL = SPI_CPOL_HI
+ 163:LPC17xxLib/src/lpc17xx_spi.c **** * 				- ClockRate = 1000000
+ 164:LPC17xxLib/src/lpc17xx_spi.c **** * 				- DataOrder = SPI_DATA_MSB_FIRST
+ 165:LPC17xxLib/src/lpc17xx_spi.c **** * 				- Databit = SPI_DATABIT_8
+ 166:LPC17xxLib/src/lpc17xx_spi.c **** * 				- Mode = SPI_MASTER_MODE
+ 167:LPC17xxLib/src/lpc17xx_spi.c **** * @param[in]	SPI_InitStruct Pointer to a SPI_CFG_Type structure
+ 168:LPC17xxLib/src/lpc17xx_spi.c **** *                    which will be initialized.
+ 169:LPC17xxLib/src/lpc17xx_spi.c **** * @return		None
+ 170:LPC17xxLib/src/lpc17xx_spi.c **** *******************************************************************************/
+ 171:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_ConfigStructInit(SPI_CFG_Type *SPI_InitStruct)
+ 172:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 247              	 .loc 1 172 0
+ 248              	 .cfi_startproc
+ 249              	 
+ 250              	 
+ 251              	 
+ 252              	.LVL22:
+ 173:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->CPHA = SPI_CPHA_FIRST;
+ 174:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->CPOL = SPI_CPOL_HI;
+ 175:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->ClockRate = 1000000;
+ 253              	 .loc 1 175 0
+ 254 0000 4022     	 movs r2,#64
+ 255 0002 0275     	 strb r2,[r0,#20]
+ 256 0004 4222     	 movs r2,#66
+ 257 0006 4275     	 strb r2,[r0,#21]
+ 258 0008 0F22     	 movs r2,#15
+ 259 000a 8275     	 strb r2,[r0,#22]
+ 176:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->DataOrder = SPI_DATA_MSB_FIRST;
+ 177:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->Databit = SPI_DATABIT_8;
+ 260              	 .loc 1 177 0
+ 261 000c 0822     	 movs r2,#8
+ 173:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->CPHA = SPI_CPHA_FIRST;
+ 262              	 .loc 1 173 0
+ 263 000e 0023     	 movs r3,#0
+ 264              	 .loc 1 177 0
+ 265 0010 4270     	 strb r2,[r0,#1]
+ 178:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->Mode = SPI_MASTER_MODE;
+ 266              	 .loc 1 178 0
+ 267 0012 2022     	 movs r2,#32
+ 173:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->CPHA = SPI_CPHA_FIRST;
+ 268              	 .loc 1 173 0
+ 269 0014 0371     	 strb r3,[r0,#4]
+ 270 0016 4371     	 strb r3,[r0,#5]
+ 271 0018 8371     	 strb r3,[r0,#6]
+ 272 001a C371     	 strb r3,[r0,#7]
+ 174:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->ClockRate = 1000000;
+ 273              	 .loc 1 174 0
+ 274 001c 0372     	 strb r3,[r0,#8]
+ 275 001e 4372     	 strb r3,[r0,#9]
+ 276 0020 8372     	 strb r3,[r0,#10]
+ 277 0022 C372     	 strb r3,[r0,#11]
+ 175:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->DataOrder = SPI_DATA_MSB_FIRST;
+ 278              	 .loc 1 175 0
+ 279 0024 C375     	 strb r3,[r0,#23]
+ 176:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->Databit = SPI_DATABIT_8;
+ 280              	 .loc 1 176 0
+ 281 0026 0374     	 strb r3,[r0,#16]
+ 282 0028 4374     	 strb r3,[r0,#17]
+ 283 002a 8374     	 strb r3,[r0,#18]
+ 284 002c C374     	 strb r3,[r0,#19]
+ 177:LPC17xxLib/src/lpc17xx_spi.c **** 	SPI_InitStruct->Mode = SPI_MASTER_MODE;
+ 285              	 .loc 1 177 0
+ 286 002e 0370     	 strb r3,[r0]
+ 287 0030 8370     	 strb r3,[r0,#2]
+ 288 0032 C370     	 strb r3,[r0,#3]
+ 289              	 .loc 1 178 0
+ 290 0034 0273     	 strb r2,[r0,#12]
+ 291 0036 4373     	 strb r3,[r0,#13]
+ 292 0038 8373     	 strb r3,[r0,#14]
+ 293 003a C373     	 strb r3,[r0,#15]
+ 294 003c 7047     	 bx lr
+ 295              	 .cfi_endproc
+ 296              	.LFE59:
+ 298              	 .section .text.SPI_SendData,"ax",%progbits
+ 299              	 .align 1
+ 300              	 .global SPI_SendData
+ 301              	 .syntax unified
+ 302              	 .thumb
+ 303              	 .thumb_func
+ 304              	 .fpu softvfp
+ 306              	SPI_SendData:
+ 307              	.LFB60:
+ 179:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 180:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 181:LPC17xxLib/src/lpc17xx_spi.c **** /*********************************************************************//**
+ 182:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief		Transmit a single data through SPIx peripheral
+ 183:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 184:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	Data	Data to transmit (must be 16 or 8-bit long,
+ 185:LPC17xxLib/src/lpc17xx_spi.c ****  * 						this depend on SPI data bit number configured)
+ 186:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		none
+ 187:LPC17xxLib/src/lpc17xx_spi.c ****  **********************************************************************/
+ 188:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_SendData(LPC_SPI_TypeDef* SPIx, uint16_t Data)
+ 189:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 308              	 .loc 1 189 0
+ 309              	 .cfi_startproc
+ 310              	 
+ 311              	 
+ 312              	 
+ 313              	.LVL23:
+ 190:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 191:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** 	SPIx->SPDR = Data & SPI_SPDR_BITMASK;
+ 314              	 .loc 1 192 0
+ 315 0000 8160     	 str r1,[r0,#8]
+ 316 0002 7047     	 bx lr
+ 317              	 .cfi_endproc
+ 318              	.LFE60:
+ 320              	 .section .text.SPI_ReceiveData,"ax",%progbits
+ 321              	 .align 1
+ 322              	 .global SPI_ReceiveData
+ 323              	 .syntax unified
+ 324              	 .thumb
+ 325              	 .thumb_func
+ 326              	 .fpu softvfp
+ 328              	SPI_ReceiveData:
+ 329              	.LFB61:
+ 193:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 194:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 195:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 196:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 197:LPC17xxLib/src/lpc17xx_spi.c **** /*********************************************************************//**
+ 198:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief		Receive a single data from SPIx peripheral
+ 199:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 200:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		Data received (16-bit long)
+ 201:LPC17xxLib/src/lpc17xx_spi.c ****  **********************************************************************/
+ 202:LPC17xxLib/src/lpc17xx_spi.c **** uint16_t SPI_ReceiveData(LPC_SPI_TypeDef* SPIx)
+ 203:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 330              	 .loc 1 203 0
+ 331              	 .cfi_startproc
+ 332              	 
+ 333              	 
+ 334              	 
+ 335              	.LVL24:
+ 204:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 205:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 206:LPC17xxLib/src/lpc17xx_spi.c **** 	return ((uint16_t) (SPIx->SPDR & SPI_SPDR_BITMASK));
+ 336              	 .loc 1 206 0
+ 337 0000 8068     	 ldr r0,[r0,#8]
+ 338              	.LVL25:
+ 207:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 339              	 .loc 1 207 0
+ 340 0002 80B2     	 uxth r0,r0
+ 341 0004 7047     	 bx lr
+ 342              	 .cfi_endproc
+ 343              	.LFE61:
+ 345              	 .section .text.SPI_ReadWrite,"ax",%progbits
+ 346              	 .align 1
+ 347              	 .global SPI_ReadWrite
+ 348              	 .syntax unified
+ 349              	 .thumb
+ 350              	 .thumb_func
+ 351              	 .fpu softvfp
+ 353              	SPI_ReadWrite:
+ 354              	.LFB62:
+ 208:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 209:LPC17xxLib/src/lpc17xx_spi.c **** /*********************************************************************//**
+ 210:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		SPI 	Read write data function
+ 211:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx 	Pointer to SPI peripheral, should be LPC_SPI
+ 212:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	dataCfg	Pointer to a SPI_DATA_SETUP_Type structure that
+ 213:LPC17xxLib/src/lpc17xx_spi.c ****  * 						contains specified information about transmit
+ 214:LPC17xxLib/src/lpc17xx_spi.c ****  * 						data configuration.
+ 215:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	xfType	Transfer type, should be:
+ 216:LPC17xxLib/src/lpc17xx_spi.c ****  * 						- SPI_TRANSFER_POLLING: Polling mode
+ 217:LPC17xxLib/src/lpc17xx_spi.c ****  * 						- SPI_TRANSFER_INTERRUPT: Interrupt mode
+ 218:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		Actual Data length has been transferred in polling mode.
+ 219:LPC17xxLib/src/lpc17xx_spi.c ****  * 				In interrupt mode, always return (0)
+ 220:LPC17xxLib/src/lpc17xx_spi.c ****  * 				Return (-1) if error.
+ 221:LPC17xxLib/src/lpc17xx_spi.c ****  * Note: This function can be used in both master and slave mode.
+ 222:LPC17xxLib/src/lpc17xx_spi.c ****  ***********************************************************************/
+ 223:LPC17xxLib/src/lpc17xx_spi.c **** int32_t SPI_ReadWrite (LPC_SPI_TypeDef *SPIx, SPI_DATA_SETUP_Type *dataCfg, \
+ 224:LPC17xxLib/src/lpc17xx_spi.c **** 						SPI_TRANSFER_Type xfType)
+ 225:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 355              	 .loc 1 225 0
+ 356              	 .cfi_startproc
+ 357              	 
+ 358              	 
+ 359              	.LVL26:
+ 360 0000 2DE9F043 	 push {r4,r5,r6,r7,r8,r9,lr}
+ 361              	 .cfi_def_cfa_offset 28
+ 362              	 .cfi_offset 4,-28
+ 363              	 .cfi_offset 5,-24
+ 364              	 .cfi_offset 6,-20
+ 365              	 .cfi_offset 7,-16
+ 366              	 .cfi_offset 8,-12
+ 367              	 .cfi_offset 9,-8
+ 368              	 .cfi_offset 14,-4
+ 226:LPC17xxLib/src/lpc17xx_spi.c ****     uint8_t *rdata8=NULL;
+ 227:LPC17xxLib/src/lpc17xx_spi.c ****     uint8_t *wdata8=NULL;
+ 228:LPC17xxLib/src/lpc17xx_spi.c ****     uint16_t *rdata16=NULL;
+ 229:LPC17xxLib/src/lpc17xx_spi.c ****     uint16_t *wdata16=NULL;
+ 230:LPC17xxLib/src/lpc17xx_spi.c ****     uint32_t stat=0;
+ 231:LPC17xxLib/src/lpc17xx_spi.c ****     uint32_t temp;
+ 232:LPC17xxLib/src/lpc17xx_spi.c ****     uint8_t dataword;
+ 233:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 234:LPC17xxLib/src/lpc17xx_spi.c **** 	//read for empty buffer
+ 235:LPC17xxLib/src/lpc17xx_spi.c **** 	temp = SPIx->SPDR;
+ 369              	 .loc 1 235 0
+ 370 0004 8368     	 ldr r3,[r0,#8]
+ 236:LPC17xxLib/src/lpc17xx_spi.c **** 	//dummy to clear status
+ 237:LPC17xxLib/src/lpc17xx_spi.c **** 	temp = SPIx->SPSR;
+ 371              	 .loc 1 237 0
+ 372 0006 4368     	 ldr r3,[r0,#4]
+ 238:LPC17xxLib/src/lpc17xx_spi.c **** 	dataCfg->counter = 0;
+ 373              	 .loc 1 238 0
+ 374 0008 0023     	 movs r3,#0
+ 375              	.LBB28:
+ 376              	.LBB29:
+ 116:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 377              	 .loc 1 116 0
+ 378 000a 0468     	 ldr r4,[r0]
+ 379              	.LBE29:
+ 380              	.LBE28:
+ 381              	 .loc 1 238 0
+ 382 000c 0B73     	 strb r3,[r1,#12]
+ 239:LPC17xxLib/src/lpc17xx_spi.c **** 	dataCfg->status = 0;
+ 240:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 241:LPC17xxLib/src/lpc17xx_spi.c **** 	if(SPI_GetDataSize (SPIx) == 8)
+ 383              	 .loc 1 241 0
+ 384 000e C4F30324 	 ubfx r4,r4,#8,#4
+ 385 0012 082C     	 cmp r4,#8
+ 238:LPC17xxLib/src/lpc17xx_spi.c **** 	dataCfg->status = 0;
+ 386              	 .loc 1 238 0
+ 387 0014 4B73     	 strb r3,[r1,#13]
+ 388 0016 8B73     	 strb r3,[r1,#14]
+ 389 0018 CB73     	 strb r3,[r1,#15]
+ 239:LPC17xxLib/src/lpc17xx_spi.c **** 	dataCfg->status = 0;
+ 390              	 .loc 1 239 0
+ 391 001a 0B74     	 strb r3,[r1,#16]
+ 392 001c 4B74     	 strb r3,[r1,#17]
+ 393 001e 8B74     	 strb r3,[r1,#18]
+ 394 0020 CB74     	 strb r3,[r1,#19]
+ 395              	.LVL27:
+ 396              	 .loc 1 241 0
+ 397 0022 73D1     	 bne .L57
+ 398              	.LVL28:
+ 242:LPC17xxLib/src/lpc17xx_spi.c **** 		dataword = 0;
+ 243:LPC17xxLib/src/lpc17xx_spi.c **** 	else dataword = 1;
+ 244:LPC17xxLib/src/lpc17xx_spi.c **** 	if (xfType == SPI_TRANSFER_POLLING){
+ 399              	 .loc 1 244 0
+ 400 0024 0AB1     	 cbz r2,.L51
+ 242:LPC17xxLib/src/lpc17xx_spi.c **** 		dataword = 0;
+ 401              	 .loc 1 242 0
+ 402 0026 1A46     	 mov r2,r3
+ 403              	.LVL29:
+ 404 0028 73E0     	 b .L50
+ 405              	.LVL30:
+ 406              	.L51:
+ 407 002a 1446     	 mov r4,r2
+ 229:LPC17xxLib/src/lpc17xx_spi.c ****     uint32_t stat=0;
+ 408              	 .loc 1 229 0
+ 409 002c 9646     	 mov lr,r2
+ 228:LPC17xxLib/src/lpc17xx_spi.c ****     uint16_t *wdata16=NULL;
+ 410              	 .loc 1 228 0
+ 411 002e 1746     	 mov r7,r2
+ 245:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 246:LPC17xxLib/src/lpc17xx_spi.c **** 		if (dataword == 0){
+ 247:LPC17xxLib/src/lpc17xx_spi.c **** 			rdata8 = (uint8_t *)dataCfg->rx_data;
+ 412              	 .loc 1 247 0
+ 413 0030 4E68     	 ldr r6,[r1,#4]
+ 414              	.LVL31:
+ 248:LPC17xxLib/src/lpc17xx_spi.c **** 			wdata8 = (uint8_t *)dataCfg->tx_data;
+ 415              	 .loc 1 248 0
+ 416 0032 0D68     	 ldr r5,[r1]
+ 417              	.LVL32:
+ 418              	.L29:
+ 226:LPC17xxLib/src/lpc17xx_spi.c ****     uint8_t *wdata8=NULL;
+ 419              	 .loc 1 226 0
+ 420 0034 0022     	 movs r2,#0
+ 421              	.LVL33:
+ 422 0036 4FF0FF3C 	 mov ip,#-1
+ 423              	.LVL34:
+ 424              	.L28:
+ 249:LPC17xxLib/src/lpc17xx_spi.c **** 		} else {
+ 250:LPC17xxLib/src/lpc17xx_spi.c **** 			rdata16 = (uint16_t *)dataCfg->rx_data;
+ 251:LPC17xxLib/src/lpc17xx_spi.c **** 			wdata16 = (uint16_t *)dataCfg->tx_data;
+ 252:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 253:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 254:LPC17xxLib/src/lpc17xx_spi.c **** 		while(dataCfg->counter < dataCfg->length)
+ 425              	 .loc 1 254 0
+ 426 003a CB68     	 ldr r3,[r1,#12]
+ 427 003c D1F80880 	 ldr r8,[r1,#8]
+ 428 0040 4345     	 cmp r3,r8
+ 429 0042 09D3     	 bcc .L42
+ 255:LPC17xxLib/src/lpc17xx_spi.c **** 		{
+ 256:LPC17xxLib/src/lpc17xx_spi.c **** 			// Write data to buffer
+ 257:LPC17xxLib/src/lpc17xx_spi.c **** 			if(dataCfg->tx_data == NULL){
+ 258:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 259:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, 0xFF);
+ 260:LPC17xxLib/src/lpc17xx_spi.c **** 				} else {
+ 261:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, 0xFFFF);
+ 262:LPC17xxLib/src/lpc17xx_spi.c **** 				}
+ 263:LPC17xxLib/src/lpc17xx_spi.c **** 			} else {
+ 264:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 265:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, *wdata8);
+ 266:LPC17xxLib/src/lpc17xx_spi.c **** 					wdata8++;
+ 267:LPC17xxLib/src/lpc17xx_spi.c **** 				} else {
+ 268:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, *wdata16);
+ 269:LPC17xxLib/src/lpc17xx_spi.c **** 					wdata16++;
+ 270:LPC17xxLib/src/lpc17xx_spi.c **** 				}
+ 271:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 272:LPC17xxLib/src/lpc17xx_spi.c **** 			// Wait for transfer complete
+ 273:LPC17xxLib/src/lpc17xx_spi.c **** 			while (!((stat = SPIx->SPSR) & SPI_SPSR_SPIF));
+ 274:LPC17xxLib/src/lpc17xx_spi.c **** 			// Check for error
+ 275:LPC17xxLib/src/lpc17xx_spi.c **** 			if (stat & (SPI_SPSR_ABRT | SPI_SPSR_MODF | SPI_SPSR_ROVR | SPI_SPSR_WCOL)){
+ 276:LPC17xxLib/src/lpc17xx_spi.c **** 				// save status
+ 277:LPC17xxLib/src/lpc17xx_spi.c **** 				dataCfg->status = stat | SPI_STAT_ERROR;
+ 278:LPC17xxLib/src/lpc17xx_spi.c **** 				return (dataCfg->counter);
+ 279:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 280:LPC17xxLib/src/lpc17xx_spi.c **** 			// Read data from SPI dat
+ 281:LPC17xxLib/src/lpc17xx_spi.c **** 			temp = (uint32_t) SPI_ReceiveData(SPIx);
+ 282:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 283:LPC17xxLib/src/lpc17xx_spi.c **** 			// Store data to destination
+ 284:LPC17xxLib/src/lpc17xx_spi.c **** 			if (dataCfg->rx_data != NULL)
+ 285:LPC17xxLib/src/lpc17xx_spi.c **** 			{
+ 286:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 287:LPC17xxLib/src/lpc17xx_spi.c **** 					*(rdata8) = (uint8_t) temp;
+ 288:LPC17xxLib/src/lpc17xx_spi.c **** 					rdata8++;
+ 289:LPC17xxLib/src/lpc17xx_spi.c **** 				} else {
+ 290:LPC17xxLib/src/lpc17xx_spi.c **** 					*(rdata16) = (uint16_t) temp;
+ 291:LPC17xxLib/src/lpc17xx_spi.c **** 					rdata16++;
+ 292:LPC17xxLib/src/lpc17xx_spi.c **** 				}
+ 293:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 294:LPC17xxLib/src/lpc17xx_spi.c **** 			// Increase counter
+ 295:LPC17xxLib/src/lpc17xx_spi.c **** 			if (dataword == 0){
+ 296:LPC17xxLib/src/lpc17xx_spi.c **** 				dataCfg->counter++;
+ 297:LPC17xxLib/src/lpc17xx_spi.c **** 			} else {
+ 298:LPC17xxLib/src/lpc17xx_spi.c **** 				dataCfg->counter += 2;
+ 299:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 300:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 301:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 302:LPC17xxLib/src/lpc17xx_spi.c **** 		// Return length of actual data transferred
+ 303:LPC17xxLib/src/lpc17xx_spi.c **** 		// save status
+ 304:LPC17xxLib/src/lpc17xx_spi.c **** 		dataCfg->status = stat | SPI_STAT_DONE;
+ 430              	 .loc 1 304 0
+ 431 0044 42F48072 	 orr r2,r2,#256
+ 432 0048 1BE0     	 b .L61
+ 433              	.LVL35:
+ 434              	.L49:
+ 250:LPC17xxLib/src/lpc17xx_spi.c **** 			wdata16 = (uint16_t *)dataCfg->tx_data;
+ 435              	 .loc 1 250 0
+ 436 004a 4F68     	 ldr r7,[r1,#4]
+ 437              	.LVL36:
+ 251:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 438              	 .loc 1 251 0
+ 439 004c D1F800E0 	 ldr lr,[r1]
+ 440              	.LVL37:
+ 243:LPC17xxLib/src/lpc17xx_spi.c **** 	if (xfType == SPI_TRANSFER_POLLING){
+ 441              	 .loc 1 243 0
+ 442 0050 0124     	 movs r4,#1
+ 227:LPC17xxLib/src/lpc17xx_spi.c ****     uint16_t *rdata16=NULL;
+ 443              	 .loc 1 227 0
+ 444 0052 1546     	 mov r5,r2
+ 226:LPC17xxLib/src/lpc17xx_spi.c ****     uint8_t *wdata8=NULL;
+ 445              	 .loc 1 226 0
+ 446 0054 1646     	 mov r6,r2
+ 447 0056 EDE7     	 b .L29
+ 448              	.LVL38:
+ 449              	.L42:
+ 257:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 450              	 .loc 1 257 0
+ 451 0058 0A68     	 ldr r2,[r1]
+ 452 005a 2ABB     	 cbnz r2,.L30
+ 258:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, 0xFF);
+ 453              	 .loc 1 258 0
+ 454 005c ACB9     	 cbnz r4,.L31
+ 455              	.LVL39:
+ 456              	.LBB30:
+ 457              	.LBB31:
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 458              	 .loc 1 192 0
+ 459 005e 027A     	 ldrb r2,[r0,#8]
+ 460 0060 80F808C0 	 strb ip,[r0,#8]
+ 461 0064 427A     	 ldrb r2,[r0,#9]
+ 462 0066 4472     	 strb r4,[r0,#9]
+ 463 0068 827A     	 ldrb r2,[r0,#10]
+ 464 006a 8472     	 strb r4,[r0,#10]
+ 465 006c C27A     	 ldrb r2,[r0,#11]
+ 466 006e C472     	 strb r4,[r0,#11]
+ 467              	.LVL40:
+ 468              	.L34:
+ 469              	.LBE31:
+ 470              	.LBE30:
+ 273:LPC17xxLib/src/lpc17xx_spi.c **** 			// Check for error
+ 471              	 .loc 1 273 0 discriminator 1
+ 472 0070 4268     	 ldr r2,[r0,#4]
+ 473              	.LVL41:
+ 474 0072 12F0800F 	 tst r2,#128
+ 475 0076 FBD0     	 beq .L34
+ 275:LPC17xxLib/src/lpc17xx_spi.c **** 				// save status
+ 476              	 .loc 1 275 0
+ 477 0078 12F0780F 	 tst r2,#120
+ 478 007c 1CD0     	 beq .L35
+ 277:LPC17xxLib/src/lpc17xx_spi.c **** 				return (dataCfg->counter);
+ 479              	 .loc 1 277 0
+ 480 007e 42F40072 	 orr r2,r2,#512
+ 481              	.LVL42:
+ 482              	.L61:
+ 483              	 .loc 1 304 0
+ 484 0082 0A61     	 str r2,[r1,#16]
+ 485              	.LVL43:
+ 486              	.L25:
+ 305:LPC17xxLib/src/lpc17xx_spi.c **** 		return (dataCfg->counter);
+ 306:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 307:LPC17xxLib/src/lpc17xx_spi.c **** 	// Interrupt mode
+ 308:LPC17xxLib/src/lpc17xx_spi.c **** 	else {
+ 309:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 310:LPC17xxLib/src/lpc17xx_spi.c **** 		// Check if interrupt flag is already set
+ 311:LPC17xxLib/src/lpc17xx_spi.c **** 		if(SPIx->SPINT & SPI_SPINT_INTFLAG){
+ 312:LPC17xxLib/src/lpc17xx_spi.c **** 			SPIx->SPINT = SPI_SPINT_INTFLAG;
+ 313:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 314:LPC17xxLib/src/lpc17xx_spi.c **** 		if (dataCfg->counter < dataCfg->length){
+ 315:LPC17xxLib/src/lpc17xx_spi.c **** 			// Write data to buffer
+ 316:LPC17xxLib/src/lpc17xx_spi.c **** 			if(dataCfg->tx_data == NULL){
+ 317:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 318:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, 0xFF);
+ 319:LPC17xxLib/src/lpc17xx_spi.c **** 				} else {
+ 320:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, 0xFFFF);
+ 321:LPC17xxLib/src/lpc17xx_spi.c **** 				}
+ 322:LPC17xxLib/src/lpc17xx_spi.c **** 			} else {
+ 323:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 324:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, (*(uint8_t *)dataCfg->tx_data));
+ 325:LPC17xxLib/src/lpc17xx_spi.c **** 				} else {
+ 326:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, (*(uint16_t *)dataCfg->tx_data));
+ 327:LPC17xxLib/src/lpc17xx_spi.c **** 				}
+ 328:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 329:LPC17xxLib/src/lpc17xx_spi.c **** 			SPI_IntCmd(SPIx, ENABLE);
+ 330:LPC17xxLib/src/lpc17xx_spi.c **** 		} else {
+ 331:LPC17xxLib/src/lpc17xx_spi.c **** 			// Save status
+ 332:LPC17xxLib/src/lpc17xx_spi.c **** 			dataCfg->status = SPI_STAT_DONE;
+ 333:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 334:LPC17xxLib/src/lpc17xx_spi.c **** 		return (0);
+ 335:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 336:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 487              	 .loc 1 336 0
+ 488 0084 1846     	 mov r0,r3
+ 489              	.LVL44:
+ 490 0086 BDE8F083 	 pop {r4,r5,r6,r7,r8,r9,pc}
+ 491              	.LVL45:
+ 492              	.L31:
+ 493              	.LBB32:
+ 494              	.LBB33:
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 495              	 .loc 1 192 0
+ 496 008a 90F80880 	 ldrb r8,[r0,#8]
+ 497 008e 80F808C0 	 strb ip,[r0,#8]
+ 498 0092 90F80980 	 ldrb r8,[r0,#9]
+ 499 0096 80F809C0 	 strb ip,[r0,#9]
+ 500 009a 90F80A80 	 ldrb r8,[r0,#10]
+ 501 009e 8272     	 strb r2,[r0,#10]
+ 502 00a0 90F80B80 	 ldrb r8,[r0,#11]
+ 503 00a4 C272     	 strb r2,[r0,#11]
+ 504 00a6 E3E7     	 b .L34
+ 505              	.LVL46:
+ 506              	.L30:
+ 507              	.LBE33:
+ 508              	.LBE32:
+ 264:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, *wdata8);
+ 509              	 .loc 1 264 0
+ 510 00a8 1CB9     	 cbnz r4,.L33
+ 511              	.LVL47:
+ 512              	.LBB34:
+ 513              	.LBB35:
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 514              	 .loc 1 192 0
+ 515 00aa 15F8012B 	 ldrb r2,[r5],#1
+ 516              	.LVL48:
+ 517              	.L58:
+ 518              	.LBE35:
+ 519              	.LBE34:
+ 520              	.LBB36:
+ 521              	.LBB37:
+ 522 00ae 8260     	 str r2,[r0,#8]
+ 523              	.LVL49:
+ 524 00b0 DEE7     	 b .L34
+ 525              	.LVL50:
+ 526              	.L33:
+ 527 00b2 3EF8022B 	 ldrh r2,[lr],#2
+ 528              	.LVL51:
+ 529 00b6 FAE7     	 b .L58
+ 530              	.LVL52:
+ 531              	.L35:
+ 532              	.LBE37:
+ 533              	.LBE36:
+ 284:LPC17xxLib/src/lpc17xx_spi.c **** 			{
+ 534              	 .loc 1 284 0
+ 535 00b8 D1F80490 	 ldr r9,[r1,#4]
+ 536              	.LBB38:
+ 537              	.LBB39:
+ 206:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 538              	 .loc 1 206 0
+ 539 00bc D0F80880 	 ldr r8,[r0,#8]
+ 540              	.LVL53:
+ 541              	.LBE39:
+ 542              	.LBE38:
+ 284:LPC17xxLib/src/lpc17xx_spi.c **** 			{
+ 543              	 .loc 1 284 0
+ 544 00c0 B9F1000F 	 cmp r9,#0
+ 545 00c4 0AD0     	 beq .L37
+ 286:LPC17xxLib/src/lpc17xx_spi.c **** 					*(rdata8) = (uint8_t) temp;
+ 546              	 .loc 1 286 0
+ 547 00c6 2CB9     	 cbnz r4,.L38
+ 287:LPC17xxLib/src/lpc17xx_spi.c **** 					rdata8++;
+ 548              	 .loc 1 287 0
+ 549 00c8 06F8018B 	 strb r8,[r6],#1
+ 550              	.LVL54:
+ 551              	.L39:
+ 296:LPC17xxLib/src/lpc17xx_spi.c **** 			} else {
+ 552              	 .loc 1 296 0
+ 553 00cc CB68     	 ldr r3,[r1,#12]
+ 554 00ce 0133     	 adds r3,r3,#1
+ 555              	.L59:
+ 298:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 556              	 .loc 1 298 0
+ 557 00d0 CB60     	 str r3,[r1,#12]
+ 558 00d2 B2E7     	 b .L28
+ 559              	.L38:
+ 560              	.LBB41:
+ 561              	.LBB40:
+ 206:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 562              	 .loc 1 206 0
+ 563 00d4 27F8028B 	 strh r8,[r7],#2
+ 564              	.LVL55:
+ 565              	.L40:
+ 566              	.LBE40:
+ 567              	.LBE41:
+ 298:LPC17xxLib/src/lpc17xx_spi.c **** 			}
+ 568              	 .loc 1 298 0
+ 569 00d8 0233     	 adds r3,r3,#2
+ 570 00da F9E7     	 b .L59
+ 571              	.L37:
+ 295:LPC17xxLib/src/lpc17xx_spi.c **** 				dataCfg->counter++;
+ 572              	 .loc 1 295 0
+ 573 00dc 002C     	 cmp r4,#0
+ 574 00de FBD1     	 bne .L40
+ 575 00e0 F4E7     	 b .L39
+ 576              	.LVL56:
+ 577              	.L46:
+ 578              	.LBB42:
+ 579              	.LBB43:
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 580              	 .loc 1 192 0
+ 581 00e2 027A     	 ldrb r2,[r0,#8]
+ 582 00e4 0172     	 strb r1,[r0,#8]
+ 583 00e6 427A     	 ldrb r2,[r0,#9]
+ 584 00e8 4172     	 strb r1,[r0,#9]
+ 585 00ea 827A     	 ldrb r2,[r0,#10]
+ 586 00ec 8372     	 strb r3,[r0,#10]
+ 587 00ee C27A     	 ldrb r2,[r0,#11]
+ 588 00f0 C372     	 strb r3,[r0,#11]
+ 589 00f2 2DE0     	 b .L47
+ 590              	.LVL57:
+ 591              	.L45:
+ 592              	.LBE43:
+ 593              	.LBE42:
+ 323:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, (*(uint8_t *)dataCfg->tx_data));
+ 594              	 .loc 1 323 0
+ 595 00f4 12B9     	 cbnz r2,.L48
+ 596              	.LVL58:
+ 597              	.LBB44:
+ 598              	.LBB45:
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 599              	 .loc 1 192 0
+ 600 00f6 1B78     	 ldrb r3,[r3]
+ 601              	.LVL59:
+ 602              	.L60:
+ 603              	.LBE45:
+ 604              	.LBE44:
+ 605              	.LBB46:
+ 606              	.LBB47:
+ 607 00f8 8360     	 str r3,[r0,#8]
+ 608 00fa 29E0     	 b .L47
+ 609              	.L48:
+ 610              	.LVL60:
+ 611 00fc 1B88     	 ldrh r3,[r3]
+ 612              	.LVL61:
+ 613 00fe FBE7     	 b .L60
+ 614              	.LVL62:
+ 615              	.L44:
+ 616              	.LBE47:
+ 617              	.LBE46:
+ 332:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 618              	 .loc 1 332 0
+ 619 0100 0122     	 movs r2,#1
+ 620 0102 0B74     	 strb r3,[r1,#16]
+ 621 0104 4A74     	 strb r2,[r1,#17]
+ 622 0106 8B74     	 strb r3,[r1,#18]
+ 623 0108 CB74     	 strb r3,[r1,#19]
+ 624 010a BBE7     	 b .L25
+ 625              	.LVL63:
+ 626              	.L57:
+ 244:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 627              	 .loc 1 244 0
+ 628 010c 002A     	 cmp r2,#0
+ 629 010e 9CD0     	 beq .L49
+ 243:LPC17xxLib/src/lpc17xx_spi.c **** 	if (xfType == SPI_TRANSFER_POLLING){
+ 630              	 .loc 1 243 0
+ 631 0110 0122     	 movs r2,#1
+ 632              	.LVL64:
+ 633              	.L50:
+ 311:LPC17xxLib/src/lpc17xx_spi.c **** 			SPIx->SPINT = SPI_SPINT_INTFLAG;
+ 634              	 .loc 1 311 0
+ 635 0112 C369     	 ldr r3,[r0,#28]
+ 636 0114 DB07     	 lsls r3,r3,#31
+ 637 0116 09D5     	 bpl .L43
+ 312:LPC17xxLib/src/lpc17xx_spi.c **** 		}
+ 638              	 .loc 1 312 0
+ 639 0118 0124     	 movs r4,#1
+ 640 011a 037F     	 ldrb r3,[r0,#28]
+ 641 011c 0023     	 movs r3,#0
+ 642 011e 0477     	 strb r4,[r0,#28]
+ 643 0120 447F     	 ldrb r4,[r0,#29]
+ 644 0122 4377     	 strb r3,[r0,#29]
+ 645 0124 847F     	 ldrb r4,[r0,#30]
+ 646 0126 8377     	 strb r3,[r0,#30]
+ 647 0128 C47F     	 ldrb r4,[r0,#31]
+ 648 012a C377     	 strb r3,[r0,#31]
+ 649              	.L43:
+ 314:LPC17xxLib/src/lpc17xx_spi.c **** 			// Write data to buffer
+ 650              	 .loc 1 314 0
+ 651 012c 8B68     	 ldr r3,[r1,#8]
+ 652 012e 002B     	 cmp r3,#0
+ 653 0130 E6D0     	 beq .L44
+ 316:LPC17xxLib/src/lpc17xx_spi.c **** 				if (dataword == 0){
+ 654              	 .loc 1 316 0
+ 655 0132 0B68     	 ldr r3,[r1]
+ 656 0134 002B     	 cmp r3,#0
+ 657 0136 DDD1     	 bne .L45
+ 658 0138 4FF0FF31 	 mov r1,#-1
+ 659              	.LVL65:
+ 317:LPC17xxLib/src/lpc17xx_spi.c **** 					SPI_SendData(SPIx, 0xFF);
+ 660              	 .loc 1 317 0
+ 661 013c 002A     	 cmp r2,#0
+ 662 013e D0D1     	 bne .L46
+ 663              	.LVL66:
+ 664              	.LBB48:
+ 665              	.LBB49:
+ 192:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 666              	 .loc 1 192 0
+ 667 0140 037A     	 ldrb r3,[r0,#8]
+ 668 0142 0172     	 strb r1,[r0,#8]
+ 669 0144 437A     	 ldrb r3,[r0,#9]
+ 670 0146 4272     	 strb r2,[r0,#9]
+ 671 0148 837A     	 ldrb r3,[r0,#10]
+ 672 014a 8272     	 strb r2,[r0,#10]
+ 673 014c C37A     	 ldrb r3,[r0,#11]
+ 674 014e C272     	 strb r2,[r0,#11]
+ 675              	.LVL67:
+ 676              	.L47:
+ 677              	.LBE49:
+ 678              	.LBE48:
+ 679              	.LBB50:
+ 680              	.LBB51:
+ 337:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 338:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 339:LPC17xxLib/src/lpc17xx_spi.c **** /********************************************************************//**
+ 340:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		Enable or disable SPIx interrupt.
+ 341:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 342:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	NewState New state of specified UART interrupt type,
+ 343:LPC17xxLib/src/lpc17xx_spi.c ****  * 				should be:
+ 344:LPC17xxLib/src/lpc17xx_spi.c ****  * 				- ENALBE: Enable this SPI interrupt.
+ 345:LPC17xxLib/src/lpc17xx_spi.c **** * 				- DISALBE: Disable this SPI interrupt.
+ 346:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		None
+ 347:LPC17xxLib/src/lpc17xx_spi.c ****  *********************************************************************/
+ 348:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_IntCmd(LPC_SPI_TypeDef *SPIx, FunctionalState NewState)
+ 349:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 350:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 351:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 352:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 353:LPC17xxLib/src/lpc17xx_spi.c **** 	if (NewState == ENABLE)
+ 354:LPC17xxLib/src/lpc17xx_spi.c **** 	{
+ 355:LPC17xxLib/src/lpc17xx_spi.c **** 		SPIx->SPCR |= SPI_SPCR_SPIE;
+ 681              	 .loc 1 355 0
+ 682 0150 0368     	 ldr r3,[r0]
+ 683 0152 43F08003 	 orr r3,r3,#128
+ 684 0156 0360     	 str r3,[r0]
+ 685              	.LBE51:
+ 686              	.LBE50:
+ 334:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 687              	 .loc 1 334 0
+ 688 0158 0023     	 movs r3,#0
+ 689 015a 93E7     	 b .L25
+ 690              	 .cfi_endproc
+ 691              	.LFE62:
+ 693              	 .section .text.SPI_IntCmd,"ax",%progbits
+ 694              	 .align 1
+ 695              	 .global SPI_IntCmd
+ 696              	 .syntax unified
+ 697              	 .thumb
+ 698              	 .thumb_func
+ 699              	 .fpu softvfp
+ 701              	SPI_IntCmd:
+ 702              	.LFB63:
+ 349:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 703              	 .loc 1 349 0
+ 704              	 .cfi_startproc
+ 705              	 
+ 706              	 
+ 707              	 
+ 708              	.LVL68:
+ 709              	 .loc 1 355 0
+ 710 0000 0368     	 ldr r3,[r0]
+ 353:LPC17xxLib/src/lpc17xx_spi.c **** 	{
+ 711              	 .loc 1 353 0
+ 712 0002 0129     	 cmp r1,#1
+ 356:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 357:LPC17xxLib/src/lpc17xx_spi.c **** 	else
+ 358:LPC17xxLib/src/lpc17xx_spi.c **** 	{
+ 359:LPC17xxLib/src/lpc17xx_spi.c **** 		SPIx->SPCR &= (~SPI_SPCR_SPIE) & SPI_SPCR_BITMASK;
+ 713              	 .loc 1 359 0
+ 714 0004 1BBF     	 ittet ne
+ 715 0006 23F08303 	 bicne r3,r3,#131
+ 716 000a 1B05     	 lslne r3,r3,#20
+ 355:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 717              	 .loc 1 355 0
+ 718 000c 43F08003 	 orreq r3,r3,#128
+ 719              	 .loc 1 359 0
+ 720 0010 1B0D     	 lsrne r3,r3,#20
+ 721 0012 0360     	 str r3,[r0]
+ 722 0014 7047     	 bx lr
+ 723              	 .cfi_endproc
+ 724              	.LFE63:
+ 726              	 .section .text.SPI_GetIntStatus,"ax",%progbits
+ 727              	 .align 1
+ 728              	 .global SPI_GetIntStatus
+ 729              	 .syntax unified
+ 730              	 .thumb
+ 731              	 .thumb_func
+ 732              	 .fpu softvfp
+ 734              	SPI_GetIntStatus:
+ 735              	.LFB64:
+ 360:LPC17xxLib/src/lpc17xx_spi.c **** 	}
+ 361:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 362:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 363:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 364:LPC17xxLib/src/lpc17xx_spi.c **** /********************************************************************//**
+ 365:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		Checks whether the SPI interrupt flag is set or not.
+ 366:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 367:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		The new state of SPI Interrupt Flag (SET or RESET)
+ 368:LPC17xxLib/src/lpc17xx_spi.c ****  *********************************************************************/
+ 369:LPC17xxLib/src/lpc17xx_spi.c **** IntStatus SPI_GetIntStatus (LPC_SPI_TypeDef *SPIx)
+ 370:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 736              	 .loc 1 370 0
+ 737              	 .cfi_startproc
+ 738              	 
+ 739              	 
+ 740              	 
+ 741              	.LVL69:
+ 371:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 372:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 373:LPC17xxLib/src/lpc17xx_spi.c **** 	return ((SPIx->SPINT & SPI_SPINT_INTFLAG) ? SET : RESET);
+ 742              	 .loc 1 373 0
+ 743 0000 C069     	 ldr r0,[r0,#28]
+ 744              	.LVL70:
+ 374:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 745              	 .loc 1 374 0
+ 746 0002 00F00100 	 and r0,r0,#1
+ 747 0006 7047     	 bx lr
+ 748              	 .cfi_endproc
+ 749              	.LFE64:
+ 751              	 .section .text.SPI_ClearIntPending,"ax",%progbits
+ 752              	 .align 1
+ 753              	 .global SPI_ClearIntPending
+ 754              	 .syntax unified
+ 755              	 .thumb
+ 756              	 .thumb_func
+ 757              	 .fpu softvfp
+ 759              	SPI_ClearIntPending:
+ 760              	.LFB65:
+ 375:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 376:LPC17xxLib/src/lpc17xx_spi.c **** /********************************************************************//**
+ 377:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		Clear SPI interrupt flag.
+ 378:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 379:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		None
+ 380:LPC17xxLib/src/lpc17xx_spi.c ****  *********************************************************************/
+ 381:LPC17xxLib/src/lpc17xx_spi.c **** void SPI_ClearIntPending(LPC_SPI_TypeDef *SPIx)
+ 382:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 761              	 .loc 1 382 0
+ 762              	 .cfi_startproc
+ 763              	 
+ 764              	 
+ 765              	 
+ 766              	.LVL71:
+ 383:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 384:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 385:LPC17xxLib/src/lpc17xx_spi.c **** 	SPIx->SPINT = SPI_SPINT_INTFLAG;
+ 767              	 .loc 1 385 0
+ 768 0000 0122     	 movs r2,#1
+ 769 0002 037F     	 ldrb r3,[r0,#28]
+ 770 0004 0023     	 movs r3,#0
+ 771 0006 0277     	 strb r2,[r0,#28]
+ 772 0008 427F     	 ldrb r2,[r0,#29]
+ 773 000a 4377     	 strb r3,[r0,#29]
+ 774 000c 827F     	 ldrb r2,[r0,#30]
+ 775 000e 8377     	 strb r3,[r0,#30]
+ 776 0010 C27F     	 ldrb r2,[r0,#31]
+ 777 0012 C377     	 strb r3,[r0,#31]
+ 778 0014 7047     	 bx lr
+ 779              	 .cfi_endproc
+ 780              	.LFE65:
+ 782              	 .section .text.SPI_GetStatus,"ax",%progbits
+ 783              	 .align 1
+ 784              	 .global SPI_GetStatus
+ 785              	 .syntax unified
+ 786              	 .thumb
+ 787              	 .thumb_func
+ 788              	 .fpu softvfp
+ 790              	SPI_GetStatus:
+ 791              	.LFB66:
+ 386:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 387:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 388:LPC17xxLib/src/lpc17xx_spi.c **** /********************************************************************//**
+ 389:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		Get current value of SPI Status register in SPIx peripheral.
+ 390:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIx	SPI peripheral selected, should be LPC_SPI
+ 391:LPC17xxLib/src/lpc17xx_spi.c ****  * @return		Current value of SPI Status register in SPI peripheral.
+ 392:LPC17xxLib/src/lpc17xx_spi.c ****  * Note:	The return value of this function must be used with
+ 393:LPC17xxLib/src/lpc17xx_spi.c ****  * 			SPI_CheckStatus() to determine current flag status
+ 394:LPC17xxLib/src/lpc17xx_spi.c ****  * 			corresponding to each SPI status type. Because some flags in
+ 395:LPC17xxLib/src/lpc17xx_spi.c ****  * 			SPI Status register will be cleared after reading, the next reading
+ 396:LPC17xxLib/src/lpc17xx_spi.c ****  * 			SPI Status register could not be correct. So this function used to
+ 397:LPC17xxLib/src/lpc17xx_spi.c ****  * 			read SPI status register in one time only, then the return value
+ 398:LPC17xxLib/src/lpc17xx_spi.c ****  * 			used to check all flags.
+ 399:LPC17xxLib/src/lpc17xx_spi.c ****  *********************************************************************/
+ 400:LPC17xxLib/src/lpc17xx_spi.c **** uint32_t SPI_GetStatus(LPC_SPI_TypeDef* SPIx)
+ 401:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 792              	 .loc 1 401 0
+ 793              	 .cfi_startproc
+ 794              	 
+ 795              	 
+ 796              	 
+ 797              	.LVL72:
+ 402:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPIx(SPIx));
+ 403:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 404:LPC17xxLib/src/lpc17xx_spi.c **** 	return (SPIx->SPSR & SPI_SPSR_BITMASK);
+ 798              	 .loc 1 404 0
+ 799 0000 4068     	 ldr r0,[r0,#4]
+ 800              	.LVL73:
+ 405:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 801              	 .loc 1 405 0
+ 802 0002 00F0F800 	 and r0,r0,#248
+ 803 0006 7047     	 bx lr
+ 804              	 .cfi_endproc
+ 805              	.LFE66:
+ 807              	 .section .text.SPI_CheckStatus,"ax",%progbits
+ 808              	 .align 1
+ 809              	 .global SPI_CheckStatus
+ 810              	 .syntax unified
+ 811              	 .thumb
+ 812              	 .thumb_func
+ 813              	 .fpu softvfp
+ 815              	SPI_CheckStatus:
+ 816              	.LFB67:
+ 406:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 407:LPC17xxLib/src/lpc17xx_spi.c **** /********************************************************************//**
+ 408:LPC17xxLib/src/lpc17xx_spi.c ****  * @brief 		Checks whether the specified SPI Status flag is set or not
+ 409:LPC17xxLib/src/lpc17xx_spi.c ****  * 				via inputSPIStatus parameter.
+ 410:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	inputSPIStatus Value to check status of each flag type.
+ 411:LPC17xxLib/src/lpc17xx_spi.c ****  * 				This value is the return value from SPI_GetStatus().
+ 412:LPC17xxLib/src/lpc17xx_spi.c ****  * @param[in]	SPIStatus	Specifies the SPI status flag to check,
+ 413:LPC17xxLib/src/lpc17xx_spi.c ****  * 				should be one of the following:
+ 414:LPC17xxLib/src/lpc17xx_spi.c **** 				- SPI_STAT_ABRT: Slave abort.
+ 415:LPC17xxLib/src/lpc17xx_spi.c **** 				- SPI_STAT_MODF: Mode fault.
+ 416:LPC17xxLib/src/lpc17xx_spi.c **** 				- SPI_STAT_ROVR: Read overrun.
+ 417:LPC17xxLib/src/lpc17xx_spi.c **** 				- SPI_STAT_WCOL: Write collision.
+ 418:LPC17xxLib/src/lpc17xx_spi.c **** 				- SPI_STAT_SPIF: SPI transfer complete.
+ 419:LPC17xxLib/src/lpc17xx_spi.c ****  * @return 		The new state of SPIStatus (SET or RESET)
+ 420:LPC17xxLib/src/lpc17xx_spi.c ****  *********************************************************************/
+ 421:LPC17xxLib/src/lpc17xx_spi.c **** FlagStatus SPI_CheckStatus (uint32_t inputSPIStatus,  uint8_t SPIStatus)
+ 422:LPC17xxLib/src/lpc17xx_spi.c **** {
+ 817              	 .loc 1 422 0
+ 818              	 .cfi_startproc
+ 819              	 
+ 820              	 
+ 821              	 
+ 822              	.LVL74:
+ 423:LPC17xxLib/src/lpc17xx_spi.c **** 	CHECK_PARAM(PARAM_SPI_STAT(SPIStatus));
+ 424:LPC17xxLib/src/lpc17xx_spi.c **** 
+ 425:LPC17xxLib/src/lpc17xx_spi.c **** 	return ((inputSPIStatus & SPIStatus) ? SET : RESET);
+ 823              	 .loc 1 425 0
+ 824 0000 0142     	 tst r1,r0
+ 426:LPC17xxLib/src/lpc17xx_spi.c **** }
+ 825              	 .loc 1 426 0
+ 826 0002 14BF     	 ite ne
+ 827 0004 0120     	 movne r0,#1
+ 828              	.LVL75:
+ 829 0006 0020     	 moveq r0,#0
+ 830 0008 7047     	 bx lr
+ 831              	 .cfi_endproc
+ 832              	.LFE67:
+ 834              	 .text
+ 835              	.Letext0:
+ 836              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 837              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 838              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 839              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 840              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 841              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 842              	 .file 8 "LPC17xxLib/inc/lpc17xx_spi.h"
+ 843              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_spi.c
+    {standard input}:16     .text.SPI_SetClock:0000000000000000 $t
+    {standard input}:23     .text.SPI_SetClock:0000000000000000 SPI_SetClock
+    {standard input}:81     .text.SPI_SetClock:0000000000000028 $d
+    {standard input}:89     .text.SPI_DeInit:0000000000000000 $t
+    {standard input}:96     .text.SPI_DeInit:0000000000000000 SPI_DeInit
+    {standard input}:120    .text.SPI_DeInit:0000000000000014 $d
+    {standard input}:126    .text.SPI_GetDataSize:0000000000000000 $t
+    {standard input}:133    .text.SPI_GetDataSize:0000000000000000 SPI_GetDataSize
+    {standard input}:151    .text.SPI_Init:0000000000000000 $t
+    {standard input}:158    .text.SPI_Init:0000000000000000 SPI_Init
+    {standard input}:231    .text.SPI_Init:000000000000004c $d
+    {standard input}:238    .text.SPI_ConfigStructInit:0000000000000000 $t
+    {standard input}:245    .text.SPI_ConfigStructInit:0000000000000000 SPI_ConfigStructInit
+    {standard input}:299    .text.SPI_SendData:0000000000000000 $t
+    {standard input}:306    .text.SPI_SendData:0000000000000000 SPI_SendData
+    {standard input}:321    .text.SPI_ReceiveData:0000000000000000 $t
+    {standard input}:328    .text.SPI_ReceiveData:0000000000000000 SPI_ReceiveData
+    {standard input}:346    .text.SPI_ReadWrite:0000000000000000 $t
+    {standard input}:353    .text.SPI_ReadWrite:0000000000000000 SPI_ReadWrite
+    {standard input}:694    .text.SPI_IntCmd:0000000000000000 $t
+    {standard input}:701    .text.SPI_IntCmd:0000000000000000 SPI_IntCmd
+    {standard input}:727    .text.SPI_GetIntStatus:0000000000000000 $t
+    {standard input}:734    .text.SPI_GetIntStatus:0000000000000000 SPI_GetIntStatus
+    {standard input}:752    .text.SPI_ClearIntPending:0000000000000000 $t
+    {standard input}:759    .text.SPI_ClearIntPending:0000000000000000 SPI_ClearIntPending
+    {standard input}:783    .text.SPI_GetStatus:0000000000000000 $t
+    {standard input}:790    .text.SPI_GetStatus:0000000000000000 SPI_GetStatus
+    {standard input}:808    .text.SPI_CheckStatus:0000000000000000 $t
+    {standard input}:815    .text.SPI_CheckStatus:0000000000000000 SPI_CheckStatus
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_GetPCLK
+CLKPWR_ConfigPPWR

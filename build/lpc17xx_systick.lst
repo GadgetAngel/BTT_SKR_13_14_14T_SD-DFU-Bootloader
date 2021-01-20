@@ -1,0 +1,499 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_systick.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .global __aeabi_ui2f
+  16              	 .global __aeabi_fcmplt
+  17              	 .section .text.SYSTICK_InternalInit,"ax",%progbits
+  18              	 .align 1
+  19              	 .global SYSTICK_InternalInit
+  20              	 .syntax unified
+  21              	 .thumb
+  22              	 .thumb_func
+  23              	 .fpu softvfp
+  25              	SYSTICK_InternalInit:
+  26              	.LFB55:
+  27              	 .file 1 "LPC17xxLib/src/lpc17xx_systick.c"
+   1:LPC17xxLib/src/lpc17xx_systick.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_systick.c **** 
+   3:LPC17xxLib/src/lpc17xx_systick.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_systick.c **** * $Id$		lpc17xx_systick.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_systick.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_systick.c **** * @file		lpc17xx_systick.c
+   7:LPC17xxLib/src/lpc17xx_systick.c **** * @brief	Contains all functions support for SYSTICK firmware library
+   8:LPC17xxLib/src/lpc17xx_systick.c **** * 			on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_systick.c **** * @version	2.0
+  10:LPC17xxLib/src/lpc17xx_systick.c **** * @date		21. May. 2010
+  11:LPC17xxLib/src/lpc17xx_systick.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_systick.c **** *
+  13:LPC17xxLib/src/lpc17xx_systick.c **** * Copyright(C) 2010, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_systick.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_systick.c **** *
+  16:LPC17xxLib/src/lpc17xx_systick.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_systick.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_systick.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_systick.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_systick.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_systick.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_systick.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_systick.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_systick.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_systick.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_systick.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_systick.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_systick.c **** 
+  29:LPC17xxLib/src/lpc17xx_systick.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_systick.c **** /** @addtogroup SYSTICK
+  31:LPC17xxLib/src/lpc17xx_systick.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_systick.c ****  */
+  33:LPC17xxLib/src/lpc17xx_systick.c **** 
+  34:LPC17xxLib/src/lpc17xx_systick.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_systick.c **** #include "lpc17xx_systick.h"
+  36:LPC17xxLib/src/lpc17xx_systick.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_systick.c **** 
+  38:LPC17xxLib/src/lpc17xx_systick.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  39:LPC17xxLib/src/lpc17xx_systick.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  40:LPC17xxLib/src/lpc17xx_systick.c ****  * otherwise the default FW library configuration file must be included instead
+  41:LPC17xxLib/src/lpc17xx_systick.c ****  */
+  42:LPC17xxLib/src/lpc17xx_systick.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  43:LPC17xxLib/src/lpc17xx_systick.c **** #include "lpc17xx_libcfg.h"
+  44:LPC17xxLib/src/lpc17xx_systick.c **** #else
+  45:LPC17xxLib/src/lpc17xx_systick.c **** #include "lpc17xx_libcfg_default.h"
+  46:LPC17xxLib/src/lpc17xx_systick.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  47:LPC17xxLib/src/lpc17xx_systick.c **** 
+  48:LPC17xxLib/src/lpc17xx_systick.c **** 
+  49:LPC17xxLib/src/lpc17xx_systick.c **** #ifdef _SYSTICK
+  50:LPC17xxLib/src/lpc17xx_systick.c **** 
+  51:LPC17xxLib/src/lpc17xx_systick.c **** /* Public Functions ----------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_systick.c **** /** @addtogroup SYSTICK_Public_Functions
+  53:LPC17xxLib/src/lpc17xx_systick.c ****  * @{
+  54:LPC17xxLib/src/lpc17xx_systick.c ****  */
+  55:LPC17xxLib/src/lpc17xx_systick.c **** /*********************************************************************//**
+  56:LPC17xxLib/src/lpc17xx_systick.c ****  * @brief 		Initial System Tick with using internal CPU clock source
+  57:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	time	time interval(ms)
+  58:LPC17xxLib/src/lpc17xx_systick.c ****  * @return 		None
+  59:LPC17xxLib/src/lpc17xx_systick.c ****  **********************************************************************/
+  60:LPC17xxLib/src/lpc17xx_systick.c **** void SYSTICK_InternalInit(uint32_t time)
+  61:LPC17xxLib/src/lpc17xx_systick.c **** {
+  28              	 .loc 1 61 0
+  29              	 .cfi_startproc
+  30              	 
+  31              	 
+  32              	.LVL0:
+  33 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+  34              	 .cfi_def_cfa_offset 24
+  35              	 .cfi_offset 3,-24
+  36              	 .cfi_offset 4,-20
+  37              	 .cfi_offset 5,-16
+  38              	 .cfi_offset 6,-12
+  39              	 .cfi_offset 7,-8
+  40              	 .cfi_offset 14,-4
+  62:LPC17xxLib/src/lpc17xx_systick.c **** 	uint32_t cclk;
+  63:LPC17xxLib/src/lpc17xx_systick.c **** 	float maxtime;
+  64:LPC17xxLib/src/lpc17xx_systick.c **** 
+  65:LPC17xxLib/src/lpc17xx_systick.c **** 	cclk = SystemCoreClock;
+  41              	 .loc 1 65 0
+  42 0002 0F4B     	 ldr r3,.L6
+  43              	.LVL1:
+  61:LPC17xxLib/src/lpc17xx_systick.c **** 	uint32_t cclk;
+  44              	 .loc 1 61 0
+  45 0004 0446     	 mov r4,r0
+  66:LPC17xxLib/src/lpc17xx_systick.c **** 	/* With internal CPU clock frequency for LPC17xx is 'SystemCoreClock'
+  67:LPC17xxLib/src/lpc17xx_systick.c **** 	 * And limit 24 bit for RELOAD value
+  68:LPC17xxLib/src/lpc17xx_systick.c **** 	 * So the maximum time can be set:
+  69:LPC17xxLib/src/lpc17xx_systick.c **** 	 * 1/SystemCoreClock * (2^24) * 1000 (ms)
+  70:LPC17xxLib/src/lpc17xx_systick.c **** 	 */
+  71:LPC17xxLib/src/lpc17xx_systick.c **** 	//check time value is available or not
+  72:LPC17xxLib/src/lpc17xx_systick.c **** 	maxtime = (1<<24)/(SystemCoreClock / 1000) ;
+  46              	 .loc 1 72 0
+  47 0006 1D68     	 ldr r5,[r3]
+  48 0008 4FF47A73 	 mov r3,#1000
+  49              	.LVL2:
+  50 000c 4FF08070 	 mov r0,#16777216
+  51              	.LVL3:
+  52 0010 B5FBF3F5 	 udiv r5,r5,r3
+  53              	.LVL4:
+  54 0014 0B4E     	 ldr r6,.L6+4
+  55 0016 B0FBF5F0 	 udiv r0,r0,r5
+  56 001a B047     	 blx r6
+  57              	.LVL5:
+  58 001c 0746     	 mov r7,r0
+  73:LPC17xxLib/src/lpc17xx_systick.c **** 	if(time > maxtime)
+  59              	 .loc 1 73 0
+  60 001e 2046     	 mov r0,r4
+  61 0020 B047     	 blx r6
+  62              	.LVL6:
+  63 0022 094B     	 ldr r3,.L6+8
+  64 0024 0146     	 mov r1,r0
+  65 0026 3846     	 mov r0,r7
+  66 0028 9847     	 blx r3
+  67              	.LVL7:
+  68 002a 00B1     	 cbz r0,.L5
+  69              	.L4:
+  70 002c FEE7     	 b .L4
+  71              	.L5:
+  74:LPC17xxLib/src/lpc17xx_systick.c **** 		//Error loop
+  75:LPC17xxLib/src/lpc17xx_systick.c **** 		while(1);
+  76:LPC17xxLib/src/lpc17xx_systick.c **** 	else
+  77:LPC17xxLib/src/lpc17xx_systick.c **** 	{
+  78:LPC17xxLib/src/lpc17xx_systick.c **** 		//Select CPU clock is System Tick clock source
+  79:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->CTRL |= ST_CTRL_CLKSOURCE;
+  72              	 .loc 1 79 0
+  73 002e 074B     	 ldr r3,.L6+12
+  80:LPC17xxLib/src/lpc17xx_systick.c **** 		/* Set RELOAD value
+  81:LPC17xxLib/src/lpc17xx_systick.c **** 		 * RELOAD = (SystemCoreClock/1000) * time - 1
+  82:LPC17xxLib/src/lpc17xx_systick.c **** 		 * with time base is millisecond
+  83:LPC17xxLib/src/lpc17xx_systick.c **** 		 */
+  84:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->LOAD = (cclk/1000)*time - 1;
+  74              	 .loc 1 84 0
+  75 0030 6C43     	 muls r4,r5,r4
+  76              	.LVL8:
+  79:LPC17xxLib/src/lpc17xx_systick.c **** 		/* Set RELOAD value
+  77              	 .loc 1 79 0
+  78 0032 1A68     	 ldr r2,[r3]
+  79              	 .loc 1 84 0
+  80 0034 013C     	 subs r4,r4,#1
+  79:LPC17xxLib/src/lpc17xx_systick.c **** 		/* Set RELOAD value
+  81              	 .loc 1 79 0
+  82 0036 42F00402 	 orr r2,r2,#4
+  83 003a 1A60     	 str r2,[r3]
+  84              	 .loc 1 84 0
+  85 003c 5C60     	 str r4,[r3,#4]
+  86 003e F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+  87              	.LVL9:
+  88              	.L7:
+  89              	 .align 2
+  90              	.L6:
+  91 0040 00000000 	 .word SystemCoreClock
+  92 0044 00000000 	 .word __aeabi_ui2f
+  93 0048 00000000 	 .word __aeabi_fcmplt
+  94 004c 10E000E0 	 .word -536813552
+  95              	 .cfi_endproc
+  96              	.LFE55:
+  98              	 .section .text.SYSTICK_ExternalInit,"ax",%progbits
+  99              	 .align 1
+ 100              	 .global SYSTICK_ExternalInit
+ 101              	 .syntax unified
+ 102              	 .thumb
+ 103              	 .thumb_func
+ 104              	 .fpu softvfp
+ 106              	SYSTICK_ExternalInit:
+ 107              	.LFB56:
+  85:LPC17xxLib/src/lpc17xx_systick.c **** 	}
+  86:LPC17xxLib/src/lpc17xx_systick.c **** }
+  87:LPC17xxLib/src/lpc17xx_systick.c **** 
+  88:LPC17xxLib/src/lpc17xx_systick.c **** /*********************************************************************//**
+  89:LPC17xxLib/src/lpc17xx_systick.c ****  * @brief 		Initial System Tick with using external clock source
+  90:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	freq	external clock frequency(Hz)
+  91:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	time	time interval(ms)
+  92:LPC17xxLib/src/lpc17xx_systick.c ****  * @return 		None
+  93:LPC17xxLib/src/lpc17xx_systick.c ****  **********************************************************************/
+  94:LPC17xxLib/src/lpc17xx_systick.c **** void SYSTICK_ExternalInit(uint32_t freq, uint32_t time)
+  95:LPC17xxLib/src/lpc17xx_systick.c **** {
+ 108              	 .loc 1 95 0
+ 109              	 .cfi_startproc
+ 110              	 
+ 111              	 
+ 112              	.LVL10:
+ 113 0000 F8B5     	 push {r3,r4,r5,r6,r7,lr}
+ 114              	 .cfi_def_cfa_offset 24
+ 115              	 .cfi_offset 3,-24
+ 116              	 .cfi_offset 4,-20
+ 117              	 .cfi_offset 5,-16
+ 118              	 .cfi_offset 6,-12
+ 119              	 .cfi_offset 7,-8
+ 120              	 .cfi_offset 14,-4
+  96:LPC17xxLib/src/lpc17xx_systick.c **** 	float maxtime;
+  97:LPC17xxLib/src/lpc17xx_systick.c **** 
+  98:LPC17xxLib/src/lpc17xx_systick.c **** 	/* With external clock frequency for LPC17xx is 'freq'
+  99:LPC17xxLib/src/lpc17xx_systick.c **** 	 * And limit 24 bit for RELOAD value
+ 100:LPC17xxLib/src/lpc17xx_systick.c **** 	 * So the maximum time can be set:
+ 101:LPC17xxLib/src/lpc17xx_systick.c **** 	 * 1/freq * (2^24) * 1000 (ms)
+ 102:LPC17xxLib/src/lpc17xx_systick.c **** 	 */
+ 103:LPC17xxLib/src/lpc17xx_systick.c **** 	//check time value is available or not
+ 104:LPC17xxLib/src/lpc17xx_systick.c **** 	maxtime = (1<<24)/(freq / 1000) ;
+ 121              	 .loc 1 104 0
+ 122 0002 4FF47A75 	 mov r5,#1000
+ 123 0006 B0FBF5F5 	 udiv r5,r0,r5
+ 124              	.LVL11:
+ 125 000a 4FF08070 	 mov r0,#16777216
+ 126              	.LVL12:
+ 127 000e 0B4E     	 ldr r6,.L13
+ 128 0010 B0FBF5F0 	 udiv r0,r0,r5
+  95:LPC17xxLib/src/lpc17xx_systick.c **** 	float maxtime;
+ 129              	 .loc 1 95 0
+ 130 0014 0C46     	 mov r4,r1
+ 131              	 .loc 1 104 0
+ 132 0016 B047     	 blx r6
+ 133              	.LVL13:
+ 134 0018 0746     	 mov r7,r0
+ 105:LPC17xxLib/src/lpc17xx_systick.c **** 	if (time>maxtime)
+ 135              	 .loc 1 105 0
+ 136 001a 2046     	 mov r0,r4
+ 137 001c B047     	 blx r6
+ 138              	.LVL14:
+ 139 001e 084B     	 ldr r3,.L13+4
+ 140 0020 0146     	 mov r1,r0
+ 141 0022 3846     	 mov r0,r7
+ 142 0024 9847     	 blx r3
+ 143              	.LVL15:
+ 144 0026 00B1     	 cbz r0,.L12
+ 145              	.L11:
+ 146 0028 FEE7     	 b .L11
+ 147              	.L12:
+ 106:LPC17xxLib/src/lpc17xx_systick.c **** 		//Error Loop
+ 107:LPC17xxLib/src/lpc17xx_systick.c **** 		while(1);
+ 108:LPC17xxLib/src/lpc17xx_systick.c **** 	else
+ 109:LPC17xxLib/src/lpc17xx_systick.c **** 	{
+ 110:LPC17xxLib/src/lpc17xx_systick.c **** 		//Select external clock is System Tick clock source
+ 111:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->CTRL &= ~ ST_CTRL_CLKSOURCE;
+ 148              	 .loc 1 111 0
+ 149 002a 064B     	 ldr r3,.L13+8
+ 112:LPC17xxLib/src/lpc17xx_systick.c **** 		/* Set RELOAD value
+ 113:LPC17xxLib/src/lpc17xx_systick.c **** 		 * RELOAD = (freq/1000) * time - 1
+ 114:LPC17xxLib/src/lpc17xx_systick.c **** 		 * with time base is millisecond
+ 115:LPC17xxLib/src/lpc17xx_systick.c **** 		 */
+ 116:LPC17xxLib/src/lpc17xx_systick.c **** 		maxtime = (freq/1000)*time - 1;
+ 150              	 .loc 1 116 0
+ 151 002c 6C43     	 muls r4,r5,r4
+ 152              	.LVL16:
+ 111:LPC17xxLib/src/lpc17xx_systick.c **** 		/* Set RELOAD value
+ 153              	 .loc 1 111 0
+ 154 002e 1A68     	 ldr r2,[r3]
+ 155              	 .loc 1 116 0
+ 156 0030 013C     	 subs r4,r4,#1
+ 157              	.LVL17:
+ 111:LPC17xxLib/src/lpc17xx_systick.c **** 		/* Set RELOAD value
+ 158              	 .loc 1 111 0
+ 159 0032 22F00402 	 bic r2,r2,#4
+ 160 0036 1A60     	 str r2,[r3]
+ 117:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->LOAD = (freq/1000)*time - 1;
+ 161              	 .loc 1 117 0
+ 162 0038 5C60     	 str r4,[r3,#4]
+ 163 003a F8BD     	 pop {r3,r4,r5,r6,r7,pc}
+ 164              	.LVL18:
+ 165              	.L14:
+ 166              	 .align 2
+ 167              	.L13:
+ 168 003c 00000000 	 .word __aeabi_ui2f
+ 169 0040 00000000 	 .word __aeabi_fcmplt
+ 170 0044 10E000E0 	 .word -536813552
+ 171              	 .cfi_endproc
+ 172              	.LFE56:
+ 174              	 .section .text.SYSTICK_Cmd,"ax",%progbits
+ 175              	 .align 1
+ 176              	 .global SYSTICK_Cmd
+ 177              	 .syntax unified
+ 178              	 .thumb
+ 179              	 .thumb_func
+ 180              	 .fpu softvfp
+ 182              	SYSTICK_Cmd:
+ 183              	.LFB57:
+ 118:LPC17xxLib/src/lpc17xx_systick.c **** 	}
+ 119:LPC17xxLib/src/lpc17xx_systick.c **** }
+ 120:LPC17xxLib/src/lpc17xx_systick.c **** 
+ 121:LPC17xxLib/src/lpc17xx_systick.c **** /*********************************************************************//**
+ 122:LPC17xxLib/src/lpc17xx_systick.c ****  * @brief 		Enable/disable System Tick counter
+ 123:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	NewState	System Tick counter status, should be:
+ 124:LPC17xxLib/src/lpc17xx_systick.c ****  * 					- ENABLE
+ 125:LPC17xxLib/src/lpc17xx_systick.c ****  * 					- DISABLE
+ 126:LPC17xxLib/src/lpc17xx_systick.c ****  * @return 		None
+ 127:LPC17xxLib/src/lpc17xx_systick.c ****  **********************************************************************/
+ 128:LPC17xxLib/src/lpc17xx_systick.c **** void SYSTICK_Cmd(FunctionalState NewState)
+ 129:LPC17xxLib/src/lpc17xx_systick.c **** {
+ 184              	 .loc 1 129 0
+ 185              	 .cfi_startproc
+ 186              	 
+ 187              	 
+ 188              	 
+ 189              	.LVL19:
+ 190 0000 044B     	 ldr r3,.L19
+ 130:LPC17xxLib/src/lpc17xx_systick.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 131:LPC17xxLib/src/lpc17xx_systick.c **** 
+ 132:LPC17xxLib/src/lpc17xx_systick.c **** 	if(NewState == ENABLE)
+ 191              	 .loc 1 132 0
+ 192 0002 0128     	 cmp r0,#1
+ 133:LPC17xxLib/src/lpc17xx_systick.c **** 		//Enable System Tick counter
+ 134:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->CTRL |= ST_CTRL_ENABLE;
+ 193              	 .loc 1 134 0
+ 194 0004 1A68     	 ldr r2,[r3]
+ 195 0006 0CBF     	 ite eq
+ 196 0008 42F00102 	 orreq r2,r2,#1
+ 135:LPC17xxLib/src/lpc17xx_systick.c **** 	else
+ 136:LPC17xxLib/src/lpc17xx_systick.c **** 		//Disable System Tick counter
+ 137:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->CTRL &= ~ST_CTRL_ENABLE;
+ 197              	 .loc 1 137 0
+ 198 000c 22F00102 	 bicne r2,r2,#1
+ 199 0010 1A60     	 str r2,[r3]
+ 200 0012 7047     	 bx lr
+ 201              	.L20:
+ 202              	 .align 2
+ 203              	.L19:
+ 204 0014 10E000E0 	 .word -536813552
+ 205              	 .cfi_endproc
+ 206              	.LFE57:
+ 208              	 .section .text.SYSTICK_IntCmd,"ax",%progbits
+ 209              	 .align 1
+ 210              	 .global SYSTICK_IntCmd
+ 211              	 .syntax unified
+ 212              	 .thumb
+ 213              	 .thumb_func
+ 214              	 .fpu softvfp
+ 216              	SYSTICK_IntCmd:
+ 217              	.LFB58:
+ 138:LPC17xxLib/src/lpc17xx_systick.c **** }
+ 139:LPC17xxLib/src/lpc17xx_systick.c **** 
+ 140:LPC17xxLib/src/lpc17xx_systick.c **** /*********************************************************************//**
+ 141:LPC17xxLib/src/lpc17xx_systick.c ****  * @brief 		Enable/disable System Tick interrupt
+ 142:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	NewState	System Tick interrupt status, should be:
+ 143:LPC17xxLib/src/lpc17xx_systick.c ****  * 					- ENABLE
+ 144:LPC17xxLib/src/lpc17xx_systick.c ****  * 					- DISABLE
+ 145:LPC17xxLib/src/lpc17xx_systick.c ****  * @return 		None
+ 146:LPC17xxLib/src/lpc17xx_systick.c ****  **********************************************************************/
+ 147:LPC17xxLib/src/lpc17xx_systick.c **** void SYSTICK_IntCmd(FunctionalState NewState)
+ 148:LPC17xxLib/src/lpc17xx_systick.c **** {
+ 218              	 .loc 1 148 0
+ 219              	 .cfi_startproc
+ 220              	 
+ 221              	 
+ 222              	 
+ 223              	.LVL20:
+ 224 0000 044B     	 ldr r3,.L25
+ 149:LPC17xxLib/src/lpc17xx_systick.c **** 	CHECK_PARAM(PARAM_FUNCTIONALSTATE(NewState));
+ 150:LPC17xxLib/src/lpc17xx_systick.c **** 
+ 151:LPC17xxLib/src/lpc17xx_systick.c **** 	if(NewState == ENABLE)
+ 225              	 .loc 1 151 0
+ 226 0002 0128     	 cmp r0,#1
+ 152:LPC17xxLib/src/lpc17xx_systick.c **** 		//Enable System Tick counter
+ 153:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->CTRL |= ST_CTRL_TICKINT;
+ 227              	 .loc 1 153 0
+ 228 0004 1A68     	 ldr r2,[r3]
+ 229 0006 0CBF     	 ite eq
+ 230 0008 42F00202 	 orreq r2,r2,#2
+ 154:LPC17xxLib/src/lpc17xx_systick.c **** 	else
+ 155:LPC17xxLib/src/lpc17xx_systick.c **** 		//Disable System Tick counter
+ 156:LPC17xxLib/src/lpc17xx_systick.c **** 		SysTick->CTRL &= ~ST_CTRL_TICKINT;
+ 231              	 .loc 1 156 0
+ 232 000c 22F00202 	 bicne r2,r2,#2
+ 233 0010 1A60     	 str r2,[r3]
+ 234 0012 7047     	 bx lr
+ 235              	.L26:
+ 236              	 .align 2
+ 237              	.L25:
+ 238 0014 10E000E0 	 .word -536813552
+ 239              	 .cfi_endproc
+ 240              	.LFE58:
+ 242              	 .section .text.SYSTICK_GetCurrentValue,"ax",%progbits
+ 243              	 .align 1
+ 244              	 .global SYSTICK_GetCurrentValue
+ 245              	 .syntax unified
+ 246              	 .thumb
+ 247              	 .thumb_func
+ 248              	 .fpu softvfp
+ 250              	SYSTICK_GetCurrentValue:
+ 251              	.LFB59:
+ 157:LPC17xxLib/src/lpc17xx_systick.c **** }
+ 158:LPC17xxLib/src/lpc17xx_systick.c **** 
+ 159:LPC17xxLib/src/lpc17xx_systick.c **** /*********************************************************************//**
+ 160:LPC17xxLib/src/lpc17xx_systick.c ****  * @brief 		Get current value of System Tick counter
+ 161:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	None
+ 162:LPC17xxLib/src/lpc17xx_systick.c ****  * @return 		current value of System Tick counter
+ 163:LPC17xxLib/src/lpc17xx_systick.c ****  **********************************************************************/
+ 164:LPC17xxLib/src/lpc17xx_systick.c **** uint32_t SYSTICK_GetCurrentValue(void)
+ 165:LPC17xxLib/src/lpc17xx_systick.c **** {
+ 252              	 .loc 1 165 0
+ 253              	 .cfi_startproc
+ 254              	 
+ 255              	 
+ 256              	 
+ 166:LPC17xxLib/src/lpc17xx_systick.c **** 	return (SysTick->VAL);
+ 257              	 .loc 1 166 0
+ 258 0000 014B     	 ldr r3,.L28
+ 259 0002 9868     	 ldr r0,[r3,#8]
+ 167:LPC17xxLib/src/lpc17xx_systick.c **** }
+ 260              	 .loc 1 167 0
+ 261 0004 7047     	 bx lr
+ 262              	.L29:
+ 263 0006 00BF     	 .align 2
+ 264              	.L28:
+ 265 0008 10E000E0 	 .word -536813552
+ 266              	 .cfi_endproc
+ 267              	.LFE59:
+ 269              	 .section .text.SYSTICK_ClearCounterFlag,"ax",%progbits
+ 270              	 .align 1
+ 271              	 .global SYSTICK_ClearCounterFlag
+ 272              	 .syntax unified
+ 273              	 .thumb
+ 274              	 .thumb_func
+ 275              	 .fpu softvfp
+ 277              	SYSTICK_ClearCounterFlag:
+ 278              	.LFB60:
+ 168:LPC17xxLib/src/lpc17xx_systick.c **** 
+ 169:LPC17xxLib/src/lpc17xx_systick.c **** /*********************************************************************//**
+ 170:LPC17xxLib/src/lpc17xx_systick.c ****  * @brief 		Clear Counter flag
+ 171:LPC17xxLib/src/lpc17xx_systick.c ****  * @param[in]	None
+ 172:LPC17xxLib/src/lpc17xx_systick.c ****  * @return 		None
+ 173:LPC17xxLib/src/lpc17xx_systick.c ****  **********************************************************************/
+ 174:LPC17xxLib/src/lpc17xx_systick.c **** void SYSTICK_ClearCounterFlag(void)
+ 175:LPC17xxLib/src/lpc17xx_systick.c **** {
+ 279              	 .loc 1 175 0
+ 280              	 .cfi_startproc
+ 281              	 
+ 282              	 
+ 283              	 
+ 176:LPC17xxLib/src/lpc17xx_systick.c **** 	SysTick->CTRL &= ~ST_CTRL_COUNTFLAG;
+ 284              	 .loc 1 176 0
+ 285 0000 024A     	 ldr r2,.L31
+ 286 0002 1368     	 ldr r3,[r2]
+ 287 0004 23F48033 	 bic r3,r3,#65536
+ 288 0008 1360     	 str r3,[r2]
+ 289 000a 7047     	 bx lr
+ 290              	.L32:
+ 291              	 .align 2
+ 292              	.L31:
+ 293 000c 10E000E0 	 .word -536813552
+ 294              	 .cfi_endproc
+ 295              	.LFE60:
+ 297              	 .text
+ 298              	.Letext0:
+ 299              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 300              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 301              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 302              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 303              	 .file 6 "LPC17xxLib/inc/lpc_types.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_systick.c
+    {standard input}:18     .text.SYSTICK_InternalInit:0000000000000000 $t
+    {standard input}:25     .text.SYSTICK_InternalInit:0000000000000000 SYSTICK_InternalInit
+    {standard input}:91     .text.SYSTICK_InternalInit:0000000000000040 $d
+    {standard input}:99     .text.SYSTICK_ExternalInit:0000000000000000 $t
+    {standard input}:106    .text.SYSTICK_ExternalInit:0000000000000000 SYSTICK_ExternalInit
+    {standard input}:168    .text.SYSTICK_ExternalInit:000000000000003c $d
+    {standard input}:175    .text.SYSTICK_Cmd:0000000000000000 $t
+    {standard input}:182    .text.SYSTICK_Cmd:0000000000000000 SYSTICK_Cmd
+    {standard input}:204    .text.SYSTICK_Cmd:0000000000000014 $d
+    {standard input}:209    .text.SYSTICK_IntCmd:0000000000000000 $t
+    {standard input}:216    .text.SYSTICK_IntCmd:0000000000000000 SYSTICK_IntCmd
+    {standard input}:238    .text.SYSTICK_IntCmd:0000000000000014 $d
+    {standard input}:243    .text.SYSTICK_GetCurrentValue:0000000000000000 $t
+    {standard input}:250    .text.SYSTICK_GetCurrentValue:0000000000000000 SYSTICK_GetCurrentValue
+    {standard input}:265    .text.SYSTICK_GetCurrentValue:0000000000000008 $d
+    {standard input}:270    .text.SYSTICK_ClearCounterFlag:0000000000000000 $t
+    {standard input}:277    .text.SYSTICK_ClearCounterFlag:0000000000000000 SYSTICK_ClearCounterFlag
+    {standard input}:293    .text.SYSTICK_ClearCounterFlag:000000000000000c $d
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_ui2f
+__aeabi_fcmplt
+SystemCoreClock

@@ -1,0 +1,1443 @@
+   1              	 .cpu cortex-m3
+   2              	 .eabi_attribute 20,1
+   3              	 .eabi_attribute 21,1
+   4              	 .eabi_attribute 23,3
+   5              	 .eabi_attribute 24,1
+   6              	 .eabi_attribute 25,1
+   7              	 .eabi_attribute 26,1
+   8              	 .eabi_attribute 30,4
+   9              	 .eabi_attribute 34,1
+  10              	 .eabi_attribute 18,4
+  11              	 .file "lpc17xx_mcpwm.c"
+  12              	 .text
+  13              	.Ltext0:
+  14              	 .cfi_sections .debug_frame
+  15              	 .section .text.MCPWM_Init,"ax",%progbits
+  16              	 .align 1
+  17              	 .global MCPWM_Init
+  18              	 .syntax unified
+  19              	 .thumb
+  20              	 .thumb_func
+  21              	 .fpu softvfp
+  23              	MCPWM_Init:
+  24              	.LFB55:
+  25              	 .file 1 "LPC17xxLib/src/lpc17xx_mcpwm.c"
+   1:LPC17xxLib/src/lpc17xx_mcpwm.c **** #ifdef __LPC17XX__
+   2:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+   3:LPC17xxLib/src/lpc17xx_mcpwm.c **** /**********************************************************************
+   4:LPC17xxLib/src/lpc17xx_mcpwm.c **** * $Id$		lpc17xx_mcpwm.c				2010-05-21
+   5:LPC17xxLib/src/lpc17xx_mcpwm.c **** *//**
+   6:LPC17xxLib/src/lpc17xx_mcpwm.c **** * @file		lpc17xx_mcpwm.c
+   7:LPC17xxLib/src/lpc17xx_mcpwm.c **** * @brief	Contains all functions support for Motor Control PWM firmware
+   8:LPC17xxLib/src/lpc17xx_mcpwm.c **** * 			library on LPC17xx
+   9:LPC17xxLib/src/lpc17xx_mcpwm.c **** * @version	2.0
+  10:LPC17xxLib/src/lpc17xx_mcpwm.c **** * @date		21. May. 2010
+  11:LPC17xxLib/src/lpc17xx_mcpwm.c **** * @author	NXP MCU SW Application Team
+  12:LPC17xxLib/src/lpc17xx_mcpwm.c **** *
+  13:LPC17xxLib/src/lpc17xx_mcpwm.c **** * Copyright(C) 2010, NXP Semiconductor
+  14:LPC17xxLib/src/lpc17xx_mcpwm.c **** * All rights reserved.
+  15:LPC17xxLib/src/lpc17xx_mcpwm.c **** *
+  16:LPC17xxLib/src/lpc17xx_mcpwm.c **** ***********************************************************************
+  17:LPC17xxLib/src/lpc17xx_mcpwm.c **** * Software that is described herein is for illustrative purposes only
+  18:LPC17xxLib/src/lpc17xx_mcpwm.c **** * which provides customers with programming information regarding the
+  19:LPC17xxLib/src/lpc17xx_mcpwm.c **** * products. This software is supplied "AS IS" without any warranties.
+  20:LPC17xxLib/src/lpc17xx_mcpwm.c **** * NXP Semiconductors assumes no responsibility or liability for the
+  21:LPC17xxLib/src/lpc17xx_mcpwm.c **** * use of the software, conveys no license or title under any patent,
+  22:LPC17xxLib/src/lpc17xx_mcpwm.c **** * copyright, or mask work right to the product. NXP Semiconductors
+  23:LPC17xxLib/src/lpc17xx_mcpwm.c **** * reserves the right to make changes in the software without
+  24:LPC17xxLib/src/lpc17xx_mcpwm.c **** * notification. NXP Semiconductors also make no representation or
+  25:LPC17xxLib/src/lpc17xx_mcpwm.c **** * warranty that such application will be suitable for the specified
+  26:LPC17xxLib/src/lpc17xx_mcpwm.c **** * use without further testing or modification.
+  27:LPC17xxLib/src/lpc17xx_mcpwm.c **** **********************************************************************/
+  28:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  29:LPC17xxLib/src/lpc17xx_mcpwm.c **** /* Peripheral group ----------------------------------------------------------- */
+  30:LPC17xxLib/src/lpc17xx_mcpwm.c **** /** @addtogroup MCPWM
+  31:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @{
+  32:LPC17xxLib/src/lpc17xx_mcpwm.c ****  */
+  33:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  34:LPC17xxLib/src/lpc17xx_mcpwm.c **** /* Includes ------------------------------------------------------------------- */
+  35:LPC17xxLib/src/lpc17xx_mcpwm.c **** #include "lpc17xx_mcpwm.h"
+  36:LPC17xxLib/src/lpc17xx_mcpwm.c **** #include "lpc17xx_clkpwr.h"
+  37:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  38:LPC17xxLib/src/lpc17xx_mcpwm.c **** /* If this source file built with example, the LPC17xx FW library configuration
+  39:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * file in each example directory ("lpc17xx_libcfg.h") must be included,
+  40:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * otherwise the default FW library configuration file must be included instead
+  41:LPC17xxLib/src/lpc17xx_mcpwm.c ****  */
+  42:LPC17xxLib/src/lpc17xx_mcpwm.c **** #ifdef __BUILD_WITH_EXAMPLE__
+  43:LPC17xxLib/src/lpc17xx_mcpwm.c **** #include "lpc17xx_libcfg.h"
+  44:LPC17xxLib/src/lpc17xx_mcpwm.c **** #else
+  45:LPC17xxLib/src/lpc17xx_mcpwm.c **** #include "lpc17xx_libcfg_default.h"
+  46:LPC17xxLib/src/lpc17xx_mcpwm.c **** #endif /* __BUILD_WITH_EXAMPLE__ */
+  47:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  48:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  49:LPC17xxLib/src/lpc17xx_mcpwm.c **** #ifdef _MCPWM
+  50:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  51:LPC17xxLib/src/lpc17xx_mcpwm.c **** /* Public Functions ----------------------------------------------------------- */
+  52:LPC17xxLib/src/lpc17xx_mcpwm.c **** /** @addtogroup MCPWM_Public_Functions
+  53:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @{
+  54:LPC17xxLib/src/lpc17xx_mcpwm.c ****  */
+  55:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  56:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+  57:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Initializes the MCPWM peripheral
+  58:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected,
+  59:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 				Should be: LPC_MCPWM
+  60:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+  61:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+  62:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_Init(LPC_MCPWM_TypeDef *MCPWMx)
+  63:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+  26              	 .loc 1 63 0
+  27              	 .cfi_startproc
+  28              	 
+  29              	 
+  30              	.LVL0:
+  31 0000 10B5     	 push {r4,lr}
+  32              	 .cfi_def_cfa_offset 8
+  33              	 .cfi_offset 4,-8
+  34              	 .cfi_offset 14,-4
+  35              	 .loc 1 63 0
+  36 0002 0446     	 mov r4,r0
+  64:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  65:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	/* Turn On MCPWM PCLK */
+  66:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	CLKPWR_ConfigPPWR (CLKPWR_PCONP_PCMC, ENABLE);
+  37              	 .loc 1 66 0
+  38 0004 0121     	 movs r1,#1
+  39 0006 4FF40030 	 mov r0,#131072
+  40              	.LVL1:
+  41 000a 1B4B     	 ldr r3,.L2
+  42 000c 9847     	 blx r3
+  43              	.LVL2:
+  67:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	/* As default, peripheral clock for MCPWM module
+  68:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	 * is set to FCCLK / 2 */
+  69:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	// CLKPWR_SetPCLKDiv(CLKPWR_PCLKSEL_MC, CLKPWR_PCLKSEL_CCLK_DIV_2);
+  70:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  71:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCCAP_CLR = MCPWM_CAPCLR_CAP(0) | MCPWM_CAPCLR_CAP(1) | MCPWM_CAPCLR_CAP(2);
+  44              	 .loc 1 71 0
+  45 000e 0722     	 movs r2,#7
+  46 0010 94F87430 	 ldrb r3,[r4,#116]
+  47 0014 0023     	 movs r3,#0
+  48 0016 84F87420 	 strb r2,[r4,#116]
+  49 001a 94F87510 	 ldrb r1,[r4,#117]
+  50 001e 84F87530 	 strb r3,[r4,#117]
+  51 0022 94F87610 	 ldrb r1,[r4,#118]
+  52 0026 84F87630 	 strb r3,[r4,#118]
+  53 002a 94F87710 	 ldrb r1,[r4,#119]
+  54 002e 84F87730 	 strb r3,[r4,#119]
+  72:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCINTFLAG_CLR = MCPWM_INT_ILIM(0) | MCPWM_INT_ILIM(1) | MCPWM_INT_ILIM(2) \
+  55              	 .loc 1 72 0
+  56 0032 94F87010 	 ldrb r1,[r4,#112]
+  57 0036 7721     	 movs r1,#119
+  58 0038 84F87010 	 strb r1,[r4,#112]
+  59 003c 94F87100 	 ldrb r0,[r4,#113]
+  60 0040 84F87120 	 strb r2,[r4,#113]
+  61 0044 94F87200 	 ldrb r0,[r4,#114]
+  62 0048 84F87230 	 strb r3,[r4,#114]
+  63 004c 94F87300 	 ldrb r0,[r4,#115]
+  64 0050 84F87330 	 strb r3,[r4,#115]
+  73:LPC17xxLib/src/lpc17xx_mcpwm.c **** 							| MCPWM_INT_IMAT(0) | MCPWM_INT_IMAT(1) | MCPWM_INT_IMAT(2) \
+  74:LPC17xxLib/src/lpc17xx_mcpwm.c **** 							| MCPWM_INT_ICAP(0) | MCPWM_INT_ICAP(1) | MCPWM_INT_ICAP(2);
+  75:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCINTEN_CLR = MCPWM_INT_ILIM(0) | MCPWM_INT_ILIM(1) | MCPWM_INT_ILIM(2) \
+  65              	 .loc 1 75 0
+  66 0054 94F85800 	 ldrb r0,[r4,#88]
+  67 0058 84F85810 	 strb r1,[r4,#88]
+  68 005c 94F85910 	 ldrb r1,[r4,#89]
+  69 0060 84F85920 	 strb r2,[r4,#89]
+  70 0064 94F85A20 	 ldrb r2,[r4,#90]
+  71 0068 84F85A30 	 strb r3,[r4,#90]
+  72 006c 94F85B20 	 ldrb r2,[r4,#91]
+  73 0070 84F85B30 	 strb r3,[r4,#91]
+  74 0074 10BD     	 pop {r4,pc}
+  75              	.LVL3:
+  76              	.L3:
+  77 0076 00BF     	 .align 2
+  78              	.L2:
+  79 0078 00000000 	 .word CLKPWR_ConfigPPWR
+  80              	 .cfi_endproc
+  81              	.LFE55:
+  83              	 .section .text.MCPWM_ConfigChannel,"ax",%progbits
+  84              	 .align 1
+  85              	 .global MCPWM_ConfigChannel
+  86              	 .syntax unified
+  87              	 .thumb
+  88              	 .thumb_func
+  89              	 .fpu softvfp
+  91              	MCPWM_ConfigChannel:
+  92              	.LFB56:
+  76:LPC17xxLib/src/lpc17xx_mcpwm.c **** 							| MCPWM_INT_IMAT(0) | MCPWM_INT_IMAT(1) | MCPWM_INT_IMAT(2) \
+  77:LPC17xxLib/src/lpc17xx_mcpwm.c **** 							| MCPWM_INT_ICAP(0) | MCPWM_INT_ICAP(1) | MCPWM_INT_ICAP(2);
+  78:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+  79:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  80:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+  81:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+  82:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Configures each channel in MCPWM peripheral according to the
+  83:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 				specified parameters in the MCPWM_CHANNEL_CFG_Type.
+  84:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 			Motor Control PWM peripheral selected
+  85:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								should be: LPC_MCPWM
+  86:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channelNum		Channel number, should be: 0..2.
+  87:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channelSetup	Pointer to a MCPWM_CHANNEL_CFG_Type structure
+  88:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    			that contains the configuration information for the
+  89:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    			specified MCPWM channel.
+  90:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+  91:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+  92:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_ConfigChannel(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+  93:LPC17xxLib/src/lpc17xx_mcpwm.c **** 						MCPWM_CHANNEL_CFG_Type * channelSetup)
+  94:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+  93              	 .loc 1 94 0
+  94              	 .cfi_startproc
+  95              	 
+  96              	 
+  97              	.LVL4:
+  95:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if ((channelNum >= 0) && (channelNum <= 2)) {
+  98              	 .loc 1 95 0
+  99 0000 0229     	 cmp r1,#2
+  94:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if ((channelNum >= 0) && (channelNum <= 2)) {
+ 100              	 .loc 1 94 0
+ 101 0002 30B5     	 push {r4,r5,lr}
+ 102              	 .cfi_def_cfa_offset 12
+ 103              	 .cfi_offset 4,-12
+ 104              	 .cfi_offset 5,-8
+ 105              	 .cfi_offset 14,-4
+ 106              	 .loc 1 95 0
+ 107 0004 4DD8     	 bhi .L4
+ 108 0006 5369     	 ldr r3,[r2,#20]
+  96:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (channelNum == 0) {
+ 109              	 .loc 1 96 0
+ 110 0008 71BB     	 cbnz r1,.L6
+  97:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCTIM0 = channelSetup->channelTimercounterValue;
+ 111              	 .loc 1 97 0
+ 112 000a 8361     	 str r3,[r0,#24]
+  98:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPER0 = channelSetup->channelPeriodValue;
+ 113              	 .loc 1 98 0
+ 114 000c 9369     	 ldr r3,[r2,#24]
+ 115 000e 4362     	 str r3,[r0,#36]
+  99:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPW0 = channelSetup->channelPulsewidthValue;
+ 116              	 .loc 1 99 0
+ 117 0010 D369     	 ldr r3,[r2,#28]
+ 118 0012 0363     	 str r3,[r0,#48]
+ 119              	.L7:
+ 100:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else if (channelNum == 1) {
+ 101:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCTIM1 = channelSetup->channelTimercounterValue;
+ 102:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPER1 = channelSetup->channelPeriodValue;
+ 103:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPW1 = channelSetup->channelPulsewidthValue;
+ 104:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else if (channelNum == 2) {
+ 105:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCTIM2 = channelSetup->channelTimercounterValue;
+ 106:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPER2 = channelSetup->channelPeriodValue;
+ 107:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPW2 = channelSetup->channelPulsewidthValue;
+ 108:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 109:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			return;
+ 110:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 111:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 112:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (channelSetup->channelType /* == MCPWM_CHANNEL_CENTER_MODE */){
+ 120              	 .loc 1 112 0
+ 121 0014 1568     	 ldr r5,[r2]
+ 122 0016 CB00     	 lsls r3,r1,#3
+ 123 0018 0124     	 movs r4,#1
+ 124 001a 9DB3     	 cbz r5,.L9
+ 113:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_SET = MCPWM_CON_CENTER(channelNum);
+ 125              	 .loc 1 113 0 discriminator 1
+ 126 001c 1D19     	 adds r5,r3,r4
+ 127 001e AC40     	 lsls r4,r4,r5
+ 128 0020 4460     	 str r4,[r0,#4]
+ 129              	.L10:
+ 114:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 115:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_CLR = MCPWM_CON_CENTER(channelNum);
+ 116:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 117:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 118:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (channelSetup->channelPolarity /* == MCPWM_CHANNEL_PASSIVE_HI */){
+ 130              	 .loc 1 118 0
+ 131 0022 5568     	 ldr r5,[r2,#4]
+ 132 0024 0124     	 movs r4,#1
+ 133 0026 8DB3     	 cbz r5,.L11
+ 119:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_SET = MCPWM_CON_POLAR(channelNum);
+ 134              	 .loc 1 119 0 discriminator 1
+ 135 0028 9D1C     	 adds r5,r3,#2
+ 136 002a AC40     	 lsls r4,r4,r5
+ 137 002c 4460     	 str r4,[r0,#4]
+ 138              	.L12:
+ 120:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 121:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_CLR = MCPWM_CON_POLAR(channelNum);
+ 122:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 123:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 124:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (channelSetup->channelDeadtimeEnable /* == ENABLE */){
+ 139              	 .loc 1 124 0
+ 140 002e 9568     	 ldr r5,[r2,#8]
+ 141 0030 0124     	 movs r4,#1
+ 142 0032 7DB3     	 cbz r5,.L13
+ 125:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_SET = MCPWM_CON_DTE(channelNum);
+ 143              	 .loc 1 125 0 discriminator 1
+ 144 0034 DD1C     	 adds r5,r3,#3
+ 145 0036 AC40     	 lsls r4,r4,r5
+ 146 0038 4460     	 str r4,[r0,#4]
+ 126:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCDEADTIME &= ~(MCPWM_DT(channelNum, 0x3FF));
+ 147              	 .loc 1 126 0 discriminator 1
+ 148 003a 0A24     	 movs r4,#10
+ 149 003c 4C43     	 muls r4,r1,r4
+ 150 003e 40F2FF31 	 movw r1,#1023
+ 151              	.LVL5:
+ 152 0042 C56B     	 ldr r5,[r0,#60]
+ 153 0044 A140     	 lsls r1,r1,r4
+ 154 0046 25EA0101 	 bic r1,r5,r1
+ 155 004a C163     	 str r1,[r0,#60]
+ 127:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCDEADTIME |= MCPWM_DT(channelNum, channelSetup->channelDeadtimeValue);
+ 156              	 .loc 1 127 0 discriminator 1
+ 157 004c D168     	 ldr r1,[r2,#12]
+ 158 004e C56B     	 ldr r5,[r0,#60]
+ 159 0050 C1F30901 	 ubfx r1,r1,#0,#10
+ 160 0054 A140     	 lsls r1,r1,r4
+ 161 0056 2943     	 orrs r1,r1,r5
+ 162 0058 C163     	 str r1,[r0,#60]
+ 163              	.L14:
+ 128:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 129:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_CLR = MCPWM_CON_DTE(channelNum);
+ 130:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 131:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 132:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (channelSetup->channelUpdateEnable /* == ENABLE */){
+ 164              	 .loc 1 132 0
+ 165 005a 1169     	 ldr r1,[r2,#16]
+ 133:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_CLR = MCPWM_CON_DISUP(channelNum);
+ 166              	 .loc 1 133 0
+ 167 005c 0433     	 adds r3,r3,#4
+ 168 005e 0122     	 movs r2,#1
+ 169              	.LVL6:
+ 132:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_CLR = MCPWM_CON_DISUP(channelNum);
+ 170              	 .loc 1 132 0
+ 171 0060 E1B1     	 cbz r1,.L15
+ 172              	 .loc 1 133 0 discriminator 1
+ 173 0062 9A40     	 lsls r2,r2,r3
+ 174 0064 8260     	 str r2,[r0,#8]
+ 175 0066 30BD     	 pop {r4,r5,pc}
+ 176              	.LVL7:
+ 177              	.L6:
+ 100:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCTIM1 = channelSetup->channelTimercounterValue;
+ 178              	 .loc 1 100 0
+ 179 0068 0129     	 cmp r1,#1
+ 180 006a 05D1     	 bne .L8
+ 101:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPER1 = channelSetup->channelPeriodValue;
+ 181              	 .loc 1 101 0
+ 182 006c C361     	 str r3,[r0,#28]
+ 102:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPW1 = channelSetup->channelPulsewidthValue;
+ 183              	 .loc 1 102 0
+ 184 006e 9369     	 ldr r3,[r2,#24]
+ 185 0070 8362     	 str r3,[r0,#40]
+ 103:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else if (channelNum == 2) {
+ 186              	 .loc 1 103 0
+ 187 0072 D369     	 ldr r3,[r2,#28]
+ 188 0074 4363     	 str r3,[r0,#52]
+ 189 0076 CDE7     	 b .L7
+ 190              	.L8:
+ 105:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPER2 = channelSetup->channelPeriodValue;
+ 191              	 .loc 1 105 0
+ 192 0078 0362     	 str r3,[r0,#32]
+ 106:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCPW2 = channelSetup->channelPulsewidthValue;
+ 193              	 .loc 1 106 0
+ 194 007a 9369     	 ldr r3,[r2,#24]
+ 195 007c C362     	 str r3,[r0,#44]
+ 107:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 196              	 .loc 1 107 0
+ 197 007e D369     	 ldr r3,[r2,#28]
+ 198 0080 8363     	 str r3,[r0,#56]
+ 199 0082 C7E7     	 b .L7
+ 200              	.L9:
+ 115:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 201              	 .loc 1 115 0 discriminator 1
+ 202 0084 5D1C     	 adds r5,r3,#1
+ 203 0086 AC40     	 lsls r4,r4,r5
+ 204 0088 8460     	 str r4,[r0,#8]
+ 205 008a CAE7     	 b .L10
+ 206              	.L11:
+ 121:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 207              	 .loc 1 121 0 discriminator 1
+ 208 008c 9D1C     	 adds r5,r3,#2
+ 209 008e AC40     	 lsls r4,r4,r5
+ 210 0090 8460     	 str r4,[r0,#8]
+ 211 0092 CCE7     	 b .L12
+ 212              	.L13:
+ 129:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 213              	 .loc 1 129 0 discriminator 1
+ 214 0094 D91C     	 adds r1,r3,#3
+ 215              	.LVL8:
+ 216 0096 8C40     	 lsls r4,r4,r1
+ 217 0098 8460     	 str r4,[r0,#8]
+ 218 009a DEE7     	 b .L14
+ 219              	.LVL9:
+ 220              	.L15:
+ 134:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 135:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCON_SET = MCPWM_CON_DISUP(channelNum);
+ 221              	 .loc 1 135 0 discriminator 1
+ 222 009c 02FA03F3 	 lsl r3,r2,r3
+ 223 00a0 4360     	 str r3,[r0,#4]
+ 224              	.L4:
+ 225 00a2 30BD     	 pop {r4,r5,pc}
+ 226              	 .cfi_endproc
+ 227              	.LFE56:
+ 229              	 .section .text.MCPWM_WriteToShadow,"ax",%progbits
+ 230              	 .align 1
+ 231              	 .global MCPWM_WriteToShadow
+ 232              	 .syntax unified
+ 233              	 .thumb
+ 234              	 .thumb_func
+ 235              	 .fpu softvfp
+ 237              	MCPWM_WriteToShadow:
+ 238              	.LFB57:
+ 136:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 137:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 138:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 139:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 140:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 141:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 142:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Write to MCPWM shadow registers - Update the value for period
+ 143:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 				and pulse width in MCPWM peripheral.
+ 144:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 			Motor Control PWM peripheral selected
+ 145:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								Should be: LPC_MCPWM
+ 146:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channelNum		Channel Number, should be: 0..2.
+ 147:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channelSetup	Pointer to a MCPWM_CHANNEL_CFG_Type structure
+ 148:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    			that contains the configuration information for the
+ 149:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    			specified MCPWM channel.
+ 150:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 151:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 152:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_WriteToShadow(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+ 153:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								MCPWM_CHANNEL_CFG_Type *channelSetup)
+ 154:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 239              	 .loc 1 154 0
+ 240              	 .cfi_startproc
+ 241              	 
+ 242              	 
+ 243              	 
+ 244              	.LVL10:
+ 155:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if (channelNum == 0){
+ 245              	 .loc 1 155 0
+ 246 0000 21B9     	 cbnz r1,.L17
+ 156:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCPER0 = channelSetup->channelPeriodValue;
+ 247              	 .loc 1 156 0
+ 248 0002 9369     	 ldr r3,[r2,#24]
+ 249 0004 4362     	 str r3,[r0,#36]
+ 157:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCPW0 = channelSetup->channelPulsewidthValue;
+ 250              	 .loc 1 157 0
+ 251 0006 D369     	 ldr r3,[r2,#28]
+ 252 0008 0363     	 str r3,[r0,#48]
+ 253 000a 7047     	 bx lr
+ 254              	.L17:
+ 158:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else if (channelNum == 1) {
+ 255              	 .loc 1 158 0
+ 256 000c 0129     	 cmp r1,#1
+ 257 000e 04D1     	 bne .L19
+ 159:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCPER1 = channelSetup->channelPeriodValue;
+ 258              	 .loc 1 159 0
+ 259 0010 9369     	 ldr r3,[r2,#24]
+ 260 0012 8362     	 str r3,[r0,#40]
+ 160:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCPW1 = channelSetup->channelPulsewidthValue;
+ 261              	 .loc 1 160 0
+ 262 0014 D369     	 ldr r3,[r2,#28]
+ 263 0016 4363     	 str r3,[r0,#52]
+ 264 0018 7047     	 bx lr
+ 265              	.L19:
+ 161:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else if (channelNum == 2) {
+ 266              	 .loc 1 161 0
+ 267 001a 0229     	 cmp r1,#2
+ 162:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCPER2 = channelSetup->channelPeriodValue;
+ 268              	 .loc 1 162 0
+ 269 001c 01BF     	 itttt eq
+ 270 001e 9369     	 ldreq r3,[r2,#24]
+ 271 0020 C362     	 streq r3,[r0,#44]
+ 163:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCPW2 = channelSetup->channelPulsewidthValue;
+ 272              	 .loc 1 163 0
+ 273 0022 D369     	 ldreq r3,[r2,#28]
+ 274 0024 8363     	 streq r3,[r0,#56]
+ 275 0026 7047     	 bx lr
+ 276              	 .cfi_endproc
+ 277              	.LFE57:
+ 279              	 .section .text.MCPWM_ConfigCapture,"ax",%progbits
+ 280              	 .align 1
+ 281              	 .global MCPWM_ConfigCapture
+ 282              	 .syntax unified
+ 283              	 .thumb
+ 284              	 .thumb_func
+ 285              	 .fpu softvfp
+ 287              	MCPWM_ConfigCapture:
+ 288              	.LFB58:
+ 164:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 165:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 166:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 167:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 168:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 169:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 170:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Configures capture function in MCPWM peripheral
+ 171:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 			Motor Control PWM peripheral selected
+ 172:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								Should be: LPC_MCPWM
+ 173:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channelNum		MCI (Motor Control Input pin) number
+ 174:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								Should be: 0..2
+ 175:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	captureConfig	Pointer to a MCPWM_CAPTURE_CFG_Type structure
+ 176:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    			that contains the configuration information for the
+ 177:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    			specified MCPWM capture.
+ 178:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return
+ 179:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 180:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_ConfigCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+ 181:LPC17xxLib/src/lpc17xx_mcpwm.c **** 						MCPWM_CAPTURE_CFG_Type *captureConfig)
+ 182:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 289              	 .loc 1 182 0
+ 290              	 .cfi_startproc
+ 291              	 
+ 292              	 
+ 293              	.LVL11:
+ 183:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if ((channelNum >= 0) && (channelNum <= 2)) {
+ 294              	 .loc 1 183 0
+ 295 0000 0229     	 cmp r1,#2
+ 182:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if ((channelNum >= 0) && (channelNum <= 2)) {
+ 296              	 .loc 1 182 0
+ 297 0002 30B5     	 push {r4,r5,lr}
+ 298              	 .cfi_def_cfa_offset 12
+ 299              	 .cfi_offset 4,-12
+ 300              	 .cfi_offset 5,-8
+ 301              	 .cfi_offset 14,-4
+ 302              	 .loc 1 183 0
+ 303 0004 4FD8     	 bhi .L20
+ 184:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 185:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (captureConfig->captureFalling /* == ENABLE */) {
+ 304              	 .loc 1 185 0
+ 305 0006 9468     	 ldr r4,[r2,#8]
+ 306 0008 1368     	 ldr r3,[r2]
+ 307 000a 002C     	 cmp r4,#0
+ 308 000c 2CD0     	 beq .L22
+ 186:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_SET = MCPWM_CAPCON_CAPMCI_FE(captureConfig->captureChannel, channelNum);
+ 309              	 .loc 1 186 0
+ 310 000e 022B     	 cmp r3,#2
+ 311 0010 97BF     	 itett ls
+ 312 0012 0125     	 movls r5,#1
+ 313 0014 0024     	 movhi r4,#0
+ 314 0016 03EB4304 	 addls r4,r3,r3,lsl#1
+ 315 001a 6418     	 addls r4,r4,r1
+ 316 001c 9EBF     	 ittt ls
+ 317 001e 6400     	 lslls r4,r4,#1
+ 318 0020 0134     	 addls r4,r4,#1
+ 319 0022 05FA04F4 	 lslls r4,r5,r4
+ 320 0026 0461     	 str r4,[r0,#16]
+ 321              	.L24:
+ 187:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 188:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_CLR = MCPWM_CAPCON_CAPMCI_FE(captureConfig->captureChannel, channelNum);
+ 189:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 190:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 191:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (captureConfig->captureRising /* == ENABLE */) {
+ 322              	 .loc 1 191 0
+ 323 0028 5468     	 ldr r4,[r2,#4]
+ 324 002a 44B3     	 cbz r4,.L26
+ 192:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_SET = MCPWM_CAPCON_CAPMCI_RE(captureConfig->captureChannel, channelNum);
+ 325              	 .loc 1 192 0
+ 326 002c 022B     	 cmp r3,#2
+ 327 002e 97BF     	 itett ls
+ 328 0030 0125     	 movls r5,#1
+ 329 0032 0024     	 movhi r4,#0
+ 330 0034 03EB4304 	 addls r4,r3,r3,lsl#1
+ 331 0038 6418     	 addls r4,r4,r1
+ 332 003a 9CBF     	 itt ls
+ 333 003c 6400     	 lslls r4,r4,#1
+ 334 003e 05FA04F4 	 lslls r4,r5,r4
+ 335 0042 0461     	 str r4,[r0,#16]
+ 336              	.L28:
+ 193:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 194:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_CLR = MCPWM_CAPCON_CAPMCI_RE(captureConfig->captureChannel, channelNum);
+ 195:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 196:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 197:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (captureConfig->timerReset /* == ENABLE */){
+ 337              	 .loc 1 197 0
+ 338 0044 D468     	 ldr r4,[r2,#12]
+ 339 0046 24B3     	 cbz r4,.L30
+ 198:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_SET = MCPWM_CAPCON_RT(captureConfig->captureChannel);
+ 340              	 .loc 1 198 0
+ 341 0048 022B     	 cmp r3,#2
+ 342 004a 9BBF     	 ittet ls
+ 343 004c 03F11204 	 addls r4,r3,#18
+ 344 0050 0123     	 movls r3,#1
+ 345 0052 0023     	 movhi r3,#0
+ 346 0054 A340     	 lslls r3,r3,r4
+ 347 0056 0361     	 str r3,[r0,#16]
+ 348              	.L32:
+ 349 0058 0123     	 movs r3,#1
+ 199:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 200:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_CLR = MCPWM_CAPCON_RT(captureConfig->captureChannel);
+ 201:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 202:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 203:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (captureConfig->hnfEnable /* == ENABLE */){
+ 350              	 .loc 1 203 0
+ 351 005a 1269     	 ldr r2,[r2,#16]
+ 352              	.LVL12:
+ 353 005c 1531     	 adds r1,r1,#21
+ 354              	.LVL13:
+ 204:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_SET = MCPWM_CAPCON_HNFCAP(channelNum);
+ 355              	 .loc 1 204 0
+ 356 005e 03FA01F1 	 lsl r1,r3,r1
+ 357              	.LVL14:
+ 203:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_SET = MCPWM_CAPCON_HNFCAP(channelNum);
+ 358              	 .loc 1 203 0
+ 359 0062 FAB1     	 cbz r2,.L34
+ 360              	 .loc 1 204 0 discriminator 1
+ 361 0064 0161     	 str r1,[r0,#16]
+ 362 0066 30BD     	 pop {r4,r5,pc}
+ 363              	.LVL15:
+ 364              	.L22:
+ 188:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 365              	 .loc 1 188 0
+ 366 0068 022B     	 cmp r3,#2
+ 367 006a 06D8     	 bhi .L25
+ 188:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 368              	 .loc 1 188 0 is_stmt 0 discriminator 3
+ 369 006c 03EB4304 	 add r4,r3,r3,lsl#1
+ 370 0070 0C44     	 add r4,r4,r1
+ 371 0072 6400     	 lsls r4,r4,#1
+ 372 0074 651C     	 adds r5,r4,#1
+ 373 0076 0124     	 movs r4,#1
+ 374 0078 AC40     	 lsls r4,r4,r5
+ 375              	.L25:
+ 188:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 376              	 .loc 1 188 0 discriminator 6
+ 377 007a 4461     	 str r4,[r0,#20]
+ 378 007c D4E7     	 b .L24
+ 379              	.L26:
+ 194:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 380              	 .loc 1 194 0 is_stmt 1
+ 381 007e 022B     	 cmp r3,#2
+ 382 0080 05D8     	 bhi .L29
+ 194:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 383              	 .loc 1 194 0 is_stmt 0 discriminator 3
+ 384 0082 03EB4304 	 add r4,r3,r3,lsl#1
+ 385 0086 0C44     	 add r4,r4,r1
+ 386 0088 6500     	 lsls r5,r4,#1
+ 387 008a 0124     	 movs r4,#1
+ 388 008c AC40     	 lsls r4,r4,r5
+ 389              	.L29:
+ 194:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 390              	 .loc 1 194 0 discriminator 6
+ 391 008e 4461     	 str r4,[r0,#20]
+ 392 0090 D8E7     	 b .L28
+ 393              	.L30:
+ 200:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 394              	 .loc 1 200 0 is_stmt 1
+ 395 0092 022B     	 cmp r3,#2
+ 396 0094 97BF     	 itett ls
+ 397 0096 0124     	 movls r4,#1
+ 398 0098 2346     	 movhi r3,r4
+ 399 009a 1233     	 addls r3,r3,#18
+ 400 009c 04FA03F3 	 lslls r3,r4,r3
+ 401 00a0 4361     	 str r3,[r0,#20]
+ 402 00a2 D9E7     	 b .L32
+ 403              	.LVL16:
+ 404              	.L34:
+ 205:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 206:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCAPCON_CLR = MCPWM_CAPCON_HNFCAP(channelNum);
+ 405              	 .loc 1 206 0 discriminator 1
+ 406 00a4 4161     	 str r1,[r0,#20]
+ 407              	.L20:
+ 408 00a6 30BD     	 pop {r4,r5,pc}
+ 409              	 .cfi_endproc
+ 410              	.LFE58:
+ 412              	 .section .text.MCPWM_ClearCapture,"ax",%progbits
+ 413              	 .align 1
+ 414              	 .global MCPWM_ClearCapture
+ 415              	 .syntax unified
+ 416              	 .thumb
+ 417              	 .thumb_func
+ 418              	 .fpu softvfp
+ 420              	MCPWM_ClearCapture:
+ 421              	.LFB59:
+ 207:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 208:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 209:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 210:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 211:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 212:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 213:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Clears current captured value in specified capture channel
+ 214:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 215:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 216:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	captureChannel	Capture channel number, should be: 0..2
+ 217:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 218:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 219:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_ClearCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
+ 220:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 422              	 .loc 1 220 0
+ 423              	 .cfi_startproc
+ 424              	 
+ 425              	 
+ 426              	 
+ 427              	.LVL17:
+ 221:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCCAP_CLR = MCPWM_CAPCLR_CAP(captureChannel);
+ 428              	 .loc 1 221 0
+ 429 0000 0229     	 cmp r1,#2
+ 430 0002 96BF     	 itet ls
+ 431 0004 0123     	 movls r3,#1
+ 432 0006 0021     	 movhi r1,#0
+ 433              	.LVL18:
+ 434 0008 03FA01F1 	 lslls r1,r3,r1
+ 435 000c 4167     	 str r1,[r0,#116]
+ 436 000e 7047     	 bx lr
+ 437              	 .cfi_endproc
+ 438              	.LFE59:
+ 440              	 .section .text.MCPWM_GetCapture,"ax",%progbits
+ 441              	 .align 1
+ 442              	 .global MCPWM_GetCapture
+ 443              	 .syntax unified
+ 444              	 .thumb
+ 445              	 .thumb_func
+ 446              	 .fpu softvfp
+ 448              	MCPWM_GetCapture:
+ 449              	.LFB60:
+ 222:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 223:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 224:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 225:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Get current captured value in specified capture channel
+ 226:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected,
+ 227:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 228:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	captureChannel	Capture channel number, should be: 0..2
+ 229:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 230:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 231:LPC17xxLib/src/lpc17xx_mcpwm.c **** uint32_t MCPWM_GetCapture(LPC_MCPWM_TypeDef *MCPWMx, uint32_t captureChannel)
+ 232:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 450              	 .loc 1 232 0
+ 451              	 .cfi_startproc
+ 452              	 
+ 453              	 
+ 454              	 
+ 455              	.LVL19:
+ 233:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if (captureChannel == 0){
+ 456              	 .loc 1 233 0
+ 457 0000 09B9     	 cbnz r1,.L45
+ 234:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		return (MCPWMx->MCCR0);
+ 458              	 .loc 1 234 0
+ 459 0002 406C     	 ldr r0,[r0,#68]
+ 460              	.LVL20:
+ 461 0004 7047     	 bx lr
+ 462              	.LVL21:
+ 463              	.L45:
+ 235:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else if (captureChannel == 1) {
+ 464              	 .loc 1 235 0
+ 465 0006 0129     	 cmp r1,#1
+ 466 0008 01D1     	 bne .L47
+ 236:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		return (MCPWMx->MCCR1);
+ 467              	 .loc 1 236 0
+ 468 000a 806C     	 ldr r0,[r0,#72]
+ 469              	.LVL22:
+ 470 000c 7047     	 bx lr
+ 471              	.LVL23:
+ 472              	.L47:
+ 237:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else if (captureChannel == 2) {
+ 473              	 .loc 1 237 0
+ 474 000e 0229     	 cmp r1,#2
+ 238:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		return (MCPWMx->MCCR2);
+ 475              	 .loc 1 238 0
+ 476 0010 0CBF     	 ite eq
+ 477 0012 C06C     	 ldreq r0,[r0,#76]
+ 478              	.LVL24:
+ 239:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 240:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	return (0);
+ 479              	 .loc 1 240 0
+ 480 0014 0020     	 movne r0,#0
+ 241:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 481              	 .loc 1 241 0
+ 482 0016 7047     	 bx lr
+ 483              	 .cfi_endproc
+ 484              	.LFE60:
+ 486              	 .section .text.MCPWM_CountConfig,"ax",%progbits
+ 487              	 .align 1
+ 488              	 .global MCPWM_CountConfig
+ 489              	 .syntax unified
+ 490              	 .thumb
+ 491              	 .thumb_func
+ 492              	 .fpu softvfp
+ 494              	MCPWM_CountConfig:
+ 495              	.LFB61:
+ 242:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 243:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 244:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 245:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Configures Count control in MCPWM peripheral
+ 246:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 247:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 248:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channelNum	Channel number, should be: 0..2
+ 249:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	countMode	Count mode, should be:
+ 250:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: Enables count mode.
+ 251:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: Disable count mode, the channel is in timer mode.
+ 252:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	countConfig	Pointer to a MCPWM_COUNT_CFG_Type structure
+ 253:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    		that contains the configuration information for the
+ 254:LPC17xxLib/src/lpc17xx_mcpwm.c **** *                    		specified MCPWM count control.
+ 255:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 256:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 257:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_CountConfig(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channelNum,
+ 258:LPC17xxLib/src/lpc17xx_mcpwm.c **** 					uint32_t countMode, MCPWM_COUNT_CFG_Type *countConfig)
+ 259:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 496              	 .loc 1 259 0
+ 497              	 .cfi_startproc
+ 498              	 
+ 499              	 
+ 500              	.LVL25:
+ 260:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if ((channelNum >= 0) && (channelNum <= 2)) {
+ 501              	 .loc 1 260 0
+ 502 0000 0229     	 cmp r1,#2
+ 259:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if ((channelNum >= 0) && (channelNum <= 2)) {
+ 503              	 .loc 1 259 0
+ 504 0002 30B5     	 push {r4,r5,lr}
+ 505              	 .cfi_def_cfa_offset 12
+ 506              	 .cfi_offset 4,-12
+ 507              	 .cfi_offset 5,-8
+ 508              	 .cfi_offset 14,-4
+ 509              	 .loc 1 260 0
+ 510 0004 3ED8     	 bhi .L49
+ 511 0006 0125     	 movs r5,#1
+ 512 0008 01F11D04 	 add r4,r1,#29
+ 261:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (countMode /* == ENABLE */){
+ 262:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCNTCON_SET = MCPWM_CNTCON_CNTR(channelNum);
+ 513              	 .loc 1 262 0
+ 514 000c 05FA04F4 	 lsl r4,r5,r4
+ 261:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		if (countMode /* == ENABLE */){
+ 515              	 .loc 1 261 0
+ 516 0010 002A     	 cmp r2,#0
+ 517 0012 36D0     	 beq .L51
+ 518              	 .loc 1 262 0 discriminator 1
+ 519 0014 0466     	 str r4,[r0,#96]
+ 263:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			if (countConfig->countFalling /* == ENABLE */) {
+ 520              	 .loc 1 263 0 discriminator 1
+ 521 0016 9C68     	 ldr r4,[r3,#8]
+ 522 0018 1A68     	 ldr r2,[r3]
+ 523              	.LVL26:
+ 524 001a D4B1     	 cbz r4,.L52
+ 264:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				MCPWMx->MCCNTCON_SET = MCPWM_CNTCON_TCMCI_FE(countConfig->counterChannel,channelNum);
+ 525              	 .loc 1 264 0
+ 526 001c 022A     	 cmp r2,#2
+ 527 001e 8FBF     	 iteee hi
+ 528 0020 0024     	 movhi r4,#0
+ 529 0022 02EB4204 	 addls r4,r2,r2,lsl#1
+ 530 0026 6418     	 addls r4,r4,r1
+ 531 0028 AC40     	 lslls r4,r4,r5
+ 532 002a 9CBF     	 itt ls
+ 533 002c 6419     	 addls r4,r4,r5
+ 534 002e 05FA04F4 	 lslls r4,r5,r4
+ 535 0032 0466     	 str r4,[r0,#96]
+ 536              	.L54:
+ 265:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			} else {
+ 266:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				MCPWMx->MCCNTCON_CLR = MCPWM_CNTCON_TCMCI_FE(countConfig->counterChannel,channelNum);
+ 267:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			}
+ 268:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			if (countConfig->countRising /* == ENABLE */) {
+ 537              	 .loc 1 268 0
+ 538 0034 5B68     	 ldr r3,[r3,#4]
+ 539              	.LVL27:
+ 540 0036 BBB1     	 cbz r3,.L56
+ 269:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				MCPWMx->MCCNTCON_SET = MCPWM_CNTCON_TCMCI_RE(countConfig->counterChannel,channelNum);
+ 541              	 .loc 1 269 0
+ 542 0038 022A     	 cmp r2,#2
+ 543 003a 9DBF     	 ittte ls
+ 544 003c 02EB4202 	 addls r2,r2,r2,lsl#1
+ 545 0040 5218     	 addls r2,r2,r1
+ 546 0042 0121     	 movls r1,#1
+ 547              	.LVL28:
+ 548 0044 0022     	 movhi r2,#0
+ 549 0046 9CBF     	 itt ls
+ 550 0048 5200     	 lslls r2,r2,#1
+ 551 004a 01FA02F2 	 lslls r2,r1,r2
+ 552 004e 0266     	 str r2,[r0,#96]
+ 553 0050 30BD     	 pop {r4,r5,pc}
+ 554              	.LVL29:
+ 555              	.L52:
+ 266:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			}
+ 556              	 .loc 1 266 0
+ 557 0052 022A     	 cmp r2,#2
+ 558 0054 06D8     	 bhi .L55
+ 266:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			}
+ 559              	 .loc 1 266 0 is_stmt 0 discriminator 3
+ 560 0056 02EB4204 	 add r4,r2,r2,lsl#1
+ 561 005a 0C44     	 add r4,r4,r1
+ 562 005c 6400     	 lsls r4,r4,#1
+ 563 005e 0134     	 adds r4,r4,#1
+ 564 0060 05FA04F4 	 lsl r4,r5,r4
+ 565              	.L55:
+ 266:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			}
+ 566              	 .loc 1 266 0 discriminator 6
+ 567 0064 4466     	 str r4,[r0,#100]
+ 568 0066 E5E7     	 b .L54
+ 569              	.LVL30:
+ 570              	.L56:
+ 270:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			} else {
+ 271:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				MCPWMx->MCCNTCON_CLR = MCPWM_CNTCON_TCMCI_RE(countConfig->counterChannel,channelNum);
+ 571              	 .loc 1 271 0 is_stmt 1
+ 572 0068 022A     	 cmp r2,#2
+ 573 006a 9DBF     	 ittte ls
+ 574 006c 02EB4202 	 addls r2,r2,r2,lsl#1
+ 575 0070 5218     	 addls r2,r2,r1
+ 576 0072 0121     	 movls r1,#1
+ 577              	.LVL31:
+ 578 0074 1A46     	 movhi r2,r3
+ 579 0076 9CBF     	 itt ls
+ 580 0078 5200     	 lslls r2,r2,#1
+ 581 007a 01FA02F2 	 lslls r2,r1,r2
+ 582 007e 4266     	 str r2,[r0,#100]
+ 583 0080 30BD     	 pop {r4,r5,pc}
+ 584              	.LVL32:
+ 585              	.L51:
+ 272:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			}
+ 273:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		} else {
+ 274:LPC17xxLib/src/lpc17xx_mcpwm.c **** 			MCPWMx->MCCNTCON_CLR = MCPWM_CNTCON_CNTR(channelNum);
+ 586              	 .loc 1 274 0 discriminator 1
+ 587 0082 4466     	 str r4,[r0,#100]
+ 588              	.L49:
+ 589 0084 30BD     	 pop {r4,r5,pc}
+ 590              	 .cfi_endproc
+ 591              	.LFE61:
+ 593              	 .section .text.MCPWM_Start,"ax",%progbits
+ 594              	 .align 1
+ 595              	 .global MCPWM_Start
+ 596              	 .syntax unified
+ 597              	 .thumb
+ 598              	 .thumb_func
+ 599              	 .fpu softvfp
+ 601              	MCPWM_Start:
+ 602              	.LFB62:
+ 275:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		}
+ 276:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 277:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 278:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 279:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 280:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 281:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Start MCPWM activity for each MCPWM channel
+ 282:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 283:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 284:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channel0	State of this command on channel 0:
+ 285:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: 'Start' command will effect on channel 0
+ 286:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: 'Start' command will not effect on channel 0
+ 287:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channel1	State of this command on channel 1:
+ 288:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: 'Start' command will effect on channel 1
+ 289:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: 'Start' command will not effect on channel 1
+ 290:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channel2	State of this command on channel 2:
+ 291:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: 'Start' command will effect on channel 2
+ 292:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: 'Start' command will not effect on channel 2
+ 293:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 294:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 295:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_Start(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channel0,
+ 296:LPC17xxLib/src/lpc17xx_mcpwm.c **** 					uint32_t channel1, uint32_t channel2)
+ 297:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 603              	 .loc 1 297 0
+ 604              	 .cfi_startproc
+ 605              	 
+ 606              	 
+ 607              	 
+ 608              	.LVL33:
+ 298:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	uint32_t regVal = 0;
+ 299:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	regVal = (channel0 ? MCPWM_CON_RUN(0) : 0) | (channel1 ? MCPWM_CON_RUN(1) : 0) \
+ 609              	 .loc 1 299 0
+ 610 0000 002A     	 cmp r2,#0
+ 611 0002 14BF     	 ite ne
+ 612 0004 4FF48072 	 movne r2,#256
+ 613              	.LVL34:
+ 614 0008 0022     	 moveq r2,#0
+ 615 000a 0029     	 cmp r1,#0
+ 616 000c 0CBF     	 ite eq
+ 617 000e 1146     	 moveq r1,r2
+ 618 0010 42F00101 	 orrne r1,r2,#1
+ 619              	.LVL35:
+ 300:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				| (channel2 ? MCPWM_CON_RUN(2) : 0);
+ 620              	 .loc 1 300 0
+ 621 0014 002B     	 cmp r3,#0
+ 622 0016 14BF     	 ite ne
+ 623 0018 4FF48033 	 movne r3,#65536
+ 624              	.LVL36:
+ 625 001c 0023     	 moveq r3,#0
+ 299:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				| (channel2 ? MCPWM_CON_RUN(2) : 0);
+ 626              	 .loc 1 299 0
+ 627 001e 1943     	 orrs r1,r1,r3
+ 628              	.LVL37:
+ 301:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCCON_SET = regVal;
+ 629              	 .loc 1 301 0
+ 630 0020 4160     	 str r1,[r0,#4]
+ 631 0022 7047     	 bx lr
+ 632              	 .cfi_endproc
+ 633              	.LFE62:
+ 635              	 .section .text.MCPWM_Stop,"ax",%progbits
+ 636              	 .align 1
+ 637              	 .global MCPWM_Stop
+ 638              	 .syntax unified
+ 639              	 .thumb
+ 640              	 .thumb_func
+ 641              	 .fpu softvfp
+ 643              	MCPWM_Stop:
+ 644              	.LFB63:
+ 302:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 303:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 304:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 305:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 306:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Stop MCPWM activity for each MCPWM channel
+ 307:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 308:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 309:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channel0	State of this command on channel 0:
+ 310:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: 'Stop' command will effect on channel 0
+ 311:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: 'Stop' command will not effect on channel 0
+ 312:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channel1	State of this command on channel 1:
+ 313:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: 'Stop' command will effect on channel 1
+ 314:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: 'Stop' command will not effect on channel 1
+ 315:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	channel2	State of this command on channel 2:
+ 316:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE: 'Stop' command will effect on channel 2
+ 317:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE: 'Stop' command will not effect on channel 2
+ 318:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 319:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 320:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_Stop(LPC_MCPWM_TypeDef *MCPWMx, uint32_t channel0,
+ 321:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		uint32_t channel1, uint32_t channel2)
+ 322:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 645              	 .loc 1 322 0
+ 646              	 .cfi_startproc
+ 647              	 
+ 648              	 
+ 649              	 
+ 650              	.LVL38:
+ 323:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	uint32_t regVal = 0;
+ 324:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	regVal = (channel0 ? MCPWM_CON_RUN(0) : 0) | (channel1 ? MCPWM_CON_RUN(1) : 0) \
+ 651              	 .loc 1 324 0
+ 652 0000 002A     	 cmp r2,#0
+ 653 0002 14BF     	 ite ne
+ 654 0004 4FF48072 	 movne r2,#256
+ 655              	.LVL39:
+ 656 0008 0022     	 moveq r2,#0
+ 657 000a 0029     	 cmp r1,#0
+ 658 000c 0CBF     	 ite eq
+ 659 000e 1146     	 moveq r1,r2
+ 660 0010 42F00101 	 orrne r1,r2,#1
+ 661              	.LVL40:
+ 325:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				| (channel2 ? MCPWM_CON_RUN(2) : 0);
+ 662              	 .loc 1 325 0
+ 663 0014 002B     	 cmp r3,#0
+ 664 0016 14BF     	 ite ne
+ 665 0018 4FF48033 	 movne r3,#65536
+ 666              	.LVL41:
+ 667 001c 0023     	 moveq r3,#0
+ 324:LPC17xxLib/src/lpc17xx_mcpwm.c **** 				| (channel2 ? MCPWM_CON_RUN(2) : 0);
+ 668              	 .loc 1 324 0
+ 669 001e 1943     	 orrs r1,r1,r3
+ 670              	.LVL42:
+ 326:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCCON_CLR = regVal;
+ 671              	 .loc 1 326 0
+ 672 0020 8160     	 str r1,[r0,#8]
+ 673 0022 7047     	 bx lr
+ 674              	 .cfi_endproc
+ 675              	.LFE63:
+ 677              	 .section .text.MCPWM_ACMode,"ax",%progbits
+ 678              	 .align 1
+ 679              	 .global MCPWM_ACMode
+ 680              	 .syntax unified
+ 681              	 .thumb
+ 682              	 .thumb_func
+ 683              	 .fpu softvfp
+ 685              	MCPWM_ACMode:
+ 686              	.LFB64:
+ 327:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 328:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 329:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 330:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 331:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Enables/Disables 3-phase AC motor mode on MCPWM peripheral
+ 332:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 333:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 334:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	acMode		State of this command, should be:
+ 335:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE.
+ 336:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE.
+ 337:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 338:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 339:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_ACMode(LPC_MCPWM_TypeDef *MCPWMx, uint32_t acMode)
+ 340:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 687              	 .loc 1 340 0
+ 688              	 .cfi_startproc
+ 689              	 
+ 690              	 
+ 691              	 
+ 692              	.LVL43:
+ 341:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if (acMode){
+ 693              	 .loc 1 341 0
+ 694 0000 51B1     	 cbz r1,.L74
+ 342:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCCON_SET = MCPWM_CON_ACMODE;
+ 695              	 .loc 1 342 0
+ 696 0002 0379     	 ldrb r3,[r0,#4]
+ 697 0004 0023     	 movs r3,#0
+ 698 0006 0371     	 strb r3,[r0,#4]
+ 699 0008 4279     	 ldrb r2,[r0,#5]
+ 700 000a 4371     	 strb r3,[r0,#5]
+ 701 000c 8279     	 ldrb r2,[r0,#6]
+ 702 000e 8371     	 strb r3,[r0,#6]
+ 703 0010 C379     	 ldrb r3,[r0,#7]
+ 704 0012 4023     	 movs r3,#64
+ 705 0014 C371     	 strb r3,[r0,#7]
+ 706 0016 7047     	 bx lr
+ 707              	.L74:
+ 343:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else {
+ 344:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCCON_CLR = MCPWM_CON_ACMODE;
+ 708              	 .loc 1 344 0
+ 709 0018 037A     	 ldrb r3,[r0,#8]
+ 710 001a 0172     	 strb r1,[r0,#8]
+ 711 001c 437A     	 ldrb r3,[r0,#9]
+ 712 001e 4172     	 strb r1,[r0,#9]
+ 713 0020 837A     	 ldrb r3,[r0,#10]
+ 714 0022 8172     	 strb r1,[r0,#10]
+ 715 0024 C37A     	 ldrb r3,[r0,#11]
+ 716 0026 4023     	 movs r3,#64
+ 717 0028 C372     	 strb r3,[r0,#11]
+ 718 002a 7047     	 bx lr
+ 719              	 .cfi_endproc
+ 720              	.LFE64:
+ 722              	 .section .text.MCPWM_DCMode,"ax",%progbits
+ 723              	 .align 1
+ 724              	 .global MCPWM_DCMode
+ 725              	 .syntax unified
+ 726              	 .thumb
+ 727              	 .thumb_func
+ 728              	 .fpu softvfp
+ 730              	MCPWM_DCMode:
+ 731              	.LFB65:
+ 345:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 346:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 347:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 348:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 349:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 350:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Enables/Disables 3-phase DC motor mode on MCPWM peripheral
+ 351:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 			Motor Control PWM peripheral selected
+ 352:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								Should be: LPC_MCPWM
+ 353:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	dcMode			State of this command, should be:
+ 354:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								- ENABLE.
+ 355:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								- DISABLE.
+ 356:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	outputInvered	Polarity of the MCOB outputs for all 3 channels,
+ 357:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								should be:
+ 358:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								- ENABLE: The MCOB outputs have opposite polarity
+ 359:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 									from the MCOA outputs.
+ 360:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								- DISABLE: The MCOB outputs have the same basic
+ 361:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 									polarity as the MCOA outputs.
+ 362:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	outputPattern	A value contains bits that enables/disables the specified
+ 363:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 								output pins route to the internal MCOA0 signal, should be:
+ 364:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								- MCPWM_PATENT_A0: 	 MCOA0 tracks internal MCOA0
+ 365:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								- MCPWM_PATENT_B0: 	 MCOB0 tracks internal MCOA0
+ 366:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								- MCPWM_PATENT_A1: 	 MCOA1 tracks internal MCOA0
+ 367:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								- MCPWM_PATENT_B1: 	 MCOB1 tracks internal MCOA0
+ 368:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								- MCPWM_PATENT_A2: 	 MCOA2 tracks internal MCOA0
+ 369:LPC17xxLib/src/lpc17xx_mcpwm.c **** 								- MCPWM_PATENT_B2: 	 MCOB2 tracks internal MCOA0
+ 370:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 371:LPC17xxLib/src/lpc17xx_mcpwm.c ****  *
+ 372:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * Note: all these outputPatent values above can be ORed together for using as input parameter.
+ 373:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 374:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_DCMode(LPC_MCPWM_TypeDef *MCPWMx, uint32_t dcMode,
+ 375:LPC17xxLib/src/lpc17xx_mcpwm.c **** 					uint32_t outputInvered, uint32_t outputPattern)
+ 376:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 732              	 .loc 1 376 0
+ 733              	 .cfi_startproc
+ 734              	 
+ 735              	 
+ 736              	.LVL44:
+ 737 0000 10B5     	 push {r4,lr}
+ 738              	 .cfi_def_cfa_offset 8
+ 739              	 .cfi_offset 4,-8
+ 740              	 .cfi_offset 14,-4
+ 377:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if (dcMode){
+ 741              	 .loc 1 377 0
+ 742 0002 B9B1     	 cbz r1,.L77
+ 378:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCCON_SET = MCPWM_CON_DCMODE;
+ 743              	 .loc 1 378 0
+ 744 0004 0179     	 ldrb r1,[r0,#4]
+ 745              	.LVL45:
+ 746 0006 0021     	 movs r1,#0
+ 747 0008 0171     	 strb r1,[r0,#4]
+ 748 000a 4479     	 ldrb r4,[r0,#5]
+ 749 000c 4171     	 strb r1,[r0,#5]
+ 750 000e 8479     	 ldrb r4,[r0,#6]
+ 751 0010 8171     	 strb r1,[r0,#6]
+ 752 0012 C179     	 ldrb r1,[r0,#7]
+ 753 0014 6FF07F01 	 mvn r1,#127
+ 754 0018 C171     	 strb r1,[r0,#7]
+ 755              	.L78:
+ 379:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else {
+ 380:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCCON_CLR = MCPWM_CON_DCMODE;
+ 381:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 382:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 383:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if (outputInvered) {
+ 756              	 .loc 1 383 0
+ 757 001a B2B1     	 cbz r2,.L79
+ 384:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCCON_SET = MCPWM_CON_INVBDC;
+ 758              	 .loc 1 384 0
+ 759 001c 0279     	 ldrb r2,[r0,#4]
+ 760              	.LVL46:
+ 761 001e 0022     	 movs r2,#0
+ 762 0020 0271     	 strb r2,[r0,#4]
+ 763 0022 4179     	 ldrb r1,[r0,#5]
+ 764 0024 4271     	 strb r2,[r0,#5]
+ 765 0026 8179     	 ldrb r1,[r0,#6]
+ 766 0028 8271     	 strb r2,[r0,#6]
+ 767 002a C279     	 ldrb r2,[r0,#7]
+ 768 002c 2022     	 movs r2,#32
+ 769 002e C271     	 strb r2,[r0,#7]
+ 770              	.L80:
+ 385:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else {
+ 386:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCCON_CLR = MCPWM_CON_INVBDC;
+ 387:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 388:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 389:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCCCP = outputPattern;
+ 771              	 .loc 1 389 0
+ 772 0030 0364     	 str r3,[r0,#64]
+ 773 0032 10BD     	 pop {r4,pc}
+ 774              	.LVL47:
+ 775              	.L77:
+ 380:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 776              	 .loc 1 380 0
+ 777 0034 047A     	 ldrb r4,[r0,#8]
+ 778 0036 0172     	 strb r1,[r0,#8]
+ 779 0038 447A     	 ldrb r4,[r0,#9]
+ 780 003a 4172     	 strb r1,[r0,#9]
+ 781 003c 847A     	 ldrb r4,[r0,#10]
+ 782 003e 8172     	 strb r1,[r0,#10]
+ 783 0040 C17A     	 ldrb r1,[r0,#11]
+ 784              	.LVL48:
+ 785 0042 6FF07F01 	 mvn r1,#127
+ 786 0046 C172     	 strb r1,[r0,#11]
+ 787 0048 E7E7     	 b .L78
+ 788              	.L79:
+ 386:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 789              	 .loc 1 386 0
+ 790 004a 017A     	 ldrb r1,[r0,#8]
+ 791 004c 0272     	 strb r2,[r0,#8]
+ 792 004e 417A     	 ldrb r1,[r0,#9]
+ 793 0050 4272     	 strb r2,[r0,#9]
+ 794 0052 817A     	 ldrb r1,[r0,#10]
+ 795 0054 8272     	 strb r2,[r0,#10]
+ 796 0056 C27A     	 ldrb r2,[r0,#11]
+ 797              	.LVL49:
+ 798 0058 2022     	 movs r2,#32
+ 799 005a C272     	 strb r2,[r0,#11]
+ 800 005c E8E7     	 b .L80
+ 801              	 .cfi_endproc
+ 802              	.LFE65:
+ 804              	 .section .text.MCPWM_IntConfig,"ax",%progbits
+ 805              	 .align 1
+ 806              	 .global MCPWM_IntConfig
+ 807              	 .syntax unified
+ 808              	 .thumb
+ 809              	 .thumb_func
+ 810              	 .fpu softvfp
+ 812              	MCPWM_IntConfig:
+ 813              	.LFB66:
+ 390:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 391:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 392:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 393:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 394:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Configures the specified interrupt in MCPWM peripheral
+ 395:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 396:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be: LPC_MCPWM
+ 397:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	ulIntType	Interrupt type, should be:
+ 398:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM0: Limit interrupt for channel (0)
+ 399:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT0: Match interrupt for channel (0)
+ 400:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP0: Capture interrupt for channel (0)
+ 401:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM1: Limit interrupt for channel (1)
+ 402:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT1: Match interrupt for channel (1)
+ 403:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP1: Capture interrupt for channel (1)
+ 404:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM2: Limit interrupt for channel (2)
+ 405:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT2: Match interrupt for channel (2)
+ 406:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP2: Capture interrupt for channel (2)
+ 407:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_ABORT: Fast abort interrupt
+ 408:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	NewState	New State of this command, should be:
+ 409:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- ENABLE.
+ 410:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- DISABLE.
+ 411:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 412:LPC17xxLib/src/lpc17xx_mcpwm.c ****  *
+ 413:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * Note: all these ulIntType values above can be ORed together for using as input parameter.
+ 414:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 415:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_IntConfig(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType, FunctionalState NewState)
+ 416:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 814              	 .loc 1 416 0
+ 815              	 .cfi_startproc
+ 816              	 
+ 817              	 
+ 818              	 
+ 819              	.LVL50:
+ 417:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	if (NewState) {
+ 820              	 .loc 1 417 0
+ 821 0000 0AB1     	 cbz r2,.L82
+ 418:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCINTEN_SET = ulIntType;
+ 822              	 .loc 1 418 0
+ 823 0002 4165     	 str r1,[r0,#84]
+ 824 0004 7047     	 bx lr
+ 825              	.L82:
+ 419:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	} else {
+ 420:LPC17xxLib/src/lpc17xx_mcpwm.c **** 		MCPWMx->MCINTEN_CLR = ulIntType;
+ 826              	 .loc 1 420 0
+ 827 0006 8165     	 str r1,[r0,#88]
+ 828 0008 7047     	 bx lr
+ 829              	 .cfi_endproc
+ 830              	.LFE66:
+ 832              	 .section .text.MCPWM_IntSet,"ax",%progbits
+ 833              	 .align 1
+ 834              	 .global MCPWM_IntSet
+ 835              	 .syntax unified
+ 836              	 .thumb
+ 837              	 .thumb_func
+ 838              	 .fpu softvfp
+ 840              	MCPWM_IntSet:
+ 841              	.LFB67:
+ 421:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	}
+ 422:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 423:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 424:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 425:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 426:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Sets/Forces the specified interrupt for MCPWM peripheral
+ 427:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected
+ 428:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							Should be LPC_MCPWM
+ 429:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	ulIntType	Interrupt type, should be:
+ 430:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM0: Limit interrupt for channel (0)
+ 431:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT0: Match interrupt for channel (0)
+ 432:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP0: Capture interrupt for channel (0)
+ 433:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM1: Limit interrupt for channel (1)
+ 434:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT1: Match interrupt for channel (1)
+ 435:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP1: Capture interrupt for channel (1)
+ 436:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM2: Limit interrupt for channel (2)
+ 437:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT2: Match interrupt for channel (2)
+ 438:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP2: Capture interrupt for channel (2)
+ 439:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_ABORT: Fast abort interrupt
+ 440:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 441:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * Note: all these ulIntType values above can be ORed together for using as input parameter.
+ 442:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 443:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_IntSet(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
+ 444:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 842              	 .loc 1 444 0
+ 843              	 .cfi_startproc
+ 844              	 
+ 845              	 
+ 846              	 
+ 847              	.LVL51:
+ 445:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCINTFLAG_SET = ulIntType;
+ 848              	 .loc 1 445 0
+ 849 0000 C166     	 str r1,[r0,#108]
+ 850 0002 7047     	 bx lr
+ 851              	 .cfi_endproc
+ 852              	.LFE67:
+ 854              	 .section .text.MCPWM_IntClear,"ax",%progbits
+ 855              	 .align 1
+ 856              	 .global MCPWM_IntClear
+ 857              	 .syntax unified
+ 858              	 .thumb
+ 859              	 .thumb_func
+ 860              	 .fpu softvfp
+ 862              	MCPWM_IntClear:
+ 863              	.LFB68:
+ 446:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 447:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 448:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 449:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 450:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Clear the specified interrupt pending for MCPWM peripheral
+ 451:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected,
+ 452:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							should be: LPC_MCPWM
+ 453:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	ulIntType	Interrupt type, should be:
+ 454:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM0: Limit interrupt for channel (0)
+ 455:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT0: Match interrupt for channel (0)
+ 456:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP0: Capture interrupt for channel (0)
+ 457:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM1: Limit interrupt for channel (1)
+ 458:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT1: Match interrupt for channel (1)
+ 459:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP1: Capture interrupt for channel (1)
+ 460:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM2: Limit interrupt for channel (2)
+ 461:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT2: Match interrupt for channel (2)
+ 462:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP2: Capture interrupt for channel (2)
+ 463:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_ABORT: Fast abort interrupt
+ 464:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 465:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * Note: all these ulIntType values above can be ORed together for using as input parameter.
+ 466:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 467:LPC17xxLib/src/lpc17xx_mcpwm.c **** void MCPWM_IntClear(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
+ 468:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 864              	 .loc 1 468 0
+ 865              	 .cfi_startproc
+ 866              	 
+ 867              	 
+ 868              	 
+ 869              	.LVL52:
+ 469:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	MCPWMx->MCINTFLAG_CLR = ulIntType;
+ 870              	 .loc 1 469 0
+ 871 0000 0167     	 str r1,[r0,#112]
+ 872 0002 7047     	 bx lr
+ 873              	 .cfi_endproc
+ 874              	.LFE68:
+ 876              	 .section .text.MCPWM_GetIntStatus,"ax",%progbits
+ 877              	 .align 1
+ 878              	 .global MCPWM_GetIntStatus
+ 879              	 .syntax unified
+ 880              	 .thumb
+ 881              	 .thumb_func
+ 882              	 .fpu softvfp
+ 884              	MCPWM_GetIntStatus:
+ 885              	.LFB69:
+ 470:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 471:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 472:LPC17xxLib/src/lpc17xx_mcpwm.c **** 
+ 473:LPC17xxLib/src/lpc17xx_mcpwm.c **** /*********************************************************************//**
+ 474:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @brief		Check whether if the specified interrupt in MCPWM is set or not
+ 475:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	MCPWMx 		Motor Control PWM peripheral selected,
+ 476:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							should be: LPC_MCPWM
+ 477:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @param[in]	ulIntType	Interrupt type, should be:
+ 478:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM0: Limit interrupt for channel (0)
+ 479:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT0: Match interrupt for channel (0)
+ 480:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP0: Capture interrupt for channel (0)
+ 481:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM1: Limit interrupt for channel (1)
+ 482:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT1: Match interrupt for channel (1)
+ 483:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP1: Capture interrupt for channel (1)
+ 484:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_LIM2: Limit interrupt for channel (2)
+ 485:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_MAT2: Match interrupt for channel (2)
+ 486:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_CAP2: Capture interrupt for channel (2)
+ 487:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * 							- MCPWM_INTFLAG_ABORT: Fast abort interrupt
+ 488:LPC17xxLib/src/lpc17xx_mcpwm.c ****  * @return		None
+ 489:LPC17xxLib/src/lpc17xx_mcpwm.c ****  **********************************************************************/
+ 490:LPC17xxLib/src/lpc17xx_mcpwm.c **** FlagStatus MCPWM_GetIntStatus(LPC_MCPWM_TypeDef *MCPWMx, uint32_t ulIntType)
+ 491:LPC17xxLib/src/lpc17xx_mcpwm.c **** {
+ 886              	 .loc 1 491 0
+ 887              	 .cfi_startproc
+ 888              	 
+ 889              	 
+ 890              	 
+ 891              	.LVL53:
+ 492:LPC17xxLib/src/lpc17xx_mcpwm.c **** 	return ((MCPWMx->MCINTFLAG & ulIntType) ? SET : RESET);
+ 892              	 .loc 1 492 0
+ 893 0000 836E     	 ldr r3,[r0,#104]
+ 894 0002 0B42     	 tst r3,r1
+ 493:LPC17xxLib/src/lpc17xx_mcpwm.c **** }
+ 895              	 .loc 1 493 0
+ 896 0004 14BF     	 ite ne
+ 897 0006 0120     	 movne r0,#1
+ 898              	.LVL54:
+ 899 0008 0020     	 moveq r0,#0
+ 900 000a 7047     	 bx lr
+ 901              	 .cfi_endproc
+ 902              	.LFE69:
+ 904              	 .text
+ 905              	.Letext0:
+ 906              	 .file 2 "/usr/include/newlib/machine/_default_types.h"
+ 907              	 .file 3 "/usr/include/newlib/sys/_stdint.h"
+ 908              	 .file 4 "CMSISv2p00_LPC17xx/inc/core_cm3.h"
+ 909              	 .file 5 "CMSISv2p00_LPC17xx/inc/system_LPC17xx.h"
+ 910              	 .file 6 "CMSISv2p00_LPC17xx/inc/LPC17xx.h"
+ 911              	 .file 7 "LPC17xxLib/inc/lpc_types.h"
+ 912              	 .file 8 "LPC17xxLib/inc/lpc17xx_mcpwm.h"
+ 913              	 .file 9 "LPC17xxLib/inc/lpc17xx_clkpwr.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 lpc17xx_mcpwm.c
+    {standard input}:16     .text.MCPWM_Init:0000000000000000 $t
+    {standard input}:23     .text.MCPWM_Init:0000000000000000 MCPWM_Init
+    {standard input}:79     .text.MCPWM_Init:0000000000000078 $d
+    {standard input}:84     .text.MCPWM_ConfigChannel:0000000000000000 $t
+    {standard input}:91     .text.MCPWM_ConfigChannel:0000000000000000 MCPWM_ConfigChannel
+    {standard input}:230    .text.MCPWM_WriteToShadow:0000000000000000 $t
+    {standard input}:237    .text.MCPWM_WriteToShadow:0000000000000000 MCPWM_WriteToShadow
+    {standard input}:280    .text.MCPWM_ConfigCapture:0000000000000000 $t
+    {standard input}:287    .text.MCPWM_ConfigCapture:0000000000000000 MCPWM_ConfigCapture
+    {standard input}:413    .text.MCPWM_ClearCapture:0000000000000000 $t
+    {standard input}:420    .text.MCPWM_ClearCapture:0000000000000000 MCPWM_ClearCapture
+    {standard input}:441    .text.MCPWM_GetCapture:0000000000000000 $t
+    {standard input}:448    .text.MCPWM_GetCapture:0000000000000000 MCPWM_GetCapture
+    {standard input}:487    .text.MCPWM_CountConfig:0000000000000000 $t
+    {standard input}:494    .text.MCPWM_CountConfig:0000000000000000 MCPWM_CountConfig
+    {standard input}:594    .text.MCPWM_Start:0000000000000000 $t
+    {standard input}:601    .text.MCPWM_Start:0000000000000000 MCPWM_Start
+    {standard input}:636    .text.MCPWM_Stop:0000000000000000 $t
+    {standard input}:643    .text.MCPWM_Stop:0000000000000000 MCPWM_Stop
+    {standard input}:678    .text.MCPWM_ACMode:0000000000000000 $t
+    {standard input}:685    .text.MCPWM_ACMode:0000000000000000 MCPWM_ACMode
+    {standard input}:723    .text.MCPWM_DCMode:0000000000000000 $t
+    {standard input}:730    .text.MCPWM_DCMode:0000000000000000 MCPWM_DCMode
+    {standard input}:805    .text.MCPWM_IntConfig:0000000000000000 $t
+    {standard input}:812    .text.MCPWM_IntConfig:0000000000000000 MCPWM_IntConfig
+    {standard input}:833    .text.MCPWM_IntSet:0000000000000000 $t
+    {standard input}:840    .text.MCPWM_IntSet:0000000000000000 MCPWM_IntSet
+    {standard input}:855    .text.MCPWM_IntClear:0000000000000000 $t
+    {standard input}:862    .text.MCPWM_IntClear:0000000000000000 MCPWM_IntClear
+    {standard input}:877    .text.MCPWM_GetIntStatus:0000000000000000 $t
+    {standard input}:884    .text.MCPWM_GetIntStatus:0000000000000000 MCPWM_GetIntStatus
+                     .debug_frame:0000000000000010 $d
+
+UNDEFINED SYMBOLS
+CLKPWR_ConfigPPWR
