@@ -1,6 +1,8 @@
 # Bootloader for Bigtreetech SKR 1.3, 1.4 and 1.4 TURBO; and For ALL BigTreeTech's 3D Printer boards that I could find!
 
-## This repository can be downloaded as one large zip file from my google drive: 
+
+## This repository can be downloaded as one large zip file from my google drive: https://drive.google.com/file/d/1hRSgYUa6hYUhNHsw1xSV_DP3yMu5Fhgo/view?usp=sharing
+
 
 This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader
 
