@@ -1,10 +1,12 @@
-# Bootloader for Bigtreetech SKR 1.3, 1.4 and 1.4 TURBO
+# Bootloader for Bigtreetech SKR 1.3, 1.4 and 1.4 TURBO; and For ALL BigTreeTech's 3D Printer boards that I could find!
+
+## This repository can be downloaded as one large zip file from my google drive: 
 
 This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader
 
 Supports Bigtreetech SKR 1.3, SKR 1.4 and SKR 1.4 TURBO with the same binary.
 
-# Bootloader for Bigtreetech SKR (mini) E3 TURBO board
+# Bootloader for Bigtreetech SKR (mini) E3 TURBO board; and All BIGTREETECH boards.
 
 This is a fork of https://github.com/ardiehl/BTT_SKR_13_14_14T_SD-DFU-Bootloader
 
@@ -34,7 +36,7 @@ ad@e5w ~]$ lsusb
 Bus 001 Device 072: ID 1d50:6015 OpenMoko, Inc. Smoothieboard
 ```
 
-Firmware can than be uploaded via dfu-util, e.g.
+Firmware can than be uploaded via dfu-util, e.g. (dfu-util ia a utility that run on Linux or Ubuntu platforms)
 
 ```
 sudo dfu-util --download firmware.bin
@@ -73,7 +75,7 @@ ad@e5w ~]$ lsusb
 Bus 001 Device 072: ID 1d50:6015 OpenMoko, Inc. Smoothieboard
 ```
 
-Firmware can than be uploaded via dfu-util, e.g.
+Firmware can than be uploaded via dfu-util, e.g.(dfu-util ia a utility that run on Linux or Ubuntu platforms)
 
 ```
 sudo dfu-util --download firmware.bin
