@@ -1,0 +1,2 @@
+URL for discussion of the issue:
+https://github.com/bigtreetech/BIGTREETECH-SKR-mini-E3/issues/431
