@@ -4,7 +4,7 @@
 # For ALL BigTreeTech's 3D Printer boards that I could find!
 
 
-## This repository can be downloaded as one large zip file from my google drive: https://drive.google.com/file/d/1CatCyxvoHQrBufYiEdl2lwqEoTQUQD0Y/view?usp=sharing
+## This repository can be downloaded as one large zip file from my google drive: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 
 This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader
