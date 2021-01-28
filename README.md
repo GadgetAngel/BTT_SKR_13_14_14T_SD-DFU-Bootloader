@@ -1,4 +1,4 @@
-# Bootloader for BIGTREETECH Boards:
+# Bootloaders for BIGTREETECH Boards:
 
 ## This repository can be downloaded as one large zip file from my google drive: https://drive.google.com/file/d/1Aa0JUAGH6lGvafyb9JtEKngNOBvqAIlF/view?usp=sharing
 
