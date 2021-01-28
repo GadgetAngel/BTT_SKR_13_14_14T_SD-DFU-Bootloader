@@ -9,12 +9,12 @@ This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader and https://
 The purpose of this repository is two folded. The first purpose to to back up the original boot loaders for the BIGTREETECH boards.  The second purpose of this repository is to provide a way for a user to compile a custom bootloader for the SKR V1.3, SKR V1.4, SKR V1.4 Turbo and SKR E3 Turbo boards.
 
 # The first purpose is to back up the original boot loaders for the BIGTREETECH boards
-First it is to back up the original boot loader for BIGTREETECH boards.
+
 The backups can be found  here: https://github.com/GadgetAngel/BTT_SKR_13_14_14T_SD-DFU-Bootloader/tree/main/bootloader_bin/backed_up_original_bootloaders
 
-Their are PDF files for both Windows 10 based computers and Linux computers.  These PDF files are GUIDES for the Marlin user on how to backup the bootloader file and the bootloader-and-firware file for the BIGTREETECH boards.
+There are PDF files for both Windows 10 based computers and Linux computers.  These PDF files are GUIDES for the Marlin user on how to backup the bootloader file and the bootloader-and-firware file for the BIGTREETECH boards.
 
-The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore you bootloader file for the BIGTREETEC board.
+The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
 ---
 
@@ -26,11 +26,11 @@ If you plan on restoring or backing up the bootloader using a Windows 10 machine
 
 2) "Guide UART Flash SKR V1.3 or SKR V1.4 or SKR V1.4 TURBO using USB to TTL adapter using Windows 10.pdf" which should only be used for SKR V1.3, SKR V1.4, or SKR V1.4 Turbo boards.  This PDF uses the USB to TTL adapter to communicate to the board.
 
-3) "Guide UART Flash SKR E3 TURBO board using Windows 10.pdf" or "Guide UART Flash SKR E3 TURBO board_reducedsize using Windows 10.pdf" which should only be used for the SKR (mini) E3 Turbo board or SKR E3 Turbo board.
+3) "Guide UART Flash SKR E3 TURBO board using Windows 10.pdf" or "Guide UART Flash SKR E3 TURBO board_reducedsize using Windows 10.pdf" which should only be used for the SKR (mini) E3 Turbo board or SKR E3 Turbo board. The BIGTREETECH BTT Writer device is used to communicate with the board.
 
 4) "Guide ST-LINK Utility on Windows 10 for ST-Link-V2-Clones for accessing STM32 Processors.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6, SKR E3 DIP, SKR mini E3 V1.2, SKR mini E3 V2.0, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards.
 
-The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore you bootloader file for the BIGTREETEC board.
+The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
 ---
 
@@ -44,7 +44,7 @@ If you plan on restoring or backing up the bootloader using Linux (Linux Mint 20
 
 3) "Guide STM32CubeProgrammer Utility for ST-Link-V2 (offical) for accessing STM32 Processors using LINUX.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6, SKR E3 DIP, SKR mini E3 V1.2, SKR mini E3 V2.0, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards.  This GUIDE covers the STM32CubeProgrammer utility. The ST-LINK-V2 offical device is the item used to communicate with the board and uses 4/5 wires to connect to the SWD port. One of these wires is the RST wire and the RST wire is connected to the SWD connector. You can also not connect up the RST wire but it is recommened that you do connect the RST wire.  But some MCU processor may not connect to the ST-LINK-V2 device if the RST line is used, if that is the case, try again but this time disconnect the RST line.
 
-The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore you bootloader file for the BIGTREETEC board.
+The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
 ---
 
