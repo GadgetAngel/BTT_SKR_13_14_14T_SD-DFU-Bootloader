@@ -28,7 +28,7 @@ If you plan on restoring or backing up the bootloader using a Windows 10 machine
 
 3) "Guide UART Flash SKR E3 TURBO board using Windows 10.pdf" or "Guide UART Flash SKR E3 TURBO board_reducedsize using Windows 10.pdf" which should only be used for the SKR (mini) E3 Turbo board or SKR E3 Turbo board. The BIGTREETECH BTT Writer device is used to communicate with the board.
 
-4) "Guide ST-LINK Utility on Windows 10 for ST-Link-V2-Clones for accessing STM32 Processors.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6, SKR E3 DIP, SKR mini E3 V1.2, SKR mini E3 V2.0, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards.
+4) "Guide ST-LINK Utility on Windows 10 for ST-Link-V2-Clones for accessing STM32 Processors.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6, SKR E3 DIP, SKR mini E3 V1.2, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards.
 
 The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
