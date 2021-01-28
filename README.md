@@ -6,9 +6,9 @@ This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader and https://
 
 # Puropse of this repository
 
-The purpose of this repository is two folded. The first purpose to to back up the original boot loader for the BIGTREETECH boards.  The second purpose of this repository is to provide a way for a user to compile a custom bootloader for the SKR V1.3, SKR V1.4, SKR V1.4 Turbo and SKR E3 Turbo boards.
+The purpose of this repository is two folded. The first purpose to to back up the original boot loaders for the BIGTREETECH boards.  The second purpose of this repository is to provide a way for a user to compile a custom bootloader for the SKR V1.3, SKR V1.4, SKR V1.4 Turbo and SKR E3 Turbo boards.
 
-# The first purpose is to back up the original boot loader for the BIGTREETECH boards
+# The first purpose is to back up the original boot loaders for the BIGTREETECH boards
 First it is to back up the original boot loader for BIGTREETECH boards.
 The backups can be found  here: https://github.com/GadgetAngel/BTT_SKR_13_14_14T_SD-DFU-Bootloader/tree/main/bootloader_bin/backed_up_original_bootloaders
 
