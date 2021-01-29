@@ -1,6 +1,6 @@
 # Bootloaders for BIGTREETECH Boards:
 
-## This repository can be downloaded as one large zip file from my google drive: https://drive.google.com/file/d/1LjhzCjn7_3dK90GVcrI2wOtoMVmz63sD/view?usp=sharing
+## This repository can be downloaded as one large zip file from my google drive: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader and https://github.com/ardiehl/BTT_SKR_13_14_14T_SD-DFU-Bootloader
 
@@ -28,7 +28,7 @@ If you plan on restoring or backing up the bootloader using a Windows 10 machine
 
 3) "Guide UART Flash SKR E3 TURBO board using Windows 10.pdf" or "Guide UART Flash SKR E3 TURBO board_reducedsize using Windows 10.pdf" which should only be used for the SKR (mini) E3 Turbo board or SKR E3 Turbo board. The BIGTREETECH BTT Writer device is used to communicate with the board.
 
-4) "Guide ST-LINK Utility on Windows 10 for ST-Link-V2-Clones for accessing STM32 Processors.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6, SKR E3 DIP, SKR mini E3 V1.2, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards.
+4) "Guide ST-LINK Utility on Windows 10 for ST-Link-V2-Clones for accessing STM32 Processors.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6 V1,0, SKR E3 DIP, SKR mini E3 V1.2, SKR mini E3 V2.0, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards. This GUIDE can be used for either ST-LINK-V2 clones or ST-LINK-V2 offical device from STelectronics.
 
 The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
@@ -68,7 +68,9 @@ The "Problem with using ST-LINK Utility" contains information for obtaining the 
 
 The hardware fix will use another PIN on the processor to replace the SWCLK line that is being reused by the board for the USB port. This hardware fix will free up the SWCLK pin to be used only for the SWD connector. The SKR MINI E3 2.0 board, disables the SWD connector's pins. If you preform this hardware hack you must also adjust the Marli firmware to match the hardware change.
 
-The folders within the SKR mini E3 2.0 backup directory also contains another folder called "FW File needed to turn ON SWD connector" which contains the Marlin firmware that is needed to be installed on the SKR MINI E3 V2.0 board prior to trying to back up the bootloader file.  This Marlin firmware enables the SWD connector pins so that the ST-LINK-V2 clone or ST-LINK-V2 offical device can connect to the processor.
+The folders within the SKR mini E3 2.0 backup directory also contains another folder called "FW File needed to turn ON SWD connector" which contains the Marlin firmware that is needed to be installed on the SKR MINI E3 V2.0 board PRIOR to trying to back up the bootloader file.  This Marlin firmware or "FW File" enables the SWD connector pins (PA13 & PA14) so that the  ST-LINK-V2 offical device can connect to the processor. If this "FW File" is not placed onto a micro-SD card and placed inside the micro-SD card reader the ST-LINK-V2 probe device will NOT be allowed to connect to the processor because you have not enabled PA13 and PA14 yet.  Once you have backup your bootloader file you can compile your own version of Marlin firmware for you printer and upload it to the SKR CR6 V1.0 board via the onboard SD Card reader. I fact, I would not run a 3D printer with the FW File.  ST-LINK-V2 Clone devices will not work with this board, they appear to work (they save the file) but when you look at the file contents it is mostly all 0xFF.  Therefore, I have found that an official ST-LINK-V2 device from STelectronics will connect and properly save the files.  An official ST-LINK-V2 can be bought from Amazon for $37.00 [https://www.amazon.com/ST-LINK-V2-circuit-debugger-programmer/dp/B00SDTEM1I].
+
+The SKR CR6 V1.0 board also repuposes the SWCLK line and SWDIO line for other signals on the board. Therefore I have provided you with the Marlin firmware that needs to be loaded on to the board PRIOR to you trying to back up the bootloader from the board. The Marlin firmware is a basic setup but it enables the PA13 and PA14 to work only with the SWD Connector. If this new firware is not placed onto a SD card and placed inside the SD card reader the ST-LINK-V2 probe device will NOT be allowed to connect to the processor because you have not enabled PA13 and PA14 yet.  This "FW File" is located in a subdirectory of the SRK CR6 V1.0 directory and is called "FW File needed to turn ON SWD connector".  Once you have backup your bootloader file you can compile your own version of Marlin firmware for you printer and upload it to the SKR CR6 V1.0 board via the onboard SD Card reader. I fact, I would not run a 3D printer with the FW File.  ST-LINK-V2 Clone devices will not work with this board, they appear to work (they save the file) but when you look at the file contents it is mostly all 0xFF.  Therefore, I have found that an official ST-LINK-V2 device from STelectronics will connect and properly save the files.  An official ST-LINK-V2 can be bought from Amazon for $37.00 [https://www.amazon.com/ST-LINK-V2-circuit-debugger-programmer/dp/B00SDTEM1I].
 
 ---
 
