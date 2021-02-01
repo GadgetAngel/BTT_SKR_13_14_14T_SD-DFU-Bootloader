@@ -77,6 +77,12 @@ The SKR CR6 V1.0 board also repuposes the SWCLK line and SWDIO line for other si
 
 ---
 
+## If you use the _backup_up_original_bootloader_ folder, you need to be aware that the _bootloader files_ on the following boards are the orignals _but_ the _Marlin firmware_ that is saved as part of the the xxxx-bootloader-and-firmware.bin or xxxx-bootloader-and-fimrware.hex files will work but when you reboot the board you might get a MIN TEMP error (SKR V1.3, SKR V1.4, SKR V1.4 Turbo, SKR PRO V1.1, and GTR V1.0), and the Marlin Firmware will cause the printer to shut off.  The way to solve this issue is for you to _recompile the Marlin Firmware_ from the release branch of Marlin on github.com and take compiled firmware.bin file that was built for your printer and place it on the micro-SD card and put it into the onboard micro-SD card reader so that your version of Marlin will get up loaded to the board. If you can not up load via the micro-SD card you can upload your Marlin firmware via the SWD connector and a ST-LINK-V2 device.  Please look at the Bigtreetech boards Bootloader V2.0.pdf to see at which hex address the Marlin firmware begins for each board. THe GUIDES will explain how to restore files. The only thing that is different from the GUIDES is that you are uploading only the Marlin firmware which means the starting hex address will be different and the file uploaded will be different but the procedure is the same.
+
+## I was performing testing for Marlin concerning the MAX31865 board and PT100 and when I started this project. I apologize for any inconvience this might have caused.  The bootloader for each board are SOLID, and have never been changed so if you manage to up load the bootloader files and your board still does not boot then the next solution would be to upload the Marlin firmware only.
+
+## I would appriciate people reporting which board might have this issue. I know the SKR V1.4 Turbo board has Marlin firmware that will produce a MIN temp error. I am waiting on the person who reported the issue to send me the bootloader-and-firmware.bin file the dumped from their new SKR V1.4 Turbo board. Once recieved I will update the backup_up_original_bootloader folder for SKR V1.4 Turbo board with this file.
+
 ---
 
 # The second purpose of this repository is to provide a way for a Marlin user to compile thier own custom bootloader for the SKR V1.3, SKR V1.4, SKR V1.4 Turbo or SKR E3 Turbo boards.
