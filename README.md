@@ -81,7 +81,7 @@ The SKR CR6 V1.0 board also repuposes the SWCLK line and SWDIO line for other si
 
 #### I was performing testing for Marlin concerning the MAX31865 board and PT100 and when I started this project. I apologize for any inconvience this might have caused.  The bootloader for each board are SOLID, and have never been changed so if you manage to up load the bootloader files and your board still does not boot then the next solution would be to upload the Marlin firmware only.
 
-#### I would appriciate people reporting which board might have this issue. I know the SKR V1.4 Turbo board has Marlin firmware that will produce a MIN temp error. I am waiting on the person who reported the issue to send me the bootloader-and-firmware.bin file the dumped from their new SKR V1.4 Turbo board. Once recieved I will update the backup_up_original_bootloader folder for SKR V1.4 Turbo board with this file.
+#### I would appriciate people reporting which board might have this issue. I know the SKR V1.4 Turbo board has Marlin firmware that will produce a MIN temp error. I am waiting on the person who reported the issue to send me the bootloader-and-firmware.bin file the dumped from their new SKR V1.4 Turbo board. ~Once recieved I will update the backup_up_original_bootloader folder for SKR V1.4 Turbo board with this file.~ The SKR V1.4 Turbo bootloader-and-firmware.bin file was recieved by NezSez from github.com. Thank you NezSez for finding, reporting and helping fix the problem.
 
 ---
 
