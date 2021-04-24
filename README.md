@@ -1,6 +1,6 @@
 # Bootloaders for BIGTREETECH Boards:
 
-## This repository can be downloaded as one large zip file from my Google drive: https://drive.google.com/file/d/1vh2pi98j-Lo5vWr8SmSnTt2LBf3BJOX8/view?usp=sharing
+## This repository can be downloaded as one large zip file from my Google drive: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader and https://github.com/ardiehl/BTT_SKR_13_14_14T_SD-DFU-Bootloader
 
@@ -14,7 +14,7 @@ The backups can be found  here: https://github.com/GadgetAngel/BTT_SKR_13_14_14T
 
 There are PDF files for both Windows 10 based computers and Linux computers.  These PDF files are GUIDES for the Marlin user on how to backup the bootloader file and the bootloader-and-firware file for the BIGTREETECH boards.
 
-The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
+The "Bigtreetech boards Bootloaders_vX.X.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
 ---
 
@@ -30,7 +30,7 @@ If you plan on restoring or backing up the bootloader using a Windows 10 machine
 
 4) "Guide ST-LINK Utility on Windows 10 for ST-Link-V2-Clones for accessing STM32 Processors.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6 V1,0, SKR E3 DIP, SKR mini E3 V1.2, SKR mini E3 V2.0, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards. This GUIDE can be used for either ST-LINK-V2 clones or ST-LINK-V2 offical device from STelectronics.
 
-The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
+The "Bigtreetech boards Bootloaders_vX.X.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
 ---
 
@@ -44,7 +44,7 @@ If you plan on restoring or backing up the bootloader using Linux (Linux Mint 20
 
 3) "Guide STM32CubeProgrammer Utility for ST-Link-V2 (offical) for accessing STM32 Processors using LINUX.pdf" which can be used on the following BIGTREETECH boards: BTT002 V1.0, GTR V1.0, SKR CR6, SKR E3 DIP, SKR mini E3 V1.2, SKR mini E3 V2.0, SKR mini MZ V1.0, SKR mini 1.1, SKR PRO V1.1, or SKR PRO V1.2 boards.  This GUIDE covers the STM32CubeProgrammer utility. The ST-LINK-V2 offical device is the item used to communicate with the board and uses 4/5 wires to connect to the SWD port. One of these wires is the RST wire and the RST wire is connected to the SWD connector. You can also not connect up the RST wire but it is recommened that you do connect the RST wire.  But some MCU processor may not connect to the ST-LINK-V2 device if the RST line is used, if that is the case, try again but this time disconnect the RST line.
 
-The "Bigtreetech boards Bootloaders_v2.0.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
+The "Bigtreetech boards Bootloaders_vX.X.pdf" contains the layout of the flash memory for each of the BIGTREETECH boards. You will need this file and a GUIDE if you want to backup or restore your bootloader file to a BIGTREETECH board.
 
 ---
 
