@@ -1,6 +1,6 @@
 # Bootloaders for BIGTREETECH Boards:
 
-## This repository can be downloaded as one large zip file from my Google drive: https://drive.google.com/file/d/1hb45YSlF2bSZQiv-A89eCrloGjXck__k/view?usp=sharing
+## This repository can be downloaded as one large zip file from my Google drive: https://drive.google.com/file/d/1xhxnywoOksBOjhFACwzbBQJ6E4Dk4YA9/view?usp=sharing
 
 This is a fork of https://github.com/triffid/LPC17xx-DFU-Bootloader and https://github.com/ardiehl/BTT_SKR_13_14_14T_SD-DFU-Bootloader
 
